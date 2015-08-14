@@ -1,6 +1,4 @@
 # C & C++
-*.a
-*.so
 
 # Eclipse
 .settings
