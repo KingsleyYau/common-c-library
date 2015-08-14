@@ -1,3 +1,11 @@
+# C & C++
+*.a
+*.so
+
+# Eclipse
+.settings
+.externalToolBuilders
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
