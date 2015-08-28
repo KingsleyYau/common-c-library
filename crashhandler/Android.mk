@@ -29,8 +29,4 @@ LOCAL_CPPFLAGS  := -std=c++11
 LOCAL_REAL_PATH := $(realpath $(LOCAL_PATH))
 LOCAL_SRC_FILES := $(call all-cpp-files-under, $(LOCAL_REAL_PATH))
 
-$(info crashhandler LOCAL_PATH: $(LOCAL_PATH))
-$(info crashhandler LOCAL_REAL_PATH: $(LOCAL_REAL_PATH))
-$(info crashhandler LOCAL_SRC_FILES: $(LOCAL_SRC_FILES))
-
 include $(BUILD_SHARED_LIBRARY)

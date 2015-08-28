@@ -12,6 +12,7 @@
 #include "ITransportDataHandler.h"
 #include "TaskDef.h"
 #include <common/KLog.h>
+#include <unistd.h>
 
 CTaskManager::CTaskManager(void)
 {
@@ -173,8 +174,19 @@ void CTaskManager::OnRecv(const TransportProtocol* tp)
 
 	ITask* task = NULL;
 	if (IsRequestCmd(tp->header.cmd)) {
-		// 客户端请求服务器回复
-		task = m_requestTaskMap.PopTaskWithSeq(tp->header.seq);
+		int waitTime = 0;
+		do {
+			// 客户端请求服务器回复
+			task = m_requestTaskMap.PopTaskWithSeq(tp->header.seq);
+			if (NULL != task || waitTime > 2) {
+				break;
+			}
+			else {
+				// 没有找到该任务，等待任务添加到队列
+				waitTime++;
+				usleep(100 * 1000);
+			}
+		} while (true);
 	}
 	else {
 		// 服务器主动请求

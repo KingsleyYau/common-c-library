@@ -6,8 +6,8 @@
  */
 
 #include "CrashHandler.h"
-
 #include <common/command.h>
+#include <common/KLog.h>
 
 namespace {
 static bool filterCallback(void* context) {
@@ -47,7 +47,7 @@ CrashHandler* CrashHandler::GetInstance() {
 }
 
 CrashHandler::CrashHandler() {
-
+	GetPhoneInfo();
 }
 
 CrashHandler::~CrashHandler() {

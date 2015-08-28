@@ -103,6 +103,8 @@
 		<Unit filename="../../LiveChatJniCallbackItemDef.h" />
 		<Unit filename="../../LoginTask.cpp" />
 		<Unit filename="../../LoginTask.h" />
+		<Unit filename="../../PlayVideoTask.cpp" />
+		<Unit filename="../../PlayVideoTask.h" />
 		<Unit filename="../../RecvEMFNoticeTask.cpp" />
 		<Unit filename="../../RecvEMFNoticeTask.h" />
 		<Unit filename="../../RecvEditMsgTask.cpp" />
@@ -125,6 +127,8 @@
 		<Unit filename="../../RecvTryTalkBeginTask.h" />
 		<Unit filename="../../RecvTryTalkEndTask.cpp" />
 		<Unit filename="../../RecvTryTalkEndTask.h" />
+		<Unit filename="../../RecvVideoTask.cpp" />
+		<Unit filename="../../RecvVideoTask.h" />
 		<Unit filename="../../RecvVoiceTask.cpp" />
 		<Unit filename="../../RecvVoiceTask.h" />
 		<Unit filename="../../RecvWarningTask.cpp" />

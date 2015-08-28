@@ -44,6 +44,7 @@ public:
 	virtual void OnGetRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
 	virtual void OnGetFeeRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
 	virtual void OnGetLadyChatInfo(LCC_ERR_TYPE err, const string& errmsg, const list<string>& chattingList, const list<string>& chattingInviteIdList, const list<string>& missingList, const list<string>& missingInviteIdList) = 0;
+	virtual void OnPlayVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
 	// 服务器主动请求
 	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message) = 0;
 	virtual void OnRecvEmotion(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& emotionId) = 0;
@@ -60,6 +61,7 @@ public:
 	virtual void OnRecvPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
 	virtual void OnRecvLadyVoiceCode(const string& voiceCode) = 0;
 	virtual void OnRecvIdentifyCode(const unsigned char* data, long dataLen) = 0;
+	virtual void OnRecvVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket) = 0;
 };
 
 // LiveChat客户端接口类
@@ -136,6 +138,8 @@ public:
 	virtual bool GetFeeRecentContactList() = 0;
 	// 获取女士聊天信息（包括在聊及邀请的男士列表等）
 	virtual bool GetLadyChatInfo() = 0;
+	// 播放视频
+	virtual bool PlayVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charget, const string& videoDesc, int ticket) = 0;
 
 public:
 	// 获取用户账号

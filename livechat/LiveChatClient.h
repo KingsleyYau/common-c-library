@@ -83,6 +83,8 @@ public:
 	virtual bool GetFeeRecentContactList();
 	// 获取女士聊天信息（包括在聊及邀请的男士列表等）
 	virtual bool GetLadyChatInfo();
+	// 播放视频
+	virtual bool PlayVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charget, const string& videoDesc, int ticket);
 
 public:
 	// 获取用户账号

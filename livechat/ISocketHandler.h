@@ -39,6 +39,12 @@ public:
 		UDP_SOCKET
 	} SOCKET_TYPE;
 
+	typedef enum {
+		HANDLE_SUCCESS,	// 处理成功
+		HANDLE_FAIL,	// 处理失败
+		HANDLE_TIMEOUT	// 处理超时
+	} HANDLE_RESULT;
+
 public:
 	static bool InitEnvironment();
 	static void ReleaseEnvironment();
@@ -60,10 +66,12 @@ public:
 	virtual void Close() = 0;
 	// 绑定ip及端口
 	virtual bool Bind(const string& ip, unsigned int port) = 0;
+	// 设置blocking
+	virtual bool SetBlock(bool block) = 0;
 	// 连接（msTimeout：超时时间(毫秒)，不大于0表示使用默认超时）
 	virtual SOCKET_RESULT_CODE Connect(const string& ip, unsigned int port, int msTimeout) = 0;
 	// 发送
-	virtual bool Send(void* data, unsigned int dataLen) = 0;
+	virtual HANDLE_RESULT Send(void* data, unsigned int dataLen) = 0;
 	// 接收
-	virtual bool Recv(void* data, unsigned int dataSize, unsigned int& dataLen) = 0;
+	virtual HANDLE_RESULT Recv(void* data, unsigned int dataSize, unsigned int& dataLen) = 0;
 };

@@ -43,6 +43,7 @@
 #include "GetFeeRecentContactListTask.h"
 #include "GetLadyChatInfoTask.h"
 #include "SendLadyEditingMsgTask.h"
+#include "PlayVideoTask.h"
 #include "HearbeatTask.h"
 
 CLiveChatClient::CLiveChatClient()
@@ -883,6 +884,32 @@ bool CLiveChatClient::GetLadyChatInfo()
 		FileLog("LiveChatClient", "CLiveChatClient::GetLadyChatInfo() task:%p end", task);
 	}
 	FileLog("LiveChatClient", "CLiveChatClient::GetLadyChatInfo() end");
+	return result;
+}
+
+// 播放视频
+bool CLiveChatClient::PlayVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charget, const string& videoDesc, int ticket)
+{
+    bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::PlayVideo() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		PlayVideoTask* task = new PlayVideoTask();
+		FileLog("LiveChatClient", "CLiveChatClient::PlayVideo() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, inviteId, videoId, sendId, charget, videoDesc, ticket);
+
+			if (result) {
+				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::PlayVideo() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::PlayVideo() end");
 	return result;
 }
 

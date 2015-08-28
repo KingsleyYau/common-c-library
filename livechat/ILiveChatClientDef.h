@@ -156,6 +156,7 @@ inline TALK_EMF_NOTICE_TYPE GetTalkEmfNoticeType(int value) {
 typedef enum {
 	KOT_UNKNOW		= -1,	// 未知
 	KOT_MAINTAIN	= 1,	// 服务器维护
+	KOT_TIMEOUT		= 2,	// 心跳包超时
 	KOT_OTHER_LOGIN	= 4,	// 用户在其它地方登录
 } KICK_OFFLINE_TYPE;
 

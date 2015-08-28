@@ -23,6 +23,7 @@
 #include "RecvPhotoTask.h"
 #include "RecvLadyVoiceCodeTask.h"
 #include "RecvIdentifyCodeTask.h"
+#include "RecvVideoTask.h"
 
 // 根据 cmd 创建 task
 ITask* ITask::CreateTaskWithCmd(int cmd)
@@ -73,6 +74,9 @@ ITask* ITask::CreateTaskWithCmd(int cmd)
         break;
     case TCMD_RECVIDENTIFYCODE:
         task = new RecvIdentifyCodeTask();
+        break;
+    case TCMD_RECVVIDEO:
+        task = new RecvVideoTask();
         break;
 	}
 

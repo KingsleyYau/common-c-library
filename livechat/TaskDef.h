@@ -50,6 +50,7 @@ typedef enum {
 	TCMD_REFRESHINVITETEMPLATE  = 161,	// 刷新邀请模板
 	TCMD_GETFEERECENTCONTACTLIST= 162,	// 获取已扣费最近联系人列表
 	TCMD_GETLADYCHATINFO    = 170,	// 获取女士聊天信息（包括在聊及邀请的男士列表等）
+	TCMD_PLAYVIDEO          = 194,  // 播放视频
 	// 服务器主动请求命令
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
@@ -66,6 +67,7 @@ typedef enum {
 	TCMD_RECVPHOTO		    = 177,	// 图片信息通知
 	TCMD_RECVIDENTIFYCODE   = 104,	// 验证码通知
 	TCMD_RECVLADYVOICECODE  = 157,	// 女士语音编码通知
+	TCMD_RECVVIDEO          = 193,  // 微视频信息通知
 } TASK_CMD_TYPE;
 
 // 判断是否客户端主动请求的命令
@@ -103,6 +105,7 @@ inline bool IsRequestCmd(int cmd)
     case TCMD_REFRESHINVITETEMPLATE:
     case TCMD_GETFEERECENTCONTACTLIST:
     case TCMD_GETLADYCHATINFO:
+    case TCMD_PLAYVIDEO:
 		result = true;	// 主动请求的命令
 		break;
 	default:

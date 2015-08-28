@@ -82,10 +82,7 @@
 #include "curl_gethostname.h"
 #include "curl_sasl.h"
 #include "warnless.h"
-
-#define _MPRINTF_REPLACE /* use our functions only */
-#include <curl/mprintf.h>
-
+#include "curl_printf.h"
 #include "curl_memory.h"
 /* The last #include file should be: */
 #include "memdebug.h"
@@ -574,7 +571,7 @@ static CURLcode smtp_perform_mail(struct connectdata *conn)
       auth = strdup("<>");
 
     if(!auth) {
-      Curl_safefree(from);
+      free(from);
 
       return CURLE_OUT_OF_MEMORY;
     }
@@ -585,8 +582,8 @@ static CURLcode smtp_perform_mail(struct connectdata *conn)
     size = aprintf("%" CURL_FORMAT_CURL_OFF_T, data->state.infilesize);
 
     if(!size) {
-      Curl_safefree(from);
-      Curl_safefree(auth);
+      free(from);
+      free(auth);
 
       return CURLE_OUT_OF_MEMORY;
     }
@@ -606,9 +603,9 @@ static CURLcode smtp_perform_mail(struct connectdata *conn)
     result = Curl_pp_sendf(&conn->proto.smtpc.pp,
                            "MAIL FROM:%s SIZE=%s", from, size);
 
-  Curl_safefree(from);
-  Curl_safefree(auth);
-  Curl_safefree(size);
+  free(from);
+  free(auth);
+  free(size);
 
   if(!result)
     state(conn, SMTP_MAIL);
@@ -1660,13 +1657,13 @@ CURLcode Curl_smtp_escape_eob(struct connectdata *conn, const ssize_t nread)
     data->state.scratch = scratch;
 
     /* Free the old scratch buffer */
-    Curl_safefree(oldscratch);
+    free(oldscratch);
 
     /* Set the new amount too */
     data->req.upload_present = si;
   }
   else
-    Curl_safefree(newscratch);
+    free(newscratch);
 
   return CURLE_OK;
 }

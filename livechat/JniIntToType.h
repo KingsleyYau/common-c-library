@@ -233,6 +233,7 @@ int TalkEmfNoticeTypeToInt(TALK_EMF_NOTICE_TYPE type)
 static const int KickOfflineTypeArray[] = {
 	KOT_UNKNOW,			// 未知
 	KOT_MAINTAIN,		// 服务器维护
+	KOT_TIMEOUT,		// 心跳包超时
 	KOT_OTHER_LOGIN		// 用户在其它地方登录
 };
 KICK_OFFLINE_TYPE IntToKickOfflineType(int value)

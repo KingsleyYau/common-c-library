@@ -27,12 +27,14 @@ int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, cons
 
 	char pTimeBuffer[1024] = {'\0'}, pDataBuffer[MAX_LOG_BUFFER] = {'\0'};
 
+	timeval tNow;
+	gettimeofday(&tNow, NULL);
 	time_t stm = time(NULL);
 	struct tm tTime;
 	localtime_r(&stm, &tTime);
 	int tid = (int)syscall(224);
-	snprintf(pTimeBuffer, 64, "[ tid: %d, %d-%02d-%02d %02d:%02d:%02d ]", \
-			tid, tTime.tm_year + 1900, tTime.tm_mon + 1, tTime.tm_mday, tTime.tm_hour, tTime.tm_min, tTime.tm_sec);
+	snprintf(pTimeBuffer, 64, "[ tid: %d, %d-%02d-%02d %02d:%02d:%02d.%03d ]",
+			tid, tTime.tm_year + 1900, tTime.tm_mon + 1, tTime.tm_mday, tTime.tm_hour, tTime.tm_min, tTime.tm_sec, tNow.tv_usec/1000);
 
     va_list	agList;
     va_start(agList, fmt);

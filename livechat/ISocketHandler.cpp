@@ -6,6 +6,7 @@
  */
 
 #include "ISocketHandler.h"
+//#include <common/KLog.h>
 
 
 #ifdef WIN32
@@ -166,7 +167,7 @@ class LinuxTcpSocketHandler : public ISocketHandler
 public:
 	LinuxTcpSocketHandler() {
 		m_socket = INVALID_SOCKET;
-		m_block = false;
+		m_block = true;
 	}
 	virtual ~LinuxTcpSocketHandler() {
 		Shutdown();
@@ -200,8 +201,6 @@ public:
 		{
 			close(m_socket);
 			m_socket = INVALID_SOCKET;
-
-			m_block = false;
 		}
 	}
 	
@@ -235,6 +234,9 @@ public:
 		if (INVALID_SOCKET != m_socket
 			&& !(inet_pton(AF_INET, ip.c_str(), &server.sin_addr) < 0))
 		{
+			// 获取当前block状态
+			bool block = IsBlock();
+
 			// 连接
 			if (msTimeout > 0) {
 				SetBlock(false);
@@ -264,7 +266,6 @@ public:
 				else {
 					result = SOCKET_RESULT_SUCCESS;
 				}
-				SetBlock(true);
 			}
 			else {
 				SetBlock(true);
@@ -272,30 +273,51 @@ public:
 					result = SOCKET_RESULT_SUCCESS;
 				}
 			}
+
+			// 回复block状态
+			SetBlock(block);
 		}
 		return result;
 	}
 	
 	// 发送
-	virtual bool Send(void* data, unsigned int dataLen)
+	virtual HANDLE_RESULT Send(void* data, unsigned int dataLen)
 	{
-		bool result = false;
+		HANDLE_RESULT result = HANDLE_FAIL;
 
 		if (INVALID_SOCKET != m_socket)
 		{
-			int total = 0;
-			while (true) {
+			if ( IsBlock() )
+			{
+				// blocking send
+				int total = 0;
+				while (true) {
+					int iSent = send(m_socket, (const char*)data, dataLen, 0);
+					if (iSent > 0) {
+						total += iSent;
+					}
+					else {
+						break;
+					}
+
+					if (total == dataLen) {
+						result = HANDLE_SUCCESS;
+						break;
+					}
+				}
+			}
+			else
+			{
+				// non blocking send
 				int iSent = send(m_socket, (const char*)data, dataLen, 0);
-				if (iSent > 0) {
-					total += iSent;
+				if (iSent > 0
+					|| (iSent < 0 && (EWOULDBLOCK == errno || EINTR == errno)))
+				{
+					result = HANDLE_SUCCESS;
+					//FileLog("LiveChatClient", "ISocketHandler::Send() success");
 				}
 				else {
-					break;
-				}
-
-				if (total == dataLen) {
-					result = true;
-					break;
+					//FileLog("LiveChatClient", "ISocketHandler::Send() fail");
 				}
 			}
 		}
@@ -303,26 +325,69 @@ public:
 	}
 	
 	// 接收
-	virtual bool Recv(void* data, unsigned int dataSize, unsigned int& dataLen)
+	virtual HANDLE_RESULT Recv(void* data, unsigned int dataSize, unsigned int& dataLen)
 	{
-		bool result = false;
+		HANDLE_RESULT result = HANDLE_FAIL;
 
 		if (INVALID_SOCKET != m_socket)
 		{
-			dataLen = 0;
-			int length = recv(m_socket, (char*)data, dataSize, 0);
-			if (length > 0) {
-				dataLen = length;
-				result = true;
+			if ( IsBlock() )
+			{
+				// blocking receive
+				dataLen = 0;
+				int length = recv(m_socket, (char*)data, dataSize, 0);
+				if (length > 0) {
+					dataLen = length;
+					result = HANDLE_SUCCESS;
+				}
+			}
+			else
+			{
+				// non blocking receive
+
+				// 初始化超时时间(300ms)
+				unsigned int uiTimeout = 300;
+				// 初始化超时时间
+				timeval tout;
+				tout.tv_sec = uiTimeout / 1000;
+				tout.tv_usec = (uiTimeout % 1000) * 1000;
+
+				// 初始化fd_set
+				fd_set rset;
+				FD_ZERO(&rset);
+				FD_SET(m_socket, &rset);
+				int iRetS = select(m_socket + 1, &rset, NULL, NULL, &tout);
+
+				//FileLog("LiveChatClient", "ISocketHandler::Recv() iRetS:%d", iRetS);
+
+				if (iRetS == 0) {
+					// 超时
+					result = HANDLE_TIMEOUT;
+				}
+	            else if (iRetS > 0)
+	            {
+	            	// 有数据可以接收
+	                int iRet = recv(m_socket, data, dataLen, 0);
+	                //FileLog("LiveChatClient", "ISocketHandler::Recv() iRet:%d", iRet);
+					if (iRet > 0)
+					{
+						result = HANDLE_SUCCESS;
+					}
+					else if (iRet <= 0
+							&& (EWOULDBLOCK == errno || EINTR == errno))
+					{
+						result = HANDLE_TIMEOUT;
+					}
+	            }
 			}
 		}
 
 		return result;
 	}
 
-private:
+//private:
 	// blocking设置
-	bool SetBlock(bool block)
+	virtual bool SetBlock(bool block)
 	{
 		bool result = false;
 		if (INVALID_SOCKET != m_socket)
@@ -332,7 +397,6 @@ private:
 				int flags = fcntl(m_socket, F_GETFL, 0);
 				if (block) {
 					flags = flags & ~O_NONBLOCK;
-
 				}
 				else {
 					flags = flags | O_NONBLOCK;
@@ -343,6 +407,18 @@ private:
 					m_block = block;
 				}
 			}
+		}
+		return result;
+	}
+
+	// 判断当前是否blocking状态
+	bool IsBlock()
+	{
+		bool result = false;
+		if (INVALID_SOCKET != m_socket)
+		{
+			int flags = fcntl(m_socket, F_GETFL, 0);
+			result = (flags & O_NONBLOCK) == 0;
 		}
 		return result;
 	}

@@ -211,7 +211,9 @@ bool CTransportDataHandler::SendTaskData(ITask* task)
 	FileLog("LiveChatClient", "CTransportDataHandler::SendTaskData() task:%p", task);
 	bool result = false;
 	if (m_bStart) {
+		m_sendTaskListLock->Lock();
 		m_sendTaskList.push_back(task);
+		m_sendTaskListLock->Unlock();
 		result = true;
 	}
 	FileLog("LiveChatClient", "CTransportDataHandler::SendTaskData() end, task:%p", task);
@@ -288,40 +290,58 @@ void CTransportDataHandler::RecvProc(void)
 	char buffer[bufferSize] = {0};
 	unsigned int bufferLength = 0;
 	unsigned int bufferOffset = 0;
+	ISocketHandler::HANDLE_RESULT result = ISocketHandler::HANDLE_FAIL;
 
 	FileLog("LiveChatClient", "CTransportDataHandler::RecvProc()");
 
-	while (m_socketHandler->Recv(buffer + bufferOffset, bufferSize - bufferOffset, bufferLength))
+	while (true)
 	{
-		// 本次收到的数据长度 + 之前未解包的数据长度
-		bufferLength += bufferOffset;
-
-		FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() bufferOffset:%d, bufferLength:%d, recvLength:%d", bufferOffset, bufferLength, bufferLength-bufferOffset);
-
-		// 开始解包
-		UNPACKET_RESULT_TYPE unpackResult;
 		do {
-			TransportProtocol* tp = NULL;
-			unsigned int useLen = 0;
+			result = m_socketHandler->Recv(buffer + bufferOffset, bufferSize - bufferOffset, bufferLength);
+//			if (ISocketHandler::HANDLE_TIMEOUT == result) {
+//				FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() handle timeout");
+//			}
+//			else if (ISocketHandler::HANDLE_FAIL == result) {
+//				FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() handle fail");
+//			}
+		} while (ISocketHandler::HANDLE_TIMEOUT == result);
 
-			unpackResult = m_packetHandler->Unpacket(buffer, bufferLength, &tp, useLen);
-			if (unpackResult == UNPACKET_SUCCESS) {
-				m_listener->OnRecv(tp);
-			}
+		if (ISocketHandler::HANDLE_SUCCESS == result)
+		{
+			// 本次收到的数据长度 + 之前未解包的数据长度
+			bufferLength += bufferOffset;
 
-			if (unpackResult != UNPACKET_MOREDATA
-				&& useLen > 0)
-			{
-				// 移除已解包的数据
-				RemoveData(buffer, bufferLength, useLen);
-				bufferLength -= useLen;
-			}
-			FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() unpack:%d, bufferLength:%d", unpackResult, bufferLength);
-		} while (unpackResult != UNPACKET_MOREDATA);
-		// 记录未解包的数据长度
-		bufferOffset = bufferLength;
+			FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() bufferOffset:%d, bufferLength:%d, recvLength:%d", bufferOffset, bufferLength, bufferLength-bufferOffset);
 
-		FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() Process OK, bufferOffset:%d", bufferOffset);
+			// 开始解包
+			UNPACKET_RESULT_TYPE unpackResult;
+			do {
+				TransportProtocol* tp = NULL;
+				unsigned int useLen = 0;
+
+				unpackResult = m_packetHandler->Unpacket(buffer, bufferLength, &tp, useLen);
+				if (unpackResult == UNPACKET_SUCCESS) {
+					m_listener->OnRecv(tp);
+				}
+
+				if (unpackResult != UNPACKET_MOREDATA
+					&& useLen > 0)
+				{
+					// 移除已解包的数据
+					RemoveData(buffer, bufferLength, useLen);
+					bufferLength -= useLen;
+				}
+				FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() unpack:%d, bufferLength:%d", unpackResult, bufferLength);
+			} while (unpackResult != UNPACKET_MOREDATA);
+			// 记录未解包的数据长度
+			bufferOffset = bufferLength;
+
+			FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() Process OK, bufferOffset:%d", bufferOffset);
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() end");
@@ -350,6 +370,7 @@ bool CTransportDataHandler::ConnectProc()
 		FileLog("LiveChatClient", "CTransportDataHandler::ConnectProc() ip:%s end", (*iter).c_str());
 
 		if (result) {
+			m_socketHandler->SetBlock(true);
 			break;
 		}
 		else {
@@ -373,20 +394,35 @@ void CTransportDataHandler::SendProc()
 	unsigned int bufferSize = 1024 * 10;
 	unsigned char* buffer = new unsigned char[bufferSize];
 	while (m_bStart) {
+		ITask* task = NULL;
+		m_sendTaskListLock->Lock();
 		if (!m_sendTaskList.empty()) {
-			ITask* task = m_sendTaskList.front();
+			task = m_sendTaskList.front();
 			m_sendTaskList.pop_front();
-			if (NULL != task && NULL != m_packetHandler) {
+		}
+		m_sendTaskListLock->Unlock();
+
+		if (NULL != task) {
+			if (NULL != m_packetHandler) {
 				// 获取task发送的data
 				unsigned int dataLen = 0;
 				if (m_packetHandler->Packet(task, buffer, bufferSize, dataLen)) {
-					bool result = m_socketHandler->Send(buffer, dataLen);
-					m_listener->OnSend(result, task);
+					ISocketHandler::HANDLE_RESULT result = ISocketHandler::HANDLE_FAIL;
+					do {
+						result = m_socketHandler->Send(buffer, dataLen);
+//						if (ISocketHandler::HANDLE_TIMEOUT == result) {
+//							FileLog("LiveChatClient", "CTransportDataHandler::SendProc() handle timeout");
+//						}
+//						else if (ISocketHandler::HANDLE_FAIL == result) {
+//							FileLog("LiveChatClient", "CTransportDataHandler::SendProc() handle fail");
+//						}
+					} while (ISocketHandler::HANDLE_TIMEOUT == result);
+					m_listener->OnSend(ISocketHandler::HANDLE_SUCCESS == result, task);
 
 					// 发送不成功，断开连接
-					if (!result) {
-						DisconnectProc();
+					if (result == ISocketHandler::HANDLE_FAIL) {
 						FileLog("LiveChatClient", "CTransportDataHandler::SendProc() send fail, disconnect now!");
+						DisconnectProc();
 					}
 				}
 			}
@@ -419,8 +455,10 @@ void CTransportDataHandler::DisconnectProc()
 void CTransportDataHandler::DisconnectCallback()
 {
 	FileLog("LiveChatClient", "CTransportDataHandler::DisconnectCallback()");
+	m_sendTaskListLock->Lock();
 	m_listener->OnDisconnect(m_sendTaskList);
 	m_sendTaskList.clear();
+	m_sendTaskListLock->Unlock();
 	FileLog("LiveChatClient", "CTransportDataHandler::DisconnectCallback() end");
 }
 
