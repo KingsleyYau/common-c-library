@@ -305,10 +305,15 @@ int UserTypeToInt(USER_TYPE type)
 
 // DEVICE_TYPE(设备类型) 转换
 static const int DeviceTypeArray[] = {
-	UT_UNKNOW,		// 未知
-	UT_WOMAN,		// 女士
-	UT_MAN,			// 男士
-	UT_TRANS,		// 翻译
+	DEVICE_TYPE_WEB,			// Web
+	DEVICE_TYPE_WAP,			// WAP
+	DEVICE_TYPE_WAP_ANDROID,	// WAP Android
+	DEVICE_TYPE_WAP_IPHONE,		// WAP iPhone
+	DEVICE_TYPE_APP_ANDROID,	// App Android
+	DEVICE_TYPE_APP_IPHONE,		// App iPhone
+	DEVICE_TYPE_APP_IPAD,		// App iPad
+	DEVICE_TYPE_APP_PC,			// App PC
+	DEVICE_TYPE_UNKNOW,			// 未知
 };
 DEVICE_TYPE IntToDeviceType(int value)
 {

@@ -9,8 +9,8 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json/json.h>
-#include <common/KLog.h>
+#include <json/json.h>
+#include <KLog.h>
 
 // 请求参数定义
 #define SEX_PARAM			"sex"		// 性别

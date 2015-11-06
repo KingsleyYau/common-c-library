@@ -9,10 +9,10 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json/json.h>
-#include <common/Arithmetic.h>
+#include <json/json.h>
+#include <Arithmetic.h>
 #include "SendPhotoTask.h"
-#include <common/KLog.h>
+#include <KLog.h>
 
 // 请求参数定义
 #define TARGETID_PARAM		"targetId"	// 对方用户Id

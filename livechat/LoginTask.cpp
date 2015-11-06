@@ -9,8 +9,8 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json/json.h>
-#include <common/KLog.h>
+#include <json/json.h>
+#include <KLog.h>
 
 // 请求参数定义
 #define AUTHTYPE_PARAM		"authType"	// 认证密码类型
@@ -114,7 +114,7 @@ bool LoginTask::GetSendData(void* data, unsigned int dataSize, unsigned int& dat
 
 	// 构造json协议
 	Json::Value root;
-	root[AUTHTYPE_PARAM] = AUTHTYPE_PARAM_SID;
+	root[AUTHTYPE_PARAM] = m_authType;
 	//root[FROMID_PARAM] = m_clientType==CLIENT_ANDROID ? FROMID_PARAM_ANDROID;
 	root[FROMID_PARAM] = m_clientType;
 	root[SEX_PARAM] = m_sexType;
@@ -175,7 +175,7 @@ void LoginTask::GetHandleResult(LCC_ERR_TYPE& errType, string& errMsg)
 }
 
 // 初始化参数
-bool LoginTask::InitParam(const string& user, const string& password, CLIENT_TYPE clientType, USER_SEX_TYPE sex)
+bool LoginTask::InitParam(const string& user, const string& password, CLIENT_TYPE clientType, USER_SEX_TYPE sex, AUTH_TYPE authType)
 {
 	bool result = false;
 	if (!user.empty() 
@@ -185,6 +185,7 @@ bool LoginTask::InitParam(const string& user, const string& password, CLIENT_TYP
 		m_password = password;
 		m_clientType = clientType;
 		m_sexType = sex;
+		m_authType = authType;
 
 		result = true;
 	}

@@ -38,6 +38,8 @@ public:
 	void AddContent(string key, string value);
 	void AddFile(string key, string fileName, string mimeType = "image/jpeg");
 
+	void Reset();
+
 private:
 	HttpMap mHeaderMap;
 	HttpMap mContentMap;

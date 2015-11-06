@@ -10,7 +10,7 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json/json.h>
+#include <json/json.h>
 
 
 

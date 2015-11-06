@@ -7,7 +7,7 @@
 
 #include "LiveChatClient.h"
 #include "TaskManager.h"
-#include <common/KLog.h>
+#include <KLog.h>
 #include "CommonDef.h"
 
 // task include
@@ -92,6 +92,12 @@ bool CLiveChatClient::Init(const list<string>& svrIPs, unsigned int svrPort, ILi
 	return result;
 }
 
+// 判断是否无效seq
+bool CLiveChatClient::IsInvalidSeq(int seq)
+{
+	return m_seqCounter.IsInvalidValue(seq);
+}
+
 // 连接服务器
 bool CLiveChatClient::ConnectServer()
 {
@@ -115,7 +121,7 @@ bool CLiveChatClient::ConnectServer()
 }
 
 // 登录
-bool CLiveChatClient::Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType)
+bool CLiveChatClient::Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType, AUTH_TYPE authType)
 {
 	bool result = false;
 
@@ -131,6 +137,7 @@ bool CLiveChatClient::Login(const string& user, const string& password, const st
 		m_deviceId = deviceId;
 		m_clientType = clientType;
 		m_sexType = sexType;
+		m_authType = authType;
 
 		result = true;
 	}
@@ -177,7 +184,7 @@ bool CLiveChatClient::SetStatus(USER_STATUS_TYPE status)
 			result = result && task->InitParam(status);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -203,7 +210,7 @@ bool CLiveChatClient::EndTalk(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -232,7 +239,7 @@ bool CLiveChatClient::GetUserStatus(const UserIdList& list)
 			result = result && task->InitParam(sexType, list);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -258,7 +265,7 @@ bool CLiveChatClient::GetTalkInfo(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -284,7 +291,7 @@ bool CLiveChatClient::UploadTicket(const string& userId, int ticket)
 			result = result && task->InitParam(userId, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -310,7 +317,7 @@ bool CLiveChatClient::SendLadyEditingMsg(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -336,7 +343,7 @@ bool CLiveChatClient::SendMessage(const string& userId, const string& message, b
 			result = result && task->InitParam(userId, message, illegal, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -362,7 +369,7 @@ bool CLiveChatClient::SendEmotion(const string& userId, const string& emotionId,
 			result = result && task->InitParam(userId, emotionId, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -388,7 +395,7 @@ bool CLiveChatClient::SendVGift(const string& userId, const string& giftId, int 
 			result = result && task->InitParam(userId, giftId, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -414,7 +421,7 @@ bool CLiveChatClient::GetVoiceCode(const string& userId, int ticket)
 			result = result && task->InitParam(userId, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -440,7 +447,7 @@ bool CLiveChatClient::GetLadyVoiceCode(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -466,7 +473,7 @@ bool CLiveChatClient::SendVoice(const string& userId, const string& voiceId, int
 			result = result && task->InitParam(userId, voiceId, length, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -492,7 +499,7 @@ bool CLiveChatClient::UseTryTicket(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -518,7 +525,7 @@ bool CLiveChatClient::GetTalkList(int listType)
 			result = result && task->InitParam(listType);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -544,7 +551,7 @@ bool CLiveChatClient::SendPhoto(const string& userId, const string& inviteId, co
 			result = result && task->InitParam(userId, inviteId, photoId, sendId, charget, photoDesc, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -570,7 +577,7 @@ bool CLiveChatClient::ShowPhoto(const string& userId, const string& inviteId, co
 			result = result && task->InitParam(userId, inviteId, photoId, sendId, charget, photoDesc, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -596,7 +603,7 @@ bool CLiveChatClient::GetUserInfo(const string& userId)
 			result = result && task->InitParam(userId);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -608,9 +615,10 @@ bool CLiveChatClient::GetUserInfo(const string& userId)
 }
 
 // 获取多个用户信息
-bool CLiveChatClient::GetUsersInfo(const list<string>& userIdList)
+int CLiveChatClient::GetUsersInfo(const list<string>& userIdList)
 {
-	bool result = false;
+	int seq = m_seqCounter.GetInvalidValue();
+
 	FileLog("LiveChatClient", "CLiveChatClient::GetUsersInfo() begin");
 	if (NULL != m_taskManager
 		&& m_taskManager->IsStart())
@@ -618,11 +626,11 @@ bool CLiveChatClient::GetUsersInfo(const list<string>& userIdList)
 		GetUsersInfoTask* task = new GetUsersInfoTask();
 		FileLog("LiveChatClient", "CLiveChatClient::GetUsersInfo() task:%p", task);
 		if (NULL != task) {
-			result = task->Init(m_listener);
+			bool result = task->Init(m_listener);
 			result = result && task->InitParam(userIdList);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -630,7 +638,8 @@ bool CLiveChatClient::GetUsersInfo(const list<string>& userIdList)
 		FileLog("LiveChatClient", "CLiveChatClient::GetUsersInfo() task:%p end", task);
 	}
 	FileLog("LiveChatClient", "CLiveChatClient::GetUsersInfo() end");
-	return result;
+
+	return seq;
 }
 
 // 获取联系人/黑名单列表
@@ -648,7 +657,7 @@ bool CLiveChatClient::GetContactList(CONTACT_LIST_TYPE listType)
 			result = result && task->InitParam(listType);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -674,7 +683,7 @@ bool CLiveChatClient::UploadVer(const string& ver)
 			result = result && task->InitParam(ver);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -699,7 +708,7 @@ bool CLiveChatClient::GetBlockUsers()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -724,7 +733,7 @@ bool CLiveChatClient::GetRecentContactList()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -750,7 +759,7 @@ bool CLiveChatClient::SearchOnlineMan(int beginAge, int endAge)
 			result = result && task->InitParam(beginAge, endAge);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -776,7 +785,7 @@ bool CLiveChatClient::ReplyIdentifyCode(string identifyCode)
 			result = result && task->InitParam(identifyCode);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -801,7 +810,7 @@ bool CLiveChatClient::RefreshIdentifyCode()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -826,7 +835,7 @@ bool CLiveChatClient::RefreshInviteTemplate()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -851,7 +860,7 @@ bool CLiveChatClient::GetFeeRecentContactList()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -876,7 +885,7 @@ bool CLiveChatClient::GetLadyChatInfo()
 			result = task->Init(m_listener);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -902,7 +911,7 @@ bool CLiveChatClient::PlayVideo(const string& userId, const string& inviteId, co
 			result = result && task->InitParam(userId, inviteId, videoId, sendId, charget, videoDesc, ticket);
 
 			if (result) {
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				result = m_taskManager->HandleRequestTask(task);
 			}
@@ -1003,7 +1012,7 @@ bool CLiveChatClient::CheckVersionProc()
 		checkVerTask->Init(m_listener);
 		checkVerTask->InitParam("1.1.0.0XCHAT");
 
-		unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+		int seq = m_seqCounter.GetAndIncrement();
 		checkVerTask->SetSeq(seq);
 		result = m_taskManager->HandleRequestTask(checkVerTask);
 	}
@@ -1017,9 +1026,9 @@ bool CLiveChatClient::LoginProc()
 	LoginTask* loginTask = new LoginTask();
 	if (NULL != loginTask) {
 		loginTask->Init(m_listener);
-		loginTask->InitParam(m_user, m_password, m_clientType, m_sexType);
+		loginTask->InitParam(m_user, m_password, m_clientType, m_sexType, m_authType);
 
-		unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+		int seq = m_seqCounter.GetAndIncrement();
 		loginTask->SetSeq(seq);
 		result =  m_taskManager->HandleRequestTask(loginTask);
 
@@ -1042,7 +1051,7 @@ bool CLiveChatClient::UploadDeviceIdProc()
 		task->Init(m_listener);
 		task->InitParam(m_deviceId);
 
-		unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+		int seq = m_seqCounter.GetAndIncrement();
 		task->SetSeq(seq);
 		result =  m_taskManager->HandleRequestTask(task);
 	}
@@ -1058,7 +1067,7 @@ bool CLiveChatClient::UploadDeviceTypeProc()
 		task->Init(m_listener);
 		task->InitParam(m_clientType);
 
-		unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+		int seq = m_seqCounter.GetAndIncrement();
 		task->SetSeq(seq);
 		result =  m_taskManager->HandleRequestTask(task);
 	}
@@ -1088,7 +1097,7 @@ void CLiveChatClient::HearbeatProc()
 			HearbeatTask* task = new HearbeatTask();
 			if (NULL != task) {
 				task->Init(m_listener);
-				unsigned int seq = (unsigned int)m_seqCounter.GetCountAndAddOne();
+				int seq = m_seqCounter.GetAndIncrement();
 				task->SetSeq(seq);
 				m_taskManager->HandleRequestTask(task);
 			}

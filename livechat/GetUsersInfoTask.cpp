@@ -10,7 +10,8 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json/json.h>
+#include <json/json.h>
+#include <KLog.h>
 
 #define USERID_DELIMITED	","		// 用户ID分隔符
 
@@ -85,9 +86,13 @@ bool GetUsersInfoTask::Handle(const TransportProtocol* tp)
 		m_errMsg = "";
 	}
 
+	// 打log
+	FileLog("LiveChatClient", "GetUsersInfoTask::Handle() listener:%p, errType:%d, errMsg:%s, userInfoList.size:%d"
+			, m_listener, m_errType, m_errMsg.c_str(), userInfoList.size());
+
 	// 通知listener
 	if (NULL != m_listener) {
-		m_listener->OnGetUsersInfo(m_errType, m_errMsg, userInfoList);
+		m_listener->OnGetUsersInfo(m_errType, m_errMsg, m_seq, userInfoList);
 	}
 
 	return result;
@@ -106,10 +111,10 @@ bool GetUsersInfoTask::GetSendData(void* data, unsigned int dataSize, unsigned i
         iter != m_userIdList.end();
         i++, iter++)
     {
+		if (!param.empty()) {
+			param += USERID_DELIMITED;
+		}
         param += *iter;
-        if (i != (m_userIdList.size() - 1)) {
-            param += USERID_DELIMITED;
-        }
     }
 
 	// 构造json协议
@@ -124,6 +129,11 @@ bool GetUsersInfoTask::GetSendData(void* data, unsigned int dataSize, unsigned i
 
 		result  = true;
 	}
+
+	// 打log
+	FileLog("LiveChatClient", "GetUsersInfoTask::GetSendData() result:%d, json:%s"
+			, result, json.c_str());
+
 	return result;
 }
 
@@ -182,6 +192,6 @@ void GetUsersInfoTask::OnDisconnect()
 {
 	if (NULL != m_listener) {
 		UserInfoList userInfoList;
-		m_listener->OnGetUsersInfo(LCC_ERR_CONNECTFAIL, "", userInfoList);
+		m_listener->OnGetUsersInfo(LCC_ERR_CONNECTFAIL, "", m_seq, userInfoList);
 	}
 }

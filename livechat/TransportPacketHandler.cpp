@@ -8,7 +8,7 @@
 #include "TransportPacketHandler.h"
 #include "ITask.h"
 #include "zlib.h"
-#include <common/KLog.h>
+#include <KLog.h>
 
 // 使用 ntohl 需要include跨平台socket头文件
 #include "ISocketHandler.h"
@@ -40,12 +40,15 @@ bool CTransportPacketHandler::Packet(ITask* task, void* data, unsigned int dataS
 			// 获取数据
 			unsigned int bodyLen = 0;
 			result = task->GetSendData(protocol->data, dataSize - sizeof(NoHeadTransportProtocol), bodyLen);
-			protocol->length = bodyLen;
-			dataLen = protocol->GetAllDataLength();
+			if  (result)
+			{
+				protocol->length = bodyLen;
+				dataLen = protocol->GetAllDataLength();
 
-			FileLog("LiveChatClient", "CTransportPacketHandler::Packet() NOHEAD_PROTOCOL, protocol->length:%d, dataLen:%d", protocol->length, dataLen);
+				FileLog("LiveChatClient", "CTransportPacketHandler::Packet() NOHEAD_PROTOCOL, protocol->length:%d, dataLen:%d", protocol->length, dataLen);
 
-			protocol->length = ntohl(protocol->length);
+				protocol->length = ntohl(protocol->length);
+			}
 		}
 	}
 	else {
@@ -61,10 +64,16 @@ bool CTransportPacketHandler::Packet(ITask* task, void* data, unsigned int dataS
 
 			unsigned int bodyLen = 0;
 			result = task->GetSendData(protocol->data, dataSize - sizeof(TransportHeader), bodyLen);
-			dataLen = sizeof(TransportHeader) + bodyLen;
+			if (result)
+			{
+				dataLen = sizeof(TransportHeader) + bodyLen;
 
-			protocol->header.length = dataLen - sizeof(protocol->header.length);
-			protocol->header.length = ntohl(protocol->header.length);
+				protocol->header.length = dataLen - sizeof(protocol->header.length);
+				protocol->header.length = ntohl(protocol->header.length);
+
+				FileLog("LiveChatClient", "CTransportPacketHandler::Packet() cmd:%d, seq:%d, dataLen:%d"
+						, task->GetCmdCode(), task->GetSeq(), dataLen);
+			}
 		}
 	}
 
@@ -105,7 +114,13 @@ UNPACKET_RESULT_TYPE CTransportPacketHandler::Unpacket(void* data, unsigned int 
 		result = UNPACKET_MOREDATA;
 	}
 
-	FileLog("LiveChatClient", "CTransportPacketHandler::Unpacket() end, result:%d", result);
+	if (result == UNPACKET_SUCCESS) {
+		FileLog("LiveChatClient", "CTransportPacketHandler::Unpacket() end, result:%d, cmd:%d, seq:%d, length:%d"
+				, result, tp->header.cmd, tp->header.seq, tp->header.length);
+	}
+	else {
+		FileLog("LiveChatClient", "CTransportPacketHandler::Unpacket() end, result:%d", result);
+	}
 
 	return result;
 }

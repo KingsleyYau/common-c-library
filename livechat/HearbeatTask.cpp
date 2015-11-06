@@ -8,7 +8,7 @@
 #include "HearbeatTask.h"
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
-#include <common/KLog.h>
+#include <KLog.h>
 
 HearbeatTask::HearbeatTask(void)
 {

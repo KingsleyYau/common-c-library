@@ -6,7 +6,7 @@
  */
 
 #include "EndTalkTask.h"
-#include <json/json/json.h>
+#include <json/json.h>
 
 EndTalkTask::EndTalkTask(void)
 {

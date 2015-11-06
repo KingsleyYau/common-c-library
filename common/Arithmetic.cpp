@@ -9,6 +9,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <ctype.h>
+#include "aes.h"
 #include "Arithmetic.h"
 
 char Arithmetic::hex[16] = {
@@ -443,4 +444,113 @@ void Arithmetic::decipher(void* aData, const void* aKey)
     ((long*)aData)[0] = y;
     ((long*)aData)[1] = z;
 }
+string Arithmetic::AesEncrypt(string initKey, string src) {
+	string strRet;
+	aes_context aes_key;
 
+	const unsigned int keysize = 128;
+	const unsigned int keyLen = keysize / 8;
+
+	const unsigned int dataLen = src.length();
+	const unsigned int blockCount = dataLen / keyLen;
+	const unsigned int d = dataLen % keyLen;
+
+	// 加密密钥补位，防止内存读取内存错误
+	unsigned char key[keyLen] = {0};
+	memcpy(key, initKey.c_str(),(initKey.length()>keyLen) ? keyLen: initKey.length());
+
+	// 使用传入的密钥，转换获取aes_key(128.192.256对应加密16，24，32位)
+	if(aes_setkey_enc(&aes_key, key, keysize) < 0)
+	{
+		return "";
+	}
+
+	unsigned int outLen = (blockCount + 1) * keyLen;
+	unsigned char* out = new unsigned char[outLen];
+	if ( NULL != out )
+	{
+		memset(out, 0, outLen);
+		unsigned char in[keyLen] = {0};
+		unsigned char temp[keyLen] = {0};
+		int count = 0;
+
+		// 分块加密，先对整块加密
+		for(int j = 0; j < blockCount; j++)
+		{
+			memcpy(in, src.c_str() + keyLen * j, keyLen);
+			aes_crypt_ecb(&aes_key, 1, in, out + keyLen * j);
+			count += keyLen;
+		}
+
+		// AES补位，明文为16整数倍时，尾部默认补16个字节，每个为16，当明文不是16的整数倍时，取0x00补足16位补位数值
+		if( d > 0 )
+		{
+			memset(in, 0, sizeof(in));
+			memcpy(in, src.c_str() + keyLen * blockCount, d);
+			aes_crypt_ecb(&aes_key, 1, in, out + keyLen * blockCount);
+			count += keyLen;
+		}
+
+		strRet = "";
+		for(int i = 0; i<count ;i++) {
+			char c[4];
+			sprintf(c, "%02x", out[i]);
+			strRet += c;
+		}
+		delete[] out;
+	}
+	return strRet;
+}
+string Arithmetic::AesDecrypt(string initKey, string src) {
+	string strRet = "";
+	aes_context aes_key;
+
+	const unsigned int keysize = 128;
+	const unsigned int keyLen = keysize / 8;
+
+	char *dst = new char[src.length() + 1];
+	if ( NULL != dst )
+	{
+		const unsigned int dataLen = HexToAscii(src.c_str(), src.length(), dst);
+		const unsigned int blockCount = dataLen / keyLen;
+
+		int j=0;
+		int count=0;
+
+		// 加密密钥补位，防止内存读取内存错误
+		unsigned char key[keyLen] = {0};
+		memcpy(key, initKey.c_str(),(initKey.length()>keyLen) ? keyLen: initKey.length());
+
+		// 使用传入的密钥，转换获取aes_key(128.192.256对应加密16，24，32位)
+		if(aes_setkey_dec(&aes_key, key, keysize) < 0)
+		{
+			return "";
+		}
+
+
+		unsigned int outLen = (blockCount+1) * keyLen;
+		char* out = new char[outLen];
+		if ( NULL != out )
+		{
+			memset(out, 0, outLen);
+
+			// 分块加密，先对整块加密
+			char in[keyLen] = {0};
+			for(j = 0; j < blockCount; j++)
+			{
+				memset(in, 0, sizeof(in));
+				memcpy(in, dst + j * keyLen, keyLen);
+				aes_crypt_ecb(&aes_key, AES_DECRYPT, (unsigned char *)in, (unsigned char *)out + j * keyLen);
+				count += keyLen;
+			}
+
+			strRet = out;
+
+			delete []out;
+		}
+
+		delete[] dst;
+	}
+
+	return strRet;
+}

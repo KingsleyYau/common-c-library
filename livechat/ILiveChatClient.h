@@ -35,10 +35,9 @@ public:
 	virtual void OnSendPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
 	virtual void OnShowPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
 	virtual void OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const UserInfoItem& userInfo) = 0;
-	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, const UserInfoList& userList) = 0;
+	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList) = 0;
 	virtual void OnGetContactList(CONTACT_LIST_TYPE inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkUserList& list) = 0;
 	virtual void OnGetBlockUsers(LCC_ERR_TYPE err, const string& errmsg, const list<string>& users) = 0;
-	virtual void OnGetRecentContact(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
 	virtual void OnSearchOnlineMan(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
 	virtual void OnReplyIdentifyCode(LCC_ERR_TYPE err, const string& errmsg) = 0;
 	virtual void OnGetRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
@@ -78,8 +77,10 @@ public:
 public:
 	// 调用所有接口函数前需要先调用Init
 	virtual bool Init(const list<string>& svrIPs, unsigned int svrPort, ILiveChatClientListener* listener) = 0;
+	// 判断是否无效seq
+	virtual bool IsInvalidSeq(int seq) = 0;
 	// 登录
-	virtual bool Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType) = 0;
+	virtual bool Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType, AUTH_TYPE authType = AUTH_TYPE_SID) = 0;
 	// 注销
 	virtual bool Logout() = 0;
 	// 设置在线状态
@@ -116,8 +117,8 @@ public:
 	virtual bool ShowPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
 	// 获取用户信息
 	virtual bool GetUserInfo(const string& userId) = 0;
-	// 获取多个用户信息
-	virtual bool GetUsersInfo(const list<string>& userIdList) = 0;
+	// 获取多个用户信息(返回seq)
+	virtual int GetUsersInfo(const list<string>& userIdList) = 0;
 	// 获取联系人/黑名单列表
 	virtual bool GetContactList(CONTACT_LIST_TYPE listType) = 0;
 	// 上传客户端版本号

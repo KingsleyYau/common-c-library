@@ -107,7 +107,7 @@ bool KZip::AddFile(string src, string parent) {
 		    	 AddFile(fileName, relativePath);
 		     }
 
-		     AddFileToZip(fileName, entry->d_name);
+		     AddFileToZip(fileName, relativePath);
 		 }
 		 closedir(dp);
 		 bFlag = true;
@@ -130,7 +130,7 @@ bool KZip::AddFileToZip(string src, string fileName) {
 					fileName.c_str()
 					);
 
-	bool bFlag = false;
+	bool bFlag = true;
 
 	zip_fileinfo zi;
 	zi.tmz_date.tm_sec = zi.tmz_date.tm_min = zi.tmz_date.tm_hour =
@@ -172,27 +172,32 @@ bool KZip::AddFileToZip(string src, string fileName) {
 			);
 
 	if( ret != ZIP_OK || src.length() == 0 ) {
-		return false;
+		bFlag = false;
 	}
 
-	FILE* file = NULL;
-	file = fopen(src.c_str(), "rb");
-	if ( file == NULL ) {
-		zipCloseFileInZip(mZipFile);
-        return false;
-	}
-
-	int numBytes = 0;
-	while( !feof(file) ) {
-		numBytes = fread(buf, 1, sizeof(buf), file);
-		ret = zipWriteInFileInZip(mZipFile, buf, numBytes);
-		if( ferror(file) || ret != ZIP_OK ) {
-			break;
+	if( bFlag ) {
+		FILE* file = NULL;
+		file = fopen(src.c_str(), "rb");
+		if ( file == NULL ) {
+			bFlag = false;
 		}
+
+		if( bFlag ) {
+			int numBytes = 0;
+			while( !feof(file) ) {
+				numBytes = fread(buf, 1, sizeof(buf), file);
+				ret = zipWriteInFileInZip(mZipFile, buf, numBytes);
+				if( ferror(file) || ret != ZIP_OK ) {
+					bFlag = false;
+					break;
+				}
+			}
+			fclose(file);
+		}
+
+		zipCloseFileInZip(mZipFile);
 	}
 
-	fclose(file);
-	bFlag = true;
 	FileLog("KZip", "AddFileToZip( finish )");
 	return bFlag;
 }

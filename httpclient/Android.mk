@@ -15,8 +15,8 @@ LOCAL_MODULE := httpclient
 LOCAL_MODULE_FILENAME := libhttpclient
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/openssl/include
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/curl/include
+LOCAL_C_INCLUDES += $(LIBRARY_THIRDY_PARTY_PATH)/openssl/include
+LOCAL_C_INCLUDES += $(LIBRARY_THIRDY_PARTY_PATH)/curl/include
 
 LOCAL_CFLAGS = -fpermissive
 

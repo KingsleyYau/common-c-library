@@ -10,8 +10,8 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json/json.h>
-#include <common/KLog.h>
+#include <json/json.h>
+#include <KLog.h>
 
 
 RefreshInviteTemplateTask::RefreshInviteTemplateTask(void)

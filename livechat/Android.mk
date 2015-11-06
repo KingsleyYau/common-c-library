@@ -23,7 +23,9 @@ LOCAL_STATIC_LIBRARIES += amf
 LOCAL_CPPFLAGS  := -std=c++11
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../common/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/json/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/amf/
 
 REAL_PATH := $(realpath $(LOCAL_PATH))
 LOCAL_SRC_FILES := $(call all-cpp-files-under, $(REAL_PATH))

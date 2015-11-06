@@ -23,8 +23,10 @@ public:
 public:
 	// 调用所有接口函数前需要先调用Init
 	virtual bool Init(const list<string>& svrIPs, unsigned int svrPort, ILiveChatClientListener* listener);
+	// 判断是否无效seq
+	virtual bool IsInvalidSeq(int seq);
 	// 登录
-	virtual bool Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType);
+	virtual bool Login(const string& user, const string& password, const string& deviceId, CLIENT_TYPE clientType, USER_SEX_TYPE sexType, AUTH_TYPE authType = AUTH_TYPE_SID);
 	// 注销
 	virtual bool Logout();
 	// 设置在线状态
@@ -62,7 +64,7 @@ public:
 	// 获取用户信息
 	virtual bool GetUserInfo(const string& userId);
 	// 获取多个用户信息
-	virtual bool GetUsersInfo(const list<string>& userIdList);
+	virtual int GetUsersInfo(const list<string>& userIdList);
 	// 获取联系人/黑名单列表
 	virtual bool GetContactList(CONTACT_LIST_TYPE listType);
 	// 上传客户端版本号
@@ -130,6 +132,7 @@ private:
 	string			m_deviceId;		// 设备ID
 	CLIENT_TYPE		m_clientType;	// 客户端类型
 	USER_SEX_TYPE	m_sexType;		// 性别
+	AUTH_TYPE		m_authType;		// 认证类型
 
 	Counter			m_seqCounter;	// seq计数器
 

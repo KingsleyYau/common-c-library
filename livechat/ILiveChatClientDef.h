@@ -36,6 +36,12 @@ typedef enum {
 	LCC_ERR_SETOFFLINE		= -10006,	// 不能把在线状态设为"离线"，"离线"请使用Logout()
 } LCC_ERR_TYPE;
 
+// 认证类型
+typedef enum {
+	AUTH_TYPE_SID = 0,		// sid认证
+	AUTH_TYPE_PWD = 1,		// 密码认证
+} AUTH_TYPE;
+
 // 用户性别
 typedef enum {
 	USER_SEX_FEMALE	= 0,	// 女士

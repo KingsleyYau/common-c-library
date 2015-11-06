@@ -78,3 +78,10 @@ void HttpEntiy::AddFile(string key, string fileName, string mimeType) {
 	}
 }
 
+void HttpEntiy::Reset() {
+	mFileMap.empty();
+	mContentMap.empty();
+	mAuthorization = "";
+	mIsGetMethod = false;
+	mbSaveCookie = false;
+}

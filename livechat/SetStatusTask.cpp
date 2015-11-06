@@ -6,9 +6,9 @@
  */
 
 #include "SetStatusTask.h"
-#include <amf/AmfParser.h>
+#include <AmfParser.h>
 #include "CommonDef.h"
-#include <json/json/json.h>
+#include <json/json.h>
 
 SetStatusTask::SetStatusTask(void)
 {

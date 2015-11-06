@@ -16,9 +16,22 @@
 #define BUILD_VERSION		"ro.build.version.release"		// android release
 #define BUILD_SDK			"ro.build.version.sdk"			// android sdk version
 #define BUILD_CPUABI		"ro.product.cpu.abi"			// CPU info
+#define BUILD_CPUABILIST	"ro.product.cpu.abilist"		// CPU abi list
 #define SF_DENSITY			"ro.sf.lcd_density"				// density(DPI)
 #define LOCAL_LANGUAGE		"ro.product.locale.language"	// language
 #define LOCAL_REGION		"ro.product.locale.region"		// country
+#define BOOT_SERIALNO		"ro.boot.serialno"				// boot serialno
+#define RO_SERIALNO			"ro.serialno"					// serialno
+#define RO_HARDWARE			"ro.hardware"					// hardware
+#define DISPLAY_ID			"ro.build.display.id"			// displayid
+#define VER_INCREMENTAL		"ro.build.version.incremental"	// version incremental
+#define BUILD_HOST			"ro.build.host"					// host
+#define BUILD_FLAVOR		"ro.build.flavor"				// flavor
+#define PRODUCT_NAME		"ro.product.name"				// product name
+#define PRODUCT_DEVICE		"ro.product.device"				// product device
+#define BOARD_PLATFORM		"ro.board.platform"				// platform
+#define RO_CHIPNAME			"ro.chipname"					// chipname
+#define BUILD_DESCRIPTION	"ro.build.description"			// description
 
 typedef struct PhoneInfo {
 	string model;
@@ -28,8 +41,21 @@ typedef struct PhoneInfo {
 	string buildSDKVersion;
 	string densityDpi;
 	string cpuAbi;
+	string cpuAbiList;
 	string language;
 	string region;
+	string bootSerialno;
+	string serialno;
+	string hardware;
+	string displayId;
+	string verIncremental;
+	string host;
+	string flavor;
+	string productName;
+	string productDevice;
+	string platform;
+	string chipname;
+	string description;
 } PHONEINFO, *LPPHONEINFO;
 static PHONEINFO g_phoneInfo;
 
@@ -42,59 +68,112 @@ bool GetPhoneInfo()
 	FILE *ptr = popen(sCommand.c_str(), "r");
 	if(ptr != NULL) {
 		result = true;
-		char buffer[2048] = {'\0'};
+		const unsigned int bufferLen = 2048;
+		char buffer[bufferLen] = {0};
 
-		while(fgets(buffer, 2048, ptr) != NULL) {
-			string reslut = buffer;
+		while(fgets(buffer, bufferLen, ptr) != NULL) {
+			string result = buffer;
 
 			// skip if start with #
-			if( reslut.length() > 0 && reslut.c_str()[0] == '#' ) {
+			if( result.length() > 0 && result.c_str()[0] == '#' ) {
 				continue;
 			}
 
 			// skip if not found '='
-			std::string::size_type sep = reslut.find("=");
+			std::string::size_type sep = result.find("=");
 			if( string::npos == sep ) {
 				continue;
 			}
 
-			string key = reslut.substr(0, sep);
+			string key = result.substr(0, sep);
 
 			if( key == PRODUCT_MODEL )
 			{
-				g_phoneInfo.model = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.model = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == PRODUCT_MANUFACT )
 			{
-				g_phoneInfo.manufacturer = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.manufacturer = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == PRODUCT_BRAND )
 			{
-				g_phoneInfo.brand = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.brand = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == BUILD_VERSION )
 			{
-				g_phoneInfo.buildVersion = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.buildVersion = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == BUILD_SDK )
 			{
-				g_phoneInfo.buildSDKVersion = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.buildSDKVersion = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == SF_DENSITY )
 			{
-				g_phoneInfo.densityDpi = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.densityDpi = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == BUILD_CPUABI )
 			{
-				g_phoneInfo.cpuAbi = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.cpuAbi = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
+			}
+			else if( key == BUILD_CPUABILIST )
+			{
+				g_phoneInfo.cpuAbiList = result.substr(key.length() + 1, result. length() - (key.length() + 1 + 1));
 			}
 			else if( key == LOCAL_LANGUAGE )
 			{
-				g_phoneInfo.language = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.language = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
 			}
 			else if( key == LOCAL_REGION )
 			{
-				g_phoneInfo.region = reslut.substr(key.length() + 1, reslut.length() - (key.length() + 1 + 1));
+				g_phoneInfo.region = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
+			}
+			else if ( key == BOOT_SERIALNO )
+			{
+				g_phoneInfo.bootSerialno = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
+			}
+			else if ( key == RO_SERIALNO )
+			{
+				g_phoneInfo.serialno = result.substr(key.length() + 1, result.length() - (key.length() + 1 + 1));
+			}
+			else if ( key == RO_HARDWARE )
+			{
+				g_phoneInfo.hardware = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == DISPLAY_ID )
+			{
+				g_phoneInfo.displayId = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == VER_INCREMENTAL )
+			{
+				g_phoneInfo.verIncremental = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == BUILD_HOST )
+			{
+				g_phoneInfo.host = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == BUILD_FLAVOR )
+			{
+				g_phoneInfo.flavor = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == PRODUCT_NAME )
+			{
+				g_phoneInfo.productName = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == PRODUCT_DEVICE )
+			{
+				g_phoneInfo.productDevice = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == BOARD_PLATFORM )
+			{
+				g_phoneInfo.platform = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == RO_CHIPNAME )
+			{
+				g_phoneInfo.chipname = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
+			}
+			else if ( key == BUILD_DESCRIPTION )
+			{
+				g_phoneInfo.description = result.substr(key.length() + 1, result.length() - (key.length() +1 + 1));
 			}
 		}
 		pclose(ptr);
@@ -127,10 +206,10 @@ string GetPhoneInfo(string param) {
 		char buffer[2048] = {'\0'};
 
 		while(fgets(buffer, 2048, ptr) != NULL) {
-			string reslut = buffer;
-			if(string::npos != reslut.find(param)) {
+			string result = buffer;
+			if(string::npos != result.find(param)) {
 				// +1 for =
-				model = reslut.substr(param.length() + 1, reslut.length() - (param.length() + 1 + 1));
+				model = result.substr(param.length() + 1, result.length() - (param.length() + 1 + 1));
 				break;
 			}
 		}
@@ -224,6 +303,11 @@ string GetPhoneCpuAbi() {
 	return g_phoneInfo.cpuAbi;
 }
 
+string GetPhoneCpuAbiList()
+{
+	return g_phoneInfo.cpuAbiList;
+}
+
 string GetPhoneLocalLanguage() {
 //	string strLanguage = GetPhoneInfo(LOCAL_LANGUAGE);
 //	if (!strLanguage.empty()) {
@@ -242,6 +326,56 @@ string GetPhoneLocalRegion() {
 	return g_phoneInfo.region;
 }
 
+string GetPhoneHardware()
+{
+	return g_phoneInfo.hardware;
+}
+
+string GetPhoneDisplayId()
+{
+	return g_phoneInfo.displayId;
+}
+
+string GetPhoneVersionIncremental()
+{
+	return g_phoneInfo.verIncremental;
+}
+
+string GetPhoneHost()
+{
+	return g_phoneInfo.host;
+}
+
+string GetPhoneFlavor()
+{
+	return g_phoneInfo.flavor;
+}
+
+string GetPhoneProductName()
+{
+	return g_phoneInfo.productName;
+}
+
+string GetPhoneProductDevice()
+{
+	return g_phoneInfo.productDevice;
+}
+
+string GetPhoneBoardPlatform()
+{
+	return g_phoneInfo.platform;
+}
+
+string GetPhoneChipName()
+{
+	return g_phoneInfo.chipname;
+}
+
+string GetPhoneBuildDescription()
+{
+	return g_phoneInfo.description;
+}
+
 /*
  * get pid with process name
  */
@@ -252,7 +386,7 @@ int GetProcessPid(string name) {
 	string findName = " ";
 	findName += name;
 	string sCommand = "ps 2>&1";
-	string reslut = "";
+	string result = "";
 
 	FILE *ptr = popen(sCommand.c_str(), "r");
 	if(ptr != NULL) {
@@ -263,8 +397,8 @@ int GetProcessPid(string name) {
 		if(fgets(buffer, 2048, ptr) != NULL) {
 			char *p = strtok(buffer, " ");
 			while(p != NULL) {
-				reslut = p;
-				if(reslut == "PID") {
+				result = p;
+				if(result == "PID") {
 					iColumn = index;
 					break;
 				}
@@ -276,8 +410,8 @@ int GetProcessPid(string name) {
 		// 鑾峰彇杩涚▼pid
 		if(iColumn != -1) {
 			while(fgets(buffer, 2048, ptr) != NULL) {
-				string reslut = buffer;
-				if(string::npos != reslut.find(findName.c_str())) {
+				string result = buffer;
+				if(string::npos != result.find(findName.c_str())) {
 					char *p = strtok(buffer, " ");
 					for(int i = 0; p != NULL; i++) {
 						if(i == iColumn) {

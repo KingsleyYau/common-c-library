@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <amf/AmfParser.h>
+#include <AmfParser.h>
 #include <string>
 
 using namespace std;

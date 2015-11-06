@@ -8,7 +8,7 @@
 #pragma once
 
 #include "ILiveChatClientDef.h"
-#include <amf/AmfParser.h>
+#include <AmfParser.h>
 #include <string>
 
 bool ParsingUserInfoItem(amf_object_handle handle, UserInfoItem& item);

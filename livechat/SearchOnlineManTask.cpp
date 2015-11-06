@@ -10,8 +10,8 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json/json.h>
-#include <common/KLog.h>
+#include <json/json.h>
+#include <KLog.h>
 
 // 请求参数定义
 #define BEGIN_AGE_PARAM		"beginAge"	// 起始年龄
@@ -62,7 +62,6 @@ bool SearchOnlineManTask::Handle(const TransportProtocol* tp)
 	m_errType = LCC_ERR_SUCCESS;
 	m_errMsg = "";
 
-
 	list<string> list;
 
 	AmfParser parser;
@@ -107,7 +106,9 @@ bool SearchOnlineManTask::Handle(const TransportProtocol* tp)
 		}
 	}
 
-	FileLog("LiveChatClient", "SearchOnlineManTask::Handle() result:%d, list.size:%d", result, list.size());
+	// 打log
+	FileLog("LiveChatClient", "SearchOnlineManTask::Handle() listener:%p, result:%d, errType:%d, errMsg:%s, list.size:%d"
+			, m_listener, result, m_errType, m_errMsg.c_str(), list.size());
 
 	// 通知listener
 	if (NULL != m_listener) {
@@ -136,6 +137,10 @@ bool SearchOnlineManTask::GetSendData(void* data, unsigned int dataSize, unsigne
 
 		result  = true;
 	}
+
+	// 打log
+	FileLog("LiveChatClient", "SearchOnlineManTask::GetSendData() result:%d, json:%s", result, json.c_str());
+
 	return result;
 }
 

@@ -51,9 +51,34 @@ string GetPhoneDensityDPI();
  */
 string GetPhoneCpuAbi();
 
+string GetPhoneCpuAbiList();
+
 string GetPhoneLocalLanguage();
 
 string GetPhoneLocalRegion();
+
+/*
+ * hardware
+ */
+string GetPhoneHardware();
+
+string GetPhoneDisplayId();
+
+string GetPhoneVersionIncremental();
+
+string GetPhoneHost();
+
+string GetPhoneFlavor();
+
+string GetPhoneProductName();
+
+string GetPhoneProductDevice();
+
+string GetPhoneBoardPlatform();
+
+string GetPhoneChipName();
+
+string GetPhoneBuildDescription();
 
 /*
  * get pid with process name

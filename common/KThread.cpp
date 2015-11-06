@@ -12,13 +12,11 @@
 
 KThread::KThread() {
 	m_pthread_t = -1;
-	m_pthread_t_id = 0;
 	m_isRunning = false;
 	m_pKRunnable = NULL;
 }
 KThread::KThread(KRunnable *runnable) {
 	m_pthread_t = -1;
-	m_pthread_t_id = -1;
 	m_isRunning = false;
 	this->m_pKRunnable = runnable;
 }
@@ -26,14 +24,12 @@ KThread::~KThread() {
 //	stop();
 }
 void* KThread::thread_proc_func(void *args){
-	pthread_t threadId = 0;
 	KThread *pKThread = (KThread*)args;
 	if(pKThread){
-		DLog("KThread", "thread_proc_func ( (%lu)->onRun ) \n ", pKThread->getThreadId());
-		threadId = pKThread->getThreadId();
+		DLog("KThread", "thread_proc_func ( (%ld)->onRun ) \n ", pKThread->getThreadId());
 		pKThread->onRun();
 	}
-	DLog("KThread", "thread_proc_func ( (%lu) exit ) \n", threadId);
+	DLog("KThread", "thread_proc_func ( (%ld) exit ) \n", pKThread->getThreadId());
 	return (void*)0;
 }
 pthread_t KThread::start(KRunnable *runnable){
@@ -49,29 +45,23 @@ pthread_t KThread::start(KRunnable *runnable){
 	if(0 != ret) {
 		ELog("KThread", "start ( create thread fail reson : (%s) ) \n", strerror(ret));
 		m_pthread_t = -1;
-		m_pthread_t_id = -1;
 	}
 	else {
-		DLog("KThread", "start ( create thread : (%lu) succeed ) \n", m_pthread_t);
-		m_pthread_t_id = m_pthread_t;
+		DLog("KThread", "start ( create thread : (%ld) succeed ) \n", m_pthread_t);
 	}
 	return m_pthread_t;
 }
 void KThread::stop() {
 	if(isRunning()) {
-		DLog("KThread", "stop( wait for thread :(%lu) exit... ) \n ", m_pthread_t);
+		DLog("KThread", "stop( wait for thread :(%ld) exit... ) \n ", m_pthread_t);
 		if(0 != pthread_join(m_pthread_t, NULL)){
-			DLog("KThread", "stop( wait for thread :(%lu) exit error fail ) \n", m_pthread_t);
+			DLog("KThread", "stop( wait for thread :(%ld) exit error fail ) \n", m_pthread_t);
 		}
 		else{
-			DLog("KThread", "thread : (%lu) exit succeed \n", m_pthread_t);
+			DLog("KThread", "thread : (%ld) exit succeed \n", m_pthread_t);
 		}
 	}
-	else if(m_pthread_t_id != -1){
-		DLog("KThread", "stop( thread : (%lu) already exit ) \n", m_pthread_t_id);
-	}
 	m_pthread_t = -1;
-	m_pthread_t_id = -1;
 }
 void KThread::sleep(uint32_t msec){
 	//usleep(100);

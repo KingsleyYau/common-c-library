@@ -12,7 +12,8 @@
 
 Counter::Counter(void)
 {
-	m_count = 0;
+	m_begin = 0;
+	m_count = m_begin;
 	m_lock = NULL;
 	m_bInit = false;
 }
@@ -26,12 +27,20 @@ Counter::~Counter(void)
 }
 
 // 初始化
-bool Counter::Init()
+bool Counter::Init(int begin, int step)
 {
 	if (!m_bInit) {
 		m_lock = IAutoLock::CreateAutoLock();
 		if (NULL != m_lock) {
 			m_bInit = m_lock->Init();
+		}
+
+		if (m_bInit) {
+			m_begin = begin;
+			// 设置步长
+			SetStep(step);
+			// 重置计数器
+			Reset();
 		}
 	}
 	return m_bInit;
@@ -42,7 +51,7 @@ void Counter::Reset()
 {
 	if (m_bInit) {
 		m_lock->Lock();
-		m_count = 0;
+		m_count = m_begin;
 		m_lock->Unlock();
 	}
 }
@@ -58,35 +67,101 @@ int Counter::GetCount()
 	}
 	return count;
 }
-	
-// 加1
-void Counter::AddOne()
+
+// 设置步长
+void Counter::SetStep(int step)
 {
 	if (m_bInit) {
 		m_lock->Lock();
-		m_count++;
-		m_lock->Unlock();
-	}
-}
-	
-// 减1
-void Counter::SubOne()
-{
-	if (m_bInit) {
-		m_lock->Lock();
-		m_count--;
+		m_step = step;
 		m_lock->Unlock();
 	}
 }
 
-// 获取计数并加1
-int Counter::GetCountAndAddOne()
+// 获取步长
+int Counter::GetStep()
+{
+	int step = 0;
+	if (m_bInit) {
+		m_lock->Lock();
+		step = m_step;
+		m_lock->Unlock();
+	}
+	return step;
+}
+
+// 获取计数并加步长
+int Counter::GetAndIncrement()
 {
 	int count = 0;
 	if (m_bInit) {
 		m_lock->Lock();
-		count = m_count++;
+		count = m_count;
+		m_count += m_step;
+		if (m_count < 0) {
+			m_count = m_count * (-1);
+		}
 		m_lock->Unlock();
 	}
 	return count;
+}
+
+// 获取计数并减步长
+int Counter::GetAndDecrement()
+{
+	int count = 0;
+	if (m_bInit) {
+		m_lock->Lock();
+		count = m_count;
+		m_count -= m_step;
+		if (m_count < 0) {
+			m_count = m_count * (-1);
+		}
+		m_lock->Unlock();
+	}
+	return count;
+}
+
+// 加步长并获取计数
+int Counter::IncrementAndGet()
+{
+	int count = 0;
+	if (m_bInit) {
+		m_lock->Lock();
+		m_count += m_step;
+		if (m_count < 0) {
+			m_count = m_count * (-1);
+		}
+		count = m_count;
+		m_lock->Unlock();
+	}
+	return count;
+}
+
+// 减步长并获取计数
+int Counter::DecrementAndGet()
+{
+	int count = 0;
+	if (m_bInit) {
+		m_lock->Lock();
+		m_count -= m_step;
+		if (m_count < 0) {
+			m_count = m_count * (-1);
+		}
+		count = m_count;
+		m_lock->Unlock();
+	}
+	return count;
+}
+
+// 判断是否无效的值
+bool Counter::IsInvalidValue(int value) const
+{
+	return value < 0;
+}
+
+// 获取无效的值
+int Counter::GetInvalidValue() const
+{
+	return -1;
 }

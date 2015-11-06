@@ -6,7 +6,7 @@
  */
 
 #include "UploadDeviceIdTask.h"
-#include <json/json/json.h>
+#include <json/json.h>
 
 UploadDeviceIdTask::UploadDeviceIdTask(void)
 {

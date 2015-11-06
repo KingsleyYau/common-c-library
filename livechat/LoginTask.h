@@ -43,7 +43,7 @@ public:
 
 public:
 	// 初始化参数
-	bool InitParam(const string& user, const string& password, CLIENT_TYPE clientType, USER_SEX_TYPE sex);
+	bool InitParam(const string& user, const string& password, CLIENT_TYPE clientType, USER_SEX_TYPE sex, AUTH_TYPE authType);
 
 private:
 	ILiveChatClientListener*	m_listener;
@@ -54,6 +54,7 @@ private:
 	string			m_password;	// 密码
 	CLIENT_TYPE		m_clientType;	// 客户端类型
 	USER_SEX_TYPE	m_sexType;	// 性别
+	AUTH_TYPE		m_authType;	// 认证类型
 
 	LCC_ERR_TYPE	m_errType;	// 服务器返回的处理结果
 	string			m_errMsg;	// 服务器返回的结果描述

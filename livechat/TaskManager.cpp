@@ -11,7 +11,7 @@
 #include "TaskManager.h"
 #include "ITransportDataHandler.h"
 #include "TaskDef.h"
-#include <common/KLog.h>
+#include <KLog.h>
 #include <unistd.h>
 
 CTaskManager::CTaskManager(void)
@@ -151,7 +151,8 @@ void CTaskManager::OnDisconnect(const TaskList& listUnsentTask)
 // 发送callback
 void CTaskManager::OnSend(bool success, ITask* task)
 {
-	FileLog("LiveChatClient", "CTaskManager::OnSend() success:%d, task:%p, cmd:%d", success, task, task->GetCmdCode());
+	FileLog("LiveChatClient", "CTaskManager::OnSend() success:%d, task:%p, cmd:%d, seq:%d"
+			, success, task, task->GetCmdCode(), task->GetSeq());
 	if (success)
 	{
 		// 发送成功而且需要回复，则插入map
@@ -170,7 +171,8 @@ void CTaskManager::OnSend(bool success, ITask* task)
 void CTaskManager::OnRecv(const TransportProtocol* tp)
 {
 	FileLog("LiveChatClient", "CTaskManager::OnRecv() tp:%p", tp);
-	FileLog("LiveChatClient", "CTaskManager::OnRecv() tp.header.cmd:%d, tp.header.lenght:%d, tp.dataLen:%d", tp->header.cmd, tp->header.length, tp->GetDataLength());
+	FileLog("LiveChatClient", "CTaskManager::OnRecv() cmd:%d, seq:%d, lenght:%d, tp.dataLen:%d"
+			, tp->header.cmd, tp->header.seq, tp->header.length, tp->GetDataLength());
 
 	ITask* task = NULL;
 	if (IsRequestCmd(tp->header.cmd)) {

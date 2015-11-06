@@ -41,6 +41,9 @@ public:
     static bool String2Mac(char* pstr, char* Mac);
     static bool Mac2String(char* pstr, char* Mac);
     
+    static string AesEncrypt(string initKey, string src);
+    static string AesDecrypt(string initKey, string src);
+
     static size_t ChangeCharset(char* outbuf, size_t outbytes, const char* inbuf, const char* fromcode, const char* tocode, bool conv_begin = true);
 
 protected:

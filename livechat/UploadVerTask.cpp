@@ -9,7 +9,7 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json/json.h>
+#include <json/json.h>
 
 
 UploadVerTask::UploadVerTask(void)

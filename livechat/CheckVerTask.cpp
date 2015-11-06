@@ -8,9 +8,9 @@
 
 #include "CheckVerTask.h"
 #include "ILiveChatClient.h"
-#include <amf/AmfParser.h>
-#include <json/json/json.h>
-#include <common/KLog.h>
+#include <AmfParser.h>
+#include <json/json.h>
+#include <KLog.h>
 
 CheckVerTask::CheckVerTask(void)
 {
@@ -44,9 +44,6 @@ bool CheckVerTask::Handle(const TransportProtocol* tp)
 {
 	bool result = false;
 
-	FileLog("LiveChatClient", "CheckVerTask::Handle() tp.header.cmd:%d tp.header.length:%d, tp.dateLen:%d"
-			, tp->header.cmd, tp->header.length, tp->GetDataLength());
-
 	AmfParser parser;
 	amf_object_handle root = parser.Decode((char*)tp->data, tp->GetDataLength());
 	if (!root.isnull()
@@ -64,7 +61,9 @@ bool CheckVerTask::Handle(const TransportProtocol* tp)
 		m_errMsg = "";
 	}
 
-	FileLog("LiveChatClient", "CheckVerTask::Handle() errType:%d", m_errType);
+	// 打log
+	FileLog("LiveChatClient", "CheckVerTask::Handle() errType:%d, errMsg:%s"
+			, m_errType, m_errMsg.c_str());
 
 	return result;
 }
@@ -87,7 +86,8 @@ bool CheckVerTask::GetSendData(void* data, unsigned int dataSize, unsigned int& 
 		result  = true;
 	}
 
-	FileLog("LiveChatClient", "CheckVerTask::GetSendData() dataSize:%d, json:%s, dataLen:%d", dataSize, json.c_str(), dataLen);
+	// 打log
+	FileLog("LiveChatClient", "CheckVerTask::GetSendData() result:%d, json:%s", result, json.c_str());
 
 	return result;
 }

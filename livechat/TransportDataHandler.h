@@ -55,7 +55,7 @@ private:
 	void DisconnectProc();
 	void DisconnectCallback();
 	// 删除pBuffer头nRemoveLength个字节
-	void RemoveData(char* pBuffer, int nBufferLength, int nRemoveLength);
+	void RemoveData(unsigned char* pBuffer, int nBufferLength, int nRemoveLength);
 
 private:
 	ITransportDataHandlerListener*	m_listener;			// 监听器

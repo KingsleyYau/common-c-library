@@ -55,7 +55,7 @@ typedef enum {
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
 	TCMD_RECVVOICE		    = 153,	// 语音聊天信息通知
-	TCMD_RECVWARNING	    = 121,	// 警告信息通知
+	TCMD_RECVWARNING	    = 122,	// 警告信息通知
 	TCMD_UPDATESTATUS	    = 28,	// 状态更新通知
 	TCMD_UPDATETICKET	    = 109,	// 票根更新通知
 	TCMD_RECVEDITMSG	    = 45,	// 对方正在编辑通知
@@ -75,37 +75,39 @@ inline bool IsRequestCmd(int cmd)
 {
 	bool result = false;
 	switch (cmd) {
-	case TCMD_CHECKVER:
-	case TCMD_LOGIN:
-	case TCMD_SETSTATUS:
-	case TCMD_UPLOADDEVID:
-	case TCMD_UPLOADDEVTYPE:
-	case TCMD_ENDTALK:
-	case TCMD_GETUSERSTATUS:
-	case TCMD_GETTALKINFO:
-	case TCMD_UPLOADTICKET:
-    case TCMD_SENDLADYEDITINGMSG:
-	case TCMD_SENDMSG:
-	case TCMD_SENDEMOTION:
-	case TCMD_SENDVGIFT:
-	case TCMD_GETVOICECODE:
-	case TCMD_SENDVOICE:
-	case TCMD_USETRYTICKET:
-	case TCMD_GETTALKLIST:
-	case TCMD_SENDPHOTO:
-	case TCMD_SHOWPHOTO:
-	case TCMD_GETCONTACTLIST:
-	case TCMD_UPLOADVER:
-	case TCMD_GETUSERINFO:
-	case TCMD_GETBLOCKUSERS:
-    case TCMD_GETRECENTCONTACTLIST:
-    case TCMD_SEARCHONLINEMAN:
-    case TCMD_REPLYIDENTIFYCODE:
-    case TCMD_REFRESHIDENTIFYCODE:
-    case TCMD_REFRESHINVITETEMPLATE:
-    case TCMD_GETFEERECENTCONTACTLIST:
-    case TCMD_GETLADYCHATINFO:
-    case TCMD_PLAYVIDEO:
+	case TCMD_CHECKVER:				// 版本检测
+	case TCMD_LOGIN:				// 登录
+	case TCMD_GETUSERINFO:			// 获取用户信息
+	case TCMD_GETUSERSINFO:			// 获取多个用户信息
+	case TCMD_GETCONTACTLIST:		// 获取联系人或黑名单列表
+	case TCMD_GETBLOCKUSERS:		// 获取被屏蔽女士列表
+	case TCMD_SETSTATUS:			// 设置在线状态
+	case TCMD_UPLOADDEVID:			// 上传设备ID
+	case TCMD_UPLOADDEVTYPE:		// 上传设备类型
+	case TCMD_ENDTALK:				// 结束聊天
+	case TCMD_GETUSERSTATUS:		// 获取用户在线状态
+	case TCMD_GETTALKINFO:			// 获取会话信息
+	case TCMD_UPLOADTICKET:			// 上传票根
+	case TCMD_SENDLADYEDITINGMSG:	// 通知对方女士正在编辑消息
+	case TCMD_SENDMSG:				// 发送聊天消息
+	case TCMD_SENDEMOTION:			// 发送高级表情
+	case TCMD_SENDVGIFT:			// 发送虚拟礼物
+	case TCMD_GETVOICECODE:			// 获取语音发送验证码
+	case TCMD_GETLADYVOICECODE:		// 获取女士语音发送验证码
+	case TCMD_SENDVOICE:			// 发送语音
+	case TCMD_USETRYTICKET:			// 使用试聊券
+	case TCMD_GETTALKLIST:			// 获取邀请或在聊列表
+	case TCMD_UPLOADVER:			// 上传客户端版本号
+	case TCMD_SENDPHOTO:			// 发送图片
+	case TCMD_SHOWPHOTO:			// 显示图片
+	case TCMD_GETRECENTCONTACTLIST:	// 获取最近联系人列表
+	case TCMD_SEARCHONLINEMAN:		// 搜索在线男士
+	case TCMD_REPLYIDENTIFYCODE:	// 回复验证码
+	case TCMD_REFRESHIDENTIFYCODE:	// 刷新验证码
+	case TCMD_REFRESHINVITETEMPLATE:	// 刷新邀请模板
+	case TCMD_GETFEERECENTCONTACTLIST:	// 获取已扣费最近联系人列表
+	case TCMD_GETLADYCHATINFO:		// 获取女士聊天信息（包括在聊及邀请的男士列表等）
+	case TCMD_PLAYVIDEO:			// 播放视频
 		result = true;	// 主动请求的命令
 		break;
 	default:

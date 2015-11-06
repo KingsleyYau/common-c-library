@@ -6,7 +6,7 @@
  */
 
 #include "ISocketHandler.h"
-//#include <common/KLog.h>
+//#include <KLog.h>
 
 
 #ifdef WIN32
