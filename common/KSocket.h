@@ -47,10 +47,9 @@ protected:
 	unsigned int GetTick();
 	bool IsTimeout(unsigned int uiStart, unsigned int uiTimeout);
 
-	socket_type m_Socket;
+	socket_type mSocket;
 
-	// 鏄惁闃诲
-	bool m_bBlocking;
+	bool mbBlocking;
 };
 
 #endif /* KSocket_H_ */

@@ -10,82 +10,77 @@
 
 KSocket::KSocket() {
 	// TODO Auto-generated constructor stub
-	m_Socket = -1;
-	m_bBlocking = false;
-//	m_pSocketMutex = new DrMutex();
+	mSocket = -1;
+	mbBlocking = false;
 }
 
 KSocket::~KSocket() {
 	// TODO Auto-generated destructor stub
-//	if(m_pSocketMutex != NULL) {
-//		delete m_pSocketMutex;
-//		m_pSocketMutex = NULL;
-//	}
 }
 
 socket_type KSocket::getSocket() {
-	return m_Socket;
+	return mSocket;
 }
 void KSocket::setScoket(socket_type socket) {
-	m_Socket = socket;
+	mSocket = socket;
 }
 bool KSocket::setBlocking(bool bBlocking) {
 	bool bFlag = false;
 	int iFlag = 1;
-	if(m_Socket != -1) {
-		if ((iFlag = fcntl(m_Socket, F_GETFL, 0)) != -1) {
-			DLog("common", "KSocket::setBlocking( fcntl socket(%d) : 0x%x ) \n", m_Socket, iFlag);
+	if(mSocket != -1) {
+		if ((iFlag = fcntl(mSocket, F_GETFL, 0)) != -1) {
+			DLog("JNI", "KSocket::setBlocking( fcntl socket(%d) : 0x%x ) \n", mSocket, iFlag);
 			if (!bBlocking) {
 				// set nonblocking
-				if (fcntl(m_Socket, F_SETFL, iFlag | O_NONBLOCK) != -1) {
-					DLog("common", "KSocket::setBlocking( fcntl set socket(%d) nonblocking ) \n", m_Socket);
-					m_bBlocking = bBlocking;
+				if (fcntl(mSocket, F_SETFL, iFlag | O_NONBLOCK) != -1) {
+					DLog("common", "KSocket::setBlocking( fcntl set socket(%d) nonblocking ) \n", mSocket);
+					mbBlocking = bBlocking;
 					bFlag = true;
 				}
 				else {
-					ELog("common", "KSocket::setBlocking( fcntl set socket(%d) nonblocking fail ) \n", m_Socket);
+					ELog("JNI", "KSocket::setBlocking( fcntl set socket(%d) nonblocking fail ) \n", mSocket);
 					bFlag = false;
 				}
 			}
 			else {
 				// set blocking
-				if (fcntl(m_Socket, F_SETFL, iFlag & ~O_NONBLOCK) != -1) {
-					DLog("common", "KSocket::setBlocking( fcntl set socket(%d) blocking ) \n", m_Socket);
-					m_bBlocking = bBlocking;
+				if (fcntl(mSocket, F_SETFL, iFlag & ~O_NONBLOCK) != -1) {
+					DLog("JNI", "KSocket::setBlocking( fcntl set socket(%d) blocking ) \n", mSocket);
+					mbBlocking = bBlocking;
 					bFlag = true;
 				}
 				else {
-					ELog("common", "KSocket::setBlocking( fcntl set socket(%d) blocking ) \n", m_Socket);
+					ELog("JNI", "KSocket::setBlocking( fcntl set socket(%d) blocking ) \n", mSocket);
 					bFlag = false;
 				}
 			}
 
 		}
 		else {
-			ELog("common", "KSocket::setBlocking( fcntl get socket(%d) fail ) \n", m_Socket);
+			ELog("JNI", "KSocket::setBlocking( fcntl get socket(%d) fail ) \n", mSocket);
 			bFlag = false;
 		}
 	}
 	else {
-		ELog("common", "KSocket::setBlocking( no socket create ) \n");
+		ELog("JNI", "KSocket::setBlocking( no socket create ) \n");
 		bFlag = false;
 	}
 
-	if ((iFlag = fcntl(m_Socket, F_GETFL, 0)) != -1) {
-		DLog("common", "KSocket::setBlocking( fcntl get socket(%d) : 0x%x ) \n", m_Socket, iFlag);
+	if ((iFlag = fcntl(mSocket, F_GETFL, 0)) != -1) {
+		DLog("JNI", "KSocket::setBlocking( fcntl get socket(%d) : 0x%x ) \n", mSocket, iFlag);
 	}
 
 	return bFlag;
 }
 bool KSocket::IsBlocking() {
-	return m_bBlocking;
+	return mbBlocking;
 }
 void KSocket::Close() {
-	if (m_Socket != -1) {
-		DLog("common", "KSocket::Close( close socket:(%d) ) \n", m_Socket);
-		shutdown(m_Socket, SHUT_RDWR);
-		close(m_Socket);
-		m_Socket = -1;
+	if (mSocket != -1) {
+		DLog("JNI", "KSocket::Close( close socket:(%d) ) \n", mSocket);
+		shutdown(mSocket, SHUT_RDWR);
+		close(mSocket);
+		mSocket = -1;
 	}
 }
 

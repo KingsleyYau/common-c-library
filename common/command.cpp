@@ -380,7 +380,7 @@ string GetPhoneBuildDescription()
  * 获取进程名的Pid
  */
 int GetProcessPid(string name) {
-	DLog("JNI::GetProcessPid", "正在获取进程(%s)Pid...", name.c_str());
+	DLog("JNI::GetProcessPid", "正在获取进程(%s) pid", name.c_str());
 	int iPid = -1;
 
 	string findName = " ";
@@ -417,7 +417,7 @@ int GetProcessPid(string name) {
 						if(i == iColumn) {
 							// 找到进程pid
 							iPid = atoi(p);
-							DLog("JNI::GetProcessPid", "找到进程Pid:%s", p);
+							DLog("JNI::GetProcessPid", "找到进程 pid:%s", p);
 							break;
 						}
 						p = strtok(NULL, " ");
@@ -440,7 +440,7 @@ void SystemComandExecute(string command) {
 	string sCommand = command;
 	sCommand += " &>/dev/null";
 	system(sCommand.c_str());
-	DLog("JNI::SystemComandExecute", "command : %s", sCommand.c_str());
+	DLog("JNI::SystemComandExecute", "%s", sCommand.c_str());
 }
 
 /*
@@ -460,7 +460,7 @@ string SystemComandExecuteWithResult(string command) {
 		pclose(ptr);
 		ptr = NULL;
 	}
-	DLog("JNI::SystemComandExecuteWithResult", "command : %s \ncommand result : %s", sCommand.c_str(), result.c_str());
+	DLog("JNI::SystemComandExecuteWithResult", "%s \nresult : %s", sCommand.c_str(), result.c_str());
 	return result;
 }
 
