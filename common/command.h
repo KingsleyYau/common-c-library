@@ -81,43 +81,43 @@ string GetPhoneChipName();
 string GetPhoneBuildDescription();
 
 /*
- * get pid with process name
+ * 获取进程名的Pid
  */
 int GetProcessPid(string name);
 
 /*
- * 杩愯鍛戒护
+ * 运行命令
  */
 void SystemComandExecute(string command);
 /*
- * 杩愯甯﹁繑鍥炲懡浠�
+ * 运行带返回命令
  */
 string SystemComandExecuteWithResult(string command);
 
 /*
- * 浠oot鏉冮檺杩愯鍛戒护
+ * 以Root权限运行命令
  */
 void SystemComandExecuteWithRoot(string command);
 
 /*
- * 浠oot鏉冮檺杩愯甯﹁繑鍥炲懡浠�
+ * 以Root权限运行带返回命令
  */
 string SystemComandExecuteWithRootWithResult(string command);
 
 /*
- * 閲嶆柊鎸傝浇/system涓哄彲璇诲啓妯″紡
+ * 重新挂载/system为可读写模式
  */
 bool MountSystem();
 
 /*
- * 鎷疯礉鏂囦欢鍒版寚瀹氱洰褰曚笅
- * destDirPath:	鐩爣鐩綍
+ * 拷贝文件到指定目录下
+ * @param	destDirPath:	目标目录
  */
 bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName = "");
 
 /*
- * 瀹夎鍙墽琛屾枃浠跺埌 鐩爣鐩綍
- * destDirPath:	鐩爣鐩綍
+ * 安装可执行文件到 目标目录
+ * @param	destDirPath:	目标目录
  */
 bool RootExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
 #endif /* COMMAND_H_ */

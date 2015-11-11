@@ -231,7 +231,7 @@ string GetPhoneInfo(string param) {
 string GetPhoneModel() {
 //	string model = GetPhoneInfo(PRODUCT_MODEL);
 //	if(model.length() > 0) {
-//		DLog("jni.command::GetPhoneModel()", "Model : %s", model.c_str());
+//		DLog("JNI::GetPhoneModel()", "Model : %s", model.c_str());
 //	}
 //	return model;
 	return g_phoneInfo.model;
@@ -243,7 +243,7 @@ string GetPhoneModel() {
 string GetPhoneManufacturer() {
 //	string strManufacturer = GetPhoneInfo(PRODUCT_MANUFACT);
 //	if (!strManufacturer.empty()) {
-//		DLog("jni.command::GetPhoneManufacturer()", "Manufacturer : %s", strManufacturer.c_str());
+//		DLog("JNI::GetPhoneManufacturer()", "Manufacturer : %s", strManufacturer.c_str());
 //	}
 //	return strManufacturer;
 	return g_phoneInfo.manufacturer;
@@ -255,7 +255,7 @@ string GetPhoneManufacturer() {
 string GetPhoneBrand() {
 //	string model = GetPhoneInfo(PRODUCT_BRAND);
 //	if(model.length() > 0) {
-//		DLog("jni.command::GetPhoneBrand()", "Brand : %s", model.c_str());
+//		DLog("JNI::GetPhoneBrand()", "Brand : %s", model.c_str());
 //	}
 //	return model;
 	return g_phoneInfo.brand;
@@ -267,7 +267,7 @@ string GetPhoneBrand() {
 string GetPhoneBuildVersion() {
 //	string model = GetPhoneInfo(BUILD_VERSION);
 //	if(model.length() > 0) {
-//		DLog("jni.command::GetPhoneBuildVersion()", "鎵惧埌鎵嬫満Android鐗堟湰:%s", model.c_str());
+//		DLog("JNI::GetPhoneBuildVersion()", "鎵惧埌鎵嬫満Android鐗堟湰:%s", model.c_str());
 //	}
 //	return model;
 	return g_phoneInfo.buildVersion;
@@ -276,7 +276,7 @@ string GetPhoneBuildVersion() {
 string GetPhoneBuildSDKVersion() {
 //	string strSdkVersion = GetPhoneInfo(BUILD_SDK);
 //	if (!strSdkVersion.empty()) {
-//		DLog("jni.command::GetPhoneBuildSDKVersion()", "SDK Version:%s", strSdkVersion.c_str());
+//		DLog("JNI::GetPhoneBuildSDKVersion()", "SDK Version:%s", strSdkVersion.c_str());
 //	}
 //	return strSdkVersion;
 	return g_phoneInfo.buildSDKVersion;
@@ -285,7 +285,7 @@ string GetPhoneBuildSDKVersion() {
 string GetPhoneDensityDPI() {
 //	string strDensityDPI = GetPhoneInfo(SF_DENSITY);
 //	if (!strDensityDPI.empty()) {
-//		DLog("jni.command::GetPhoneDensityDPI()", "Density DPI:%s", strDensityDPI.c_str());
+//		DLog("JNI::GetPhoneDensityDPI()", "Density DPI:%s", strDensityDPI.c_str());
 //	}
 //	return strDensityDPI;
 	return g_phoneInfo.densityDpi;
@@ -297,7 +297,7 @@ string GetPhoneDensityDPI() {
 string GetPhoneCpuAbi() {
 //	string model = GetPhoneInfo(BUILD_CPUABI);
 //	if(model.length() > 0) {
-//		DLog("jni.command::GetPhoneCpuAbi()", "Android CPU ABI : %s", model.c_str());
+//		DLog("JNI::GetPhoneCpuAbi()", "Android CPU ABI : %s", model.c_str());
 //	}
 //	return model;
 	return g_phoneInfo.cpuAbi;
@@ -311,7 +311,7 @@ string GetPhoneCpuAbiList()
 string GetPhoneLocalLanguage() {
 //	string strLanguage = GetPhoneInfo(LOCAL_LANGUAGE);
 //	if (!strLanguage.empty()) {
-//		DLog("jni.command::GetPhoneLocalLanguage()", "Language:%s", strLanguage.c_str());
+//		DLog("JNI::GetPhoneLocalLanguage()", "Language:%s", strLanguage.c_str());
 //	}
 //	return strLanguage;
 	return g_phoneInfo.language;
@@ -320,7 +320,7 @@ string GetPhoneLocalLanguage() {
 string GetPhoneLocalRegion() {
 //	string strRegion = GetPhoneInfo(LOCAL_REGION);
 //	if (!strRegion.empty()) {
-//		DLog("jni.command::GetPhoneLocalRegion()", "Region:%s", strRegion.c_str());
+//		DLog("JNI::GetPhoneLocalRegion()", "Region:%s", strRegion.c_str());
 //	}
 //	return strRegion;
 	return g_phoneInfo.region;
@@ -377,28 +377,28 @@ string GetPhoneBuildDescription()
 }
 
 /*
- * get pid with process name
+ * 获取进程名的Pid
  */
 int GetProcessPid(string name) {
-	DLog("jni.command::GetProcessPid", "姝ｅ湪鑾峰彇杩涚▼(%s)Pid...", name.c_str());
+	DLog("JNI::GetProcessPid", "正在获取进程(%s)Pid...", name.c_str());
 	int iPid = -1;
 
 	string findName = " ";
 	findName += name;
 	string sCommand = "ps 2>&1";
-	string result = "";
+	string reslut = "";
 
 	FILE *ptr = popen(sCommand.c_str(), "r");
 	if(ptr != NULL) {
 		char buffer[2048] = {'\0'};
 
-		// 鑾峰彇绗竴琛屽瓧娈�
+		// 获取第一行字段
 		int iColumn = -1, index = 0;
 		if(fgets(buffer, 2048, ptr) != NULL) {
 			char *p = strtok(buffer, " ");
 			while(p != NULL) {
-				result = p;
-				if(result == "PID") {
+				reslut = p;
+				if(reslut == "PID") {
 					iColumn = index;
 					break;
 				}
@@ -407,17 +407,17 @@ int GetProcessPid(string name) {
 			}
 		}
 
-		// 鑾峰彇杩涚▼pid
+		// 获取进程pid
 		if(iColumn != -1) {
 			while(fgets(buffer, 2048, ptr) != NULL) {
-				string result = buffer;
-				if(string::npos != result.find(findName.c_str())) {
+				string reslut = buffer;
+				if(string::npos != reslut.find(findName.c_str())) {
 					char *p = strtok(buffer, " ");
 					for(int i = 0; p != NULL; i++) {
 						if(i == iColumn) {
-							// 鎵惧埌杩涚▼pid
+							// 找到进程pid
 							iPid = atoi(p);
-							DLog("jni.command::GetProcessPid", "鎵惧埌杩涚▼Pid:%s", p);
+							DLog("JNI::GetProcessPid", "找到进程Pid:%s", p);
 							break;
 						}
 						p = strtok(NULL, " ");
@@ -434,17 +434,17 @@ int GetProcessPid(string name) {
 }
 
 /*
- * 杩愯鍛戒护
+ * 运行命令
  */
 void SystemComandExecute(string command) {
 	string sCommand = command;
 	sCommand += " &>/dev/null";
 	system(sCommand.c_str());
-	DLog("jni.command::SystemComandExecute", "command:%s", sCommand.c_str());
+	DLog("JNI::SystemComandExecute", "command : %s", sCommand.c_str());
 }
 
 /*
- * 杩愯甯﹁繑鍥炲懡浠�
+ * 运行带返回命令
  */
 string SystemComandExecuteWithResult(string command) {
 	string result = "";
@@ -460,12 +460,12 @@ string SystemComandExecuteWithResult(string command) {
 		pclose(ptr);
 		ptr = NULL;
 	}
-	DLog("jni.command::SystemComandExecuteWithResult", "command:%s \ncommand result:%s", sCommand.c_str(), result.c_str());
+	DLog("JNI::SystemComandExecuteWithResult", "command : %s \ncommand result : %s", sCommand.c_str(), result.c_str());
 	return result;
 }
 
 /*
- * 浠oot鏉冮檺杩愯鍛戒护
+ * 以Root权限运行命令
  */
 void SystemComandExecuteWithRoot(string command) {
 	string sCommand;
@@ -476,7 +476,7 @@ void SystemComandExecuteWithRoot(string command) {
 }
 
 /*
- * 浠oot鏉冮檺杩愯甯﹁繑鍥炲懡浠�
+ * 以Root权限运行带返回命令
  */
 string SystemComandExecuteWithRootWithResult(string command) {
 	string sCommand = command;
@@ -487,7 +487,7 @@ string SystemComandExecuteWithRootWithResult(string command) {
 }
 
 /*
- * 閲嶆柊鎸傝浇/system涓哄彲璇诲啓妯″紡
+ * 重新挂载/system为可读写模式
  */
 bool MountSystem() {
 	bool bFlag = false;
@@ -495,7 +495,7 @@ bool MountSystem() {
 	char pBuffer[2048] = {'\0'};
 	string result = "";
 
-	// 鑾峰彇鍘�system鎸傝浇
+	// 获取原/system挂载
 	FILE *ptr = popen("mount", "r");
 	if(ptr != NULL) {
 
@@ -503,10 +503,10 @@ bool MountSystem() {
 			result = pBuffer;
 
 			if(string::npos != result.find("/system")) {
-				// 鎵惧埌/system鎸傝浇璺緞
+				// 找到/system挂载路径
 				char* dev = strtok(pBuffer, " ");
 				result = dev;
-				DLog("jni.command::MountSystem", "鎵惧埌/system鎸傝浇璺緞:%s", result.c_str());
+				DLog("JNI::MountSystem", "找到/system挂载路径:%s", result.c_str());
 				break;
 			}
 		}
@@ -514,23 +514,23 @@ bool MountSystem() {
 		ptr = NULL;
 	}
 
-	// 鏇存敼鎸傝浇涓簉w
+	// 更改挂载为rw
 	sprintf(pBuffer, "mount -o remount rw,%s /system", result.c_str());
 	result = SystemComandExecuteWithRootWithResult(pBuffer);
 	if(result.length() == 0) {
-		DLog("jni.command::MountSystem", "鎸傝浇/system涓哄彲璇诲啓鎴愬姛!");
+		DLog("JNI::MountSystem", "挂载/system为可读写成功!");
 		bFlag = true;
 	}
 	else {
-		ELog("jni.command::MountSystem", "鎸傝浇/system涓哄彲璇诲啓澶辫触!");
+		ELog("JNI::MountSystem", "挂载/system为可读写失败!");
 	}
 
 	return bFlag;
 }
 
 /*
- * 鎷疯礉鏂囦欢鍒版寚瀹氱洰褰曚笅
- * destDirPath:	鐩爣鐩綍
+ * 拷贝文件到指定目录下
+ * @param	destDirPath:	目标目录
  */
 bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
 	bool bFlag = false;
@@ -539,11 +539,11 @@ bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string des
 	string result = "";
 
 	if(MountSystem()) {
-		// 寮�鎷疯礉
+		// 开始拷贝
 		string fileName = sourceFilePath;
 
 		if(destFileName.length() == 0) {
-			// 娌℃湁鎸囧畾鏂囦欢鍚�鐢ㄥ師鏉ョ殑鍚嶅瓧
+			// 没有指定文件名,用原来的名字
 			string::size_type pos = string::npos;
 			pos = sourceFilePath.find_last_of('/');
 			if(string::npos != pos) {
@@ -553,19 +553,19 @@ bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string des
 			fileName = destDirPath + fileName;
 		}
 		else {
-			// 鎸囧畾鏂囦欢鍚�
+			// 指定文件名
 			fileName = destDirPath + destFileName;
 		}
 
 		sprintf(pBuffer, "cat %s > %s", sourceFilePath.c_str(), fileName.c_str());
 		result = SystemComandExecuteWithRootWithResult(pBuffer);
 		if(result.length() == 0) {
-			// 鎷疯礉鎴愬姛
-			DLog("jni.command::RootNonExecutableFile", "鎷疯礉%s鍒�s鎴愬姛%s!", sourceFilePath.c_str(), fileName.c_str());
+			// 拷贝成功
+			DLog("JNI::RootNonExecutableFile", "拷贝%s到%s成功!", sourceFilePath.c_str(), fileName.c_str());
 			bFlag = true;
 		}
 		else {
-			ELog("jni.command::RootNonExecutableFile", "鎷疯礉%s鍒�s澶辫触%s!", sourceFilePath.c_str(), fileName.c_str());
+			ELog("JNI::RootNonExecutableFile", "拷贝%s到%s失败!", sourceFilePath.c_str(), fileName.c_str());
 		}
 	}
 
@@ -573,8 +573,8 @@ bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string des
 }
 
 /*
- * 瀹夎鍙墽琛屾枃浠跺埌 鐩爣鐩綍
- * destDirPath:	鐩爣鐩綍
+ * 安装可执行文件到 目标目录
+ * @param destDirPath:	目标目录
  */
 bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
 	bool bFlag = false;
@@ -582,11 +582,11 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 	char pBuffer[2048] = {'\0'};
 	string result = "";
 
-	// 寮�鎷疯礉
+	// 开始拷贝
 	string fileName = "";
 
 	if(destFileName.length() == 0) {
-		// 娌℃湁鎸囧畾鏂囦欢鍚�鐢ㄥ師鏉ョ殑鍚嶅瓧
+		// 没有指定文件名,用原来的名字
 		string::size_type pos = string::npos;
 		pos = sourceFilePath.find_last_of('/');
 		if(string::npos != pos) {
@@ -595,14 +595,14 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 		}
 	}
 	else {
-		// 鎸囧畾鏂囦欢鍚�
+		// 指定文件名
 		fileName = destFileName;
 	}
 
-	// 濡傛灉鍦ㄨ繍琛屽厛鍏抽棴
+	// 如果在运行先关闭
 	int iPid = GetProcessPid(fileName);
 	if(iPid != -1) {
-		DLog("jni.command::RootExecutableFile", "鍙戠幇%s(PID:%d)姝ｅ湪杩愯, 鍏堟潃鎺�", fileName.c_str(), iPid);
+		DLog("JNI::RootExecutableFile", "发现%s(PID:%d)正在运行, 先杀掉!", fileName.c_str(), iPid);
 		sprintf(pBuffer, "kill -9 %d", iPid);
 		SystemComandExecuteWithRoot(pBuffer);
 	}
@@ -612,12 +612,12 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 		sprintf(pBuffer, "chmod 4755 %s", fileName.c_str());
 		result = SystemComandExecuteWithRootWithResult(pBuffer);
 		if(result.length() == 0) {
-			// 鏇存敼鏉冮檺鎴愬姛
-			DLog("jni.command::RootExecutableFile", "鎻愬崌%s鏉冮檺涓�755鎴愬姛!", fileName.c_str());
+			// 更改权限成功
+			DLog("JNI::RootExecutableFile", "提升%s权限为4755成功!", fileName.c_str());
 			bFlag = true;
 		}
 		else {
-			ELog("jni.command::RootExecutableFile", "鎻愬崌%s鏉冮檺涓�755澶辫触!", fileName.c_str());
+			ELog("JNI::RootExecutableFile", "提升%s权限为4755失败!", fileName.c_str());
 		}
 	}
 

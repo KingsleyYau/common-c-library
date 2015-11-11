@@ -38,31 +38,38 @@ void KTcpSocket::SetConnnected() {
 bool KTcpSocket::IsConnected() {
 	return m_bConnected;
 }
+
 void KTcpSocket::SetAddress(struct sockaddr_in addr) {
 	m_sAddress = KSocket::IpToString(addr.sin_addr.s_addr);
 	m_iPort = ntohs(addr.sin_port);
 }
+
 string KTcpSocket::GetIP() {
 	return m_sAddress;
 }
+
 int KTcpSocket::GetPort() {
 	return m_iPort;
 }
 
-/*
- * Client
- */
-/*
- *
- */
 int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) {
+	DLog("common", "KTcpSocket::Connect( "
+			"strAddress : %s, "
+			"uiPort : %d, "
+			"bBlocking : %s "
+			")",
+			strAddress.c_str(),
+			uiPort,
+			bBlocking?"true":"false"
+			);
+
 	m_sAddress = strAddress;
 	m_iPort = uiPort;
 
 	int iRet = -1, iFlag = 1;
 	struct sockaddr_in dest;
 	hostent* hent = NULL;
-	if ((m_Socket = socket(AF_INET, SOCK_STREAM, 0)) >= 0) {
+	if ( (m_Socket = socket(AF_INET, SOCK_STREAM, 0)) >= 0 ) {
 		DLog("common", "KTcpSocket::Connect( create socket(%d) ok ) \n", m_Socket);
 
 		bool bCanSelect = (m_Socket > 1023)?false:true;
@@ -153,7 +160,6 @@ int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) 
 			goto EXIT_ERROR_TCP;
 		}
 
-
 	    /*deal with the tcp keepalive
 	      iKeepAlive = 1 (check keepalive)
 	      iKeepIdle = 600 (active keepalive after socket has idled for 10 minutes)
@@ -181,21 +187,20 @@ int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) 
 	    	ELog("common", "KTcpSocket::Connect( setsockopt TCP_KEEPCNT fail ) \n");
 	    	goto EXIT_ERROR_TCP;
 	    }
-	    DLog("common", "KTcpSocket::Connect( setsockopt ok, KeepInt : %d, iKeepCount : %d, iKeepIdle : %d ) \n", \
-	    		KeepInt, iKeepCount, iKeepIdle);
+//	    DLog("common", "KTcpSocket::Connect( setsockopt ok, KeepInt : %d, iKeepCount : %d, iKeepIdle : %d ) \n", \
+//	    		KeepInt, iKeepCount, iKeepIdle);
 
 	    iRet = 1;
-	}
-	else {
+	} else {
 		ELog("common", "KTcpSocket::Connect( create socket fail ) \n");
 	}
 
 EXIT_ERROR_TCP:
+
 	if ( iRet != 1 ) {
 		Close();
 		ELog("common", "KTcpSocket::Connect( connect fail )\n");
-	}
-	else {
+	} else {
 		m_bConnected = true;
 	}
 	return iRet;
