@@ -12,8 +12,7 @@
 
 KTcpSocket::KTcpSocket() {
 	// TODO Auto-generated constructor stub
-	DLog("JNI", "KTcpSocket::KTcpSocket()");
-	mAddress = "";
+	mIp = "";
 	miPort = 0;
 	mbConnected = false;
 }
@@ -25,7 +24,7 @@ KTcpSocket::~KTcpSocket() {
 KTcpSocket KTcpSocket::operator=(const KTcpSocket &obj) {
 	DLog("JNI", "KTcpSocket::operator=obj:(%p)", &obj);
 	this->mSocket = obj.mSocket;
-	this->mAddress = obj.mAddress;
+	this->mIp = obj.mIp;
 	this->miPort = obj.miPort;
 	this->mbConnected = obj.mbConnected;
 	this->mbBlocking = obj.mbBlocking;
@@ -41,19 +40,19 @@ bool KTcpSocket::IsConnected() {
 }
 
 void KTcpSocket::SetAddress(sockaddr_in addr) {
-	mAddress = KSocket::IpToString(addr.sin_addr.s_addr);
+	mIp = KSocket::IpToString(addr.sin_addr.s_addr);
 	miPort = ntohs(addr.sin_port);
 }
 
 string KTcpSocket::GetIP() {
-	return mAddress;
+	return mIp;
 }
 
 int KTcpSocket::GetPort() {
 	return miPort;
 }
 
-int KTcpSocket::Connect(const string& strAddress, unsigned int uiPort, bool bBlocking) {
+int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) {
 	DLog("JNI", "KTcpSocket::Connect( "
 			"strAddress : %s, "
 			"uiPort : %u, "
@@ -64,7 +63,7 @@ int KTcpSocket::Connect(const string& strAddress, unsigned int uiPort, bool bBlo
 			bBlocking?"true":"false"
 			);
 
-	string mAddress1 = strAddress;
+	mIp = strAddress;
 	miPort = uiPort;
 
 	int iRet = -1, iFlag = 1;
@@ -72,13 +71,13 @@ int KTcpSocket::Connect(const string& strAddress, unsigned int uiPort, bool bBlo
 	hostent* hent = NULL;
 
 	if ( (mSocket = socket(AF_INET, SOCK_STREAM, 0)) >= 0 ) {
-		DLog("JNI", "KTcpSocket::Connect( create socket(%d) ok ) \n", mSocket);
+		DLog("JNI", "KTcpSocket::Connect( create socket(%d) ok )", mSocket);
 
 		bool bCanSelect = (mSocket > 1023)?false:true;
-		DLog("JNI", "KTcpSocket::Connect( bCanSelect : %s ) \n", bCanSelect?"true":"false");
+		DLog("JNI", "KTcpSocket::Connect( bCanSelect : %s )", bCanSelect?"true":"false");
 
 		if( !bCanSelect  && !bBlocking ) {
-			ELog("JNI", "KTcpSocket::Connect( nonblocking and can not be select : %s ) \n", bCanSelect?"true":"false");
+			ELog("JNI", "KTcpSocket::Connect( nonblocking and can not be select : %s )", bCanSelect?"true":"false");
 			iRet = -1;
 			goto EXIT_ERROR_TCP;
 		}
@@ -88,21 +87,20 @@ int KTcpSocket::Connect(const string& strAddress, unsigned int uiPort, bool bBlo
 		dest.sin_port = htons(uiPort);
 
 		dest.sin_addr.s_addr = inet_addr((const char*)strAddress.c_str());
-		if (dest.sin_addr.s_addr == -1L) {
+		if (dest.sin_addr.s_addr == INADDR_NONE) {
 			if ((hent = gethostbyname((const char*)strAddress.c_str())) != NULL) {
 				dest.sin_family = hent->h_addrtype;
 				memcpy((char*)&dest.sin_addr, hent->h_addr, hent->h_length);
-				mAddress = KSocket::IpToString(dest.sin_addr.s_addr);
-				DLog("JNI", "KTcpSocket::Connect( gethostbyname address : %s, ip : %s ) \n",
-										(const char*)strAddress.c_str(), mAddress.c_str());
+				mIp = KSocket::IpToString(dest.sin_addr.s_addr);
+				DLog("JNI", "KTcpSocket::Connect( gethostbyname address : %s, ip : %s )",
+										(const char*)strAddress.c_str(), mIp.c_str());
 			} else {
-				ELog("JNI", "KTcpSocket::Connect( gethostbyname address : %s fail, %s ) \n",
+				ELog("JNI", "KTcpSocket::Connect( gethostbyname address : %s fail, error : %s )",
 						(const char*)strAddress.c_str(), hstrerror(h_errno));
 				iRet = -1;
 				goto EXIT_ERROR_TCP;
 			}
 		}
-
 
 		setsockopt(mSocket, IPPROTO_TCP, TCP_NODELAY, (const char *)&iFlag, sizeof(iFlag));
 
@@ -121,7 +119,7 @@ int KTcpSocket::Connect(const string& strAddress, unsigned int uiPort, bool bBlo
 			goto EXIT_ERROR_TCP;
 		}
 
-		DLog("JNI", "KTcpSocket::Connect( start connect [%s:%d] ) \n", mAddress.c_str(), uiPort);
+		DLog("JNI", "KTcpSocket::Connect( start connect [%s:%d] ) \n", mIp.c_str(), uiPort);
 		if (connect(mSocket, (struct sockaddr *)&dest, sizeof(dest)) != -1) {
 			iRet = 1;
 		}
@@ -219,9 +217,9 @@ int KTcpSocket::SendData(char* pBuffer, unsigned int uiSendLen, unsigned int uiT
         goto EXIT_TCP_SEND;
     }
 
-//	log = Arithmetic::AsciiToHexWithSep(pBuffer, uiSendLen);
-//	DLog("JNI", "KTcpSocket::SendData( ready send socket(%d) [%s:%d] ( %d bytes ) HEX:\n%s ) \n",
-//			mSocket, mAddress.c_str(), miPort, uiSendLen, log.c_str() );
+	log = Arithmetic::AsciiToHexWithSep(pBuffer, uiSendLen);
+	DLog("JNI", "KTcpSocket::SendData( ready send socket(%d) [%s:%d] ( %d bytes ) HEX:\n%s ) \n",
+			mSocket, mIp.c_str(), miPort, uiSendLen, log.c_str() );
 
 	if(mbBlocking) {
 		iRet = send(mSocket, pBuffer, uiSendLen, 0);
@@ -305,9 +303,9 @@ int KTcpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, bool bRecvAll, b
 	if(mbBlocking) {
 		iRet = recv(mSocket, pBuffer, uiRecvLen, 0);
 		if(iRet > 0) {
-//			string log = Arithmetic::AsciiToHexWithSep(pBuffer, iRet);
-//			DLog("JNI", "KTcpSocket::RecvData( recv blocking socket(%d) [%s:%d] ( %d bytes ) bytes Hex:\n%s ) \n",
-//					mSocket, mAddress.c_str(), miPort, iRet, log.c_str());
+			string log = Arithmetic::AsciiToHexWithSep(pBuffer, iRet);
+			DLog("JNI", "KTcpSocket::RecvData( recv blocking socket(%d) [%s:%d] ( %d bytes ) bytes Hex:\n%s ) \n",
+					mSocket, mIp.c_str(), miPort, iRet, log.c_str());
 		}
 		else {
 			bAlive = false;
@@ -362,7 +360,7 @@ int KTcpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, bool bRecvAll, b
 
 //                string log = Arithmetic::AsciiToHexWithSep(pBuffer, iRet);
 //                DLog("JNI", "KTcpSocket::RecvData( recv nonblocking socket(%d) [%s:%d] ( %d bytes ) Hex :\n%s ) \n",
-//                		mSocket, mAddress.c_str(), miPort, iRet, log.c_str());
+//                		mSocket, mIp.c_str(), miPort, iRet, log.c_str());
 
                 pBuffer += iRet;
                 iRecvedLen += iRet;
@@ -386,12 +384,12 @@ int KTcpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, bool bRecvAll, b
 EXIT_TCP_RECV:
 	if(mbBlocking && bAlive == false) {
 		DLog("JNI", "KTcpSocket::RecvData( blocking tcp socket(%d) [%s:%d] break ) \n",
-				mSocket, mAddress.c_str(), miPort);
+				mSocket, mIp.c_str(), miPort);
 		Close();
 	}
 	else if(iRet == -1 || bAlive == false) {
 		DLog("JNI", "KTcpSocket::RecvData( nonblocking tcp socket(%d) [%s:%d] break ) \n",
-				mSocket, mAddress.c_str(), miPort);
+				mSocket, mIp.c_str(), miPort);
 		Close();
 	}
 

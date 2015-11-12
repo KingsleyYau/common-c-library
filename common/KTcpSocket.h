@@ -35,7 +35,7 @@ public:
 	 * Connect一般用法都是阻塞(可以不阻塞)，所以bBlock意思是连接成功后的socket发送和接收数据是否阻塞
 	 * uiTimeout:仅设置了nonblocking时候有效
 	 */
-	virtual int Connect(const string& strAddress, unsigned int uiPort, bool bBlocking = false);
+	virtual int Connect(std::string strAddress, unsigned int uiPort, bool bBlocking = false);
 	virtual int SendData(char* pBuffer, unsigned int uiSendLen, unsigned int uiTimeout = 3000);
 	virtual int RecvData(char* pBuffer, unsigned int uiRecvLen, bool bRecvAll = true, bool* pbAlive = NULL, unsigned int uiTimeout = 1000);
 
@@ -57,9 +57,10 @@ public:
 
 	virtual void Close();
 
-protected:
+private:
+	string mIp;
 	unsigned int miPort;
-	string mAddress;
+
 	bool mbConnected;
 };
 
