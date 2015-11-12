@@ -380,7 +380,7 @@ string GetPhoneBuildDescription()
  * 获取进程名的Pid
  */
 int GetProcessPid(string name) {
-	DLog("JNI::GetProcessPid", "正在获取进程(%s) pid", name.c_str());
+	DLog("JNI", "GetProcessPid( 正在获取进程(%s) pid )", name.c_str());
 	int iPid = -1;
 
 	string findName = " ";
@@ -417,7 +417,7 @@ int GetProcessPid(string name) {
 						if(i == iColumn) {
 							// 找到进程pid
 							iPid = atoi(p);
-							DLog("JNI::GetProcessPid", "找到进程 pid:%s", p);
+							DLog("JNI", "GetProcessPid( 找到进程 pid : %s )", p);
 							break;
 						}
 						p = strtok(NULL, " ");
@@ -440,7 +440,7 @@ void SystemComandExecute(string command) {
 	string sCommand = command;
 	sCommand += " &>/dev/null";
 	system(sCommand.c_str());
-	DLog("JNI::SystemComandExecute", "%s", sCommand.c_str());
+	DLog("JNI", "SystemComandExecute( %s )", sCommand.c_str());
 }
 
 /*
@@ -460,7 +460,7 @@ string SystemComandExecuteWithResult(string command) {
 		pclose(ptr);
 		ptr = NULL;
 	}
-	DLog("JNI::SystemComandExecuteWithResult", "%s \nresult : %s", sCommand.c_str(), result.c_str());
+	DLog("JNI", "SystemComandExecuteWithResult( \n%s\nresult : %s )", sCommand.c_str(), result.c_str());
 	return result;
 }
 
@@ -506,7 +506,7 @@ bool MountSystem() {
 				// 找到/system挂载路径
 				char* dev = strtok(pBuffer, " ");
 				result = dev;
-				DLog("JNI::MountSystem", "找到/system挂载路径:%s", result.c_str());
+				DLog("JNI", "MountSystem( 找到/system挂载路径 : %s )", result.c_str());
 				break;
 			}
 		}
@@ -518,11 +518,11 @@ bool MountSystem() {
 	sprintf(pBuffer, "mount -o remount rw,%s /system", result.c_str());
 	result = SystemComandExecuteWithRootWithResult(pBuffer);
 	if(result.length() == 0) {
-		DLog("JNI::MountSystem", "挂载/system为可读写成功!");
+		DLog("JNI", "MountSystem( 挂载/system为可读写成功! )");
 		bFlag = true;
 	}
 	else {
-		ELog("JNI::MountSystem", "挂载/system为可读写失败!");
+		ELog("JNI", "MountSystem( 挂载/system为可读写失败! )");
 	}
 
 	return bFlag;
@@ -561,11 +561,11 @@ bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string des
 		result = SystemComandExecuteWithRootWithResult(pBuffer);
 		if(result.length() == 0) {
 			// 拷贝成功
-			DLog("JNI::RootNonExecutableFile", "拷贝%s到%s成功!", sourceFilePath.c_str(), fileName.c_str());
+			DLog("JNI", "RootNonExecutableFile( 拷贝%s到%s成功! )", sourceFilePath.c_str(), fileName.c_str());
 			bFlag = true;
 		}
 		else {
-			ELog("JNI::RootNonExecutableFile", "拷贝%s到%s失败!", sourceFilePath.c_str(), fileName.c_str());
+			ELog("JNI", "RootNonExecutableFile( 拷贝%s到%s失败! )", sourceFilePath.c_str(), fileName.c_str());
 		}
 	}
 
@@ -602,7 +602,7 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 	// 如果在运行先关闭
 	int iPid = GetProcessPid(fileName);
 	if(iPid != -1) {
-		DLog("JNI::RootExecutableFile", "发现%s(PID:%d)正在运行, 先杀掉!", fileName.c_str(), iPid);
+		DLog("JNI", "RootExecutableFile( 发现%s(PID:%d)正在运行, 先杀掉! )", fileName.c_str(), iPid);
 		sprintf(pBuffer, "kill -9 %d", iPid);
 		SystemComandExecuteWithRoot(pBuffer);
 	}
@@ -613,11 +613,11 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 		result = SystemComandExecuteWithRootWithResult(pBuffer);
 		if(result.length() == 0) {
 			// 更改权限成功
-			DLog("JNI::RootExecutableFile", "提升%s权限为4755成功!", fileName.c_str());
+			DLog("JNI", "RootExecutableFile( 提升%s权限为4755成功! )", fileName.c_str());
 			bFlag = true;
 		}
 		else {
-			ELog("JNI::RootExecutableFile", "提升%s权限为4755失败!", fileName.c_str());
+			ELog("JNI", "RootExecutableFile( 提升%s权限为4755失败!) ", fileName.c_str());
 		}
 	}
 

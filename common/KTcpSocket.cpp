@@ -22,7 +22,6 @@ KTcpSocket::~KTcpSocket() {
 }
 
 KTcpSocket KTcpSocket::operator=(const KTcpSocket &obj) {
-	DLog("JNI", "KTcpSocket::operator=obj:(%p)", &obj);
 	this->mSocket = obj.mSocket;
 	this->mIp = obj.mIp;
 	this->miPort = obj.miPort;
@@ -63,12 +62,12 @@ int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) 
 			bBlocking?"true":"false"
 			);
 
-	mIp = strAddress;
-	miPort = uiPort;
-
 	int iRet = -1, iFlag = 1;
 	sockaddr_in dest;
 	hostent* hent = NULL;
+
+	mIp = strAddress;
+	miPort = uiPort;
 
 	if ( (mSocket = socket(AF_INET, SOCK_STREAM, 0)) >= 0 ) {
 		DLog("JNI", "KTcpSocket::Connect( create socket(%d) ok )", mSocket);
