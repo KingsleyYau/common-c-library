@@ -395,7 +395,7 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 					CURLFORM_CONTENTTYPE, itr->second.mimeType.c_str(),
 					CURLFORM_END);
 
-			FileLog("httpclient", "HttpClient::Request( Add file filename : [%s], content [%s : %s,%s] )"
+			FileLog("httpclient", "HttpClient::Request( Add file filename : [%s], content : [%s : %s], mimetype : [%s] )"
 					, itr->first.c_str(), itr->first.c_str(), itr->second.fileName.c_str(), itr->second.mimeType.c_str());
 		}
 
@@ -412,7 +412,7 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 
 	double totalTime = 0;
 	curl_easy_getinfo(mpCURL, CURLINFO_TOTAL_TIME, &totalTime);
-	FileLog("httpclient", "HttpClient::Request( totalTime : %f second )", totalTime);
+	FileLog("httpclient", "HttpClient::Request( totalTime : %f second, res : %d )", totalTime, res);
 
 	if( mpCURL != NULL ) {
 		curl_easy_cleanup(mpCURL);
