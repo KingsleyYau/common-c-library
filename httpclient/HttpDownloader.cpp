@@ -8,6 +8,7 @@
 
 #include "HttpDownloader.h"
 #include <common/CommonFunc.h>
+#include <common/KLog.h>
 
 #define TEMPFILENAME	".http.tmp"
 
@@ -17,6 +18,8 @@ HttpDownloader::HttpDownloader()
 	m_filePath = "";
 	m_callback = NULL;
 	m_isDownloading = false;
+	m_request.SetNoCacheData(true);
+	m_request.SetCallback(this);
 }
 
 HttpDownloader::~HttpDownloader()
@@ -35,9 +38,10 @@ bool HttpDownloader::StartDownload(const string& url, const string& localPath, I
 		m_callback = callback;
 
 		// 开始下载
-		if (NULL != OpenTempFile())
+		if ( OpenTempFile() )
 		{
 			HttpEntiy entiy;
+			entiy.SetGetMethod(true);
 			result = (HTTPREQUEST_INVALIDREQUESTID != m_request.StartRequest(url, entiy));
 			m_isDownloading = result;
 		}
@@ -139,6 +143,14 @@ bool HttpDownloader::RenameTempFile()
 // IHttpRequestCallback
 void HttpDownloader::onSuccess(long requestId, string url, const char* buf, int size)
 {
+	FileLog(
+			"httprequest",
+			"HttpDownloader::onSuccess( "
+			"url : %s "
+			")",
+			url.c_str()
+			);
+
 	// 关闭文件
 	CloseTempFile();
 
@@ -154,6 +166,14 @@ void HttpDownloader::onSuccess(long requestId, string url, const char* buf, int 
 
 void HttpDownloader::onFail(long requestId, string url)
 {
+	FileLog(
+			"httprequest",
+			"HttpDownloader::onFail( "
+			"url : %s "
+			")",
+			url.c_str()
+			);
+
 	// 关闭文件
 	CloseTempFile();
 
@@ -169,6 +189,16 @@ void HttpDownloader::onFail(long requestId, string url)
 
 void HttpDownloader::onReceiveBody(long requestId, string url, const char* buf, int size)
 {
+	FileLog(
+			"httprequest",
+			"HttpDownloader::onReceiveBody( "
+			"url : %s, "
+			"size : %d "
+			")",
+			url.c_str(),
+			size
+			);
+
 	// 写文件
 	if (fwrite(buf, 1, size, m_pFile) != size)
 	{
