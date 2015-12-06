@@ -99,7 +99,7 @@ string KSocket::IpToString(unsigned int ip_addr) {
     struct in_addr in_ip;
     string stringip = "";
     in_ip.s_addr = ip_addr;
-    stringip =  inet_ntoa(in_ip);
+    stringip = inet_ntoa(in_ip);
     return stringip;
 }
 unsigned int KSocket::GetTick()

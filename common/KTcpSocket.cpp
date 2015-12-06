@@ -75,7 +75,7 @@ int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) 
 		bool bCanSelect = (mSocket > 1023)?false:true;
 		DLog("JNI", "KTcpSocket::Connect( bCanSelect : %s )", bCanSelect?"true":"false");
 
-		if( !bCanSelect  && !bBlocking ) {
+		if( !bCanSelect && !bBlocking ) {
 			ELog("JNI", "KTcpSocket::Connect( nonblocking and can not be select : %s )", bCanSelect?"true":"false");
 			iRet = -1;
 			goto EXIT_ERROR_TCP;
@@ -131,19 +131,20 @@ int KTcpSocket::Connect(string strAddress, unsigned int uiPort, bool bBlocking) 
 			FD_SET(mSocket, &wset);
 			int iRetS = select(mSocket + 1, NULL, &wset, NULL, &tout);
 			if (iRetS > 0) {
-				int error, len;
-				getsockopt(mSocket, SOL_SOCKET, SO_ERROR, &error, (socklen_t *)&len);
-				if(error == 0) {
-					iRet = 1;
-				}
-				else {
-					iRet = -1;
-					ELog("JNI", "KTcpSocket::Connect( connect timeout ) \n");
-					goto EXIT_ERROR_TCP;
-				}
+				iRet = 1;
+//				int error, len;
+//				getsockopt(mSocket, SOL_SOCKET, SO_ERROR, &error, (socklen_t *)&len);
+//				if(error == 0) {
+//					iRet = 1;
+//				}
+//				else {
+//					iRet = -1;
+//					ELog("JNI", "KTcpSocket::Connect( connect timeout, error : %d ) \n", error);
+//					goto EXIT_ERROR_TCP;
+//				}
 
 			} else {
-				ELog("JNI", "KTcpSocket::Connect( connect timeout ) \n");
+				ELog("JNI", "KTcpSocket::Connect( connect select timeout ) \n");
 				iRet = -1;
 				goto EXIT_ERROR_TCP;
 			}

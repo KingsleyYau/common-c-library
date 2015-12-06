@@ -110,14 +110,26 @@ string SystemComandExecuteWithRootWithResult(string command);
 bool MountSystem();
 
 /*
- * 拷贝文件到指定目录下
+ * root权限拷贝文件到指定目录下
  * @param	destDirPath:	目标目录
  */
 bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName = "");
 
 /*
- * 安装可执行文件到 目标目录
+ * root权限安装可执行文件到 目标目录
  * @param	destDirPath:	目标目录
  */
 bool RootExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
+
+/*
+ * 拷贝文件到指定目录下
+ * @param	destDirPath:	目标目录
+ */
+bool CopyNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName = "");
+
+/*
+ * 安装可执行文件到 目标目录
+ * @param	destDirPath:	目标目录
+ */
+bool CopyExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
 #endif /* COMMAND_H_ */

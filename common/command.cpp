@@ -529,7 +529,7 @@ bool MountSystem() {
 }
 
 /*
- * 拷贝文件到指定目录下
+ * root权限拷贝文件到指定目录下
  * @param	destDirPath:	目标目录
  */
 bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
@@ -573,7 +573,7 @@ bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string des
 }
 
 /*
- * 安装可执行文件到 目标目录
+ * root权限安装可执行文件到 目标目录
  * @param destDirPath:	目标目录
  */
 bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
@@ -618,6 +618,102 @@ bool RootExecutableFile(string sourceFilePath, string destDirPath, string destFi
 		}
 		else {
 			ELog("JNI", "RootExecutableFile( 提升%s权限为4755失败!) ", fileName.c_str());
+		}
+	}
+
+	return bFlag;
+}
+
+/*
+ * 拷贝文件到指定目录下
+ * @param	destDirPath:	目标目录
+ */
+bool CopyNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
+	bool bFlag = false;
+
+	char pBuffer[2048] = {'\0'};
+	string result = "";
+
+	if(MountSystem()) {
+		// 开始拷贝
+		string fileName = sourceFilePath;
+
+		if(destFileName.length() == 0) {
+			// 没有指定文件名,用原来的名字
+			string::size_type pos = string::npos;
+			pos = sourceFilePath.find_last_of('/');
+			if(string::npos != pos) {
+				pos ++;
+				fileName = sourceFilePath.substr(pos, sourceFilePath.length() - pos);
+			}
+			fileName = destDirPath + fileName;
+		}
+		else {
+			// 指定文件名
+			fileName = destDirPath + destFileName;
+		}
+
+		sprintf(pBuffer, "cat %s > %s", sourceFilePath.c_str(), fileName.c_str());
+		result = SystemComandExecuteWithResult(pBuffer);
+		if(result.length() == 0) {
+			// 拷贝成功
+			DLog("JNI", "CopyNonExecutableFile( 拷贝%s到%s成功! )", sourceFilePath.c_str(), fileName.c_str());
+			bFlag = true;
+		}
+		else {
+			ELog("JNI", "CopyNonExecutableFile( 拷贝%s到%s失败! )", sourceFilePath.c_str(), fileName.c_str());
+		}
+	}
+
+	return bFlag;
+}
+
+/*
+ * 安装可执行文件到 目标目录
+ * @param destDirPath:	目标目录
+ */
+bool CopyExecutableFile(string sourceFilePath, string destDirPath, string destFileName) {
+	bool bFlag = false;
+
+	char pBuffer[2048] = {'\0'};
+	string result = "";
+
+	// 开始拷贝
+	string fileName = "";
+
+	if(destFileName.length() == 0) {
+		// 没有指定文件名,用原来的名字
+		string::size_type pos = string::npos;
+		pos = sourceFilePath.find_last_of('/');
+		if(string::npos != pos) {
+			pos ++;
+			fileName = sourceFilePath.substr(pos, sourceFilePath.length() - pos);
+		}
+	}
+	else {
+		// 指定文件名
+		fileName = destFileName;
+	}
+
+	// 如果在运行先关闭
+	int iPid = GetProcessPid(fileName);
+	if(iPid != -1) {
+		DLog("JNI", "CopyExecutableFile( 发现%s(PID:%d)正在运行, 先杀掉! )", fileName.c_str(), iPid);
+		sprintf(pBuffer, "kill -9 %d", iPid);
+		SystemComandExecute(pBuffer);
+	}
+
+	if(CopyNonExecutableFile(sourceFilePath, destDirPath, fileName)) {
+		fileName = destDirPath + fileName;
+		sprintf(pBuffer, "chmod 755 %s", fileName.c_str());
+		result = SystemComandExecuteWithResult(pBuffer);
+		if(result.length() == 0) {
+			// 更改权限成功
+			DLog("JNI", "CopyExecutableFile( 提升%s权限为4755成功! )", fileName.c_str());
+			bFlag = true;
+		}
+		else {
+			ELog("JNI", "CopyExecutableFile( 提升%s权限为4755失败!) ", fileName.c_str());
 		}
 	}
 
