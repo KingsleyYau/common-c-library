@@ -634,35 +634,33 @@ bool CopyNonExecutableFile(string sourceFilePath, string destDirPath, string des
 	char pBuffer[2048] = {'\0'};
 	string result = "";
 
-	if(MountSystem()) {
-		// 开始拷贝
-		string fileName = sourceFilePath;
+	// 开始拷贝
+	string fileName = sourceFilePath;
 
-		if(destFileName.length() == 0) {
-			// 没有指定文件名,用原来的名字
-			string::size_type pos = string::npos;
-			pos = sourceFilePath.find_last_of('/');
-			if(string::npos != pos) {
-				pos ++;
-				fileName = sourceFilePath.substr(pos, sourceFilePath.length() - pos);
-			}
-			fileName = destDirPath + fileName;
+	if(destFileName.length() == 0) {
+		// 没有指定文件名,用原来的名字
+		string::size_type pos = string::npos;
+		pos = sourceFilePath.find_last_of('/');
+		if(string::npos != pos) {
+			pos ++;
+			fileName = sourceFilePath.substr(pos, sourceFilePath.length() - pos);
 		}
-		else {
-			// 指定文件名
-			fileName = destDirPath + destFileName;
-		}
+		fileName = destDirPath + fileName;
+	}
+	else {
+		// 指定文件名
+		fileName = destDirPath + destFileName;
+	}
 
-		sprintf(pBuffer, "cat %s > %s", sourceFilePath.c_str(), fileName.c_str());
-		result = SystemComandExecuteWithResult(pBuffer);
-		if(result.length() == 0) {
-			// 拷贝成功
-			DLog("JNI", "CopyNonExecutableFile( 拷贝%s到%s成功! )", sourceFilePath.c_str(), fileName.c_str());
-			bFlag = true;
-		}
-		else {
-			ELog("JNI", "CopyNonExecutableFile( 拷贝%s到%s失败! )", sourceFilePath.c_str(), fileName.c_str());
-		}
+	sprintf(pBuffer, "cat %s > %s", sourceFilePath.c_str(), fileName.c_str());
+	result = SystemComandExecuteWithResult(pBuffer);
+	if(result.length() == 0) {
+		// 拷贝成功
+		DLog("JNI", "CopyNonExecutableFile( 拷贝%s到%s成功! )", sourceFilePath.c_str(), fileName.c_str());
+		bFlag = true;
+	}
+	else {
+		ELog("JNI", "CopyNonExecutableFile( 拷贝%s到%s失败! )", sourceFilePath.c_str(), fileName.c_str());
 	}
 
 	return bFlag;
