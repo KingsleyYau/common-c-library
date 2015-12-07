@@ -433,6 +433,30 @@ int GetProcessPid(string name) {
 	return iPid;
 }
 
+/**
+ * 检查是否root
+ */
+bool IsRoot() {
+	bool bFlag = false;
+
+	string result = "";
+	result = SystemComandExecuteWithRootWithResult("mkdir -p /data/data/testroot");
+	if( result.length() == 0 ) {
+		bFlag = true;
+	}
+
+	ILog("JNI",
+			"IsRoot( "
+			"bFlag : %s, "
+			"result : %s "
+			")",
+			bFlag?"true":"false",
+			result.c_str()
+			);
+
+	return bFlag;
+}
+
 /*
  * 运行命令
  */

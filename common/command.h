@@ -85,6 +85,11 @@ string GetPhoneBuildDescription();
  */
 int GetProcessPid(string name);
 
+/**
+ * 检查是否root
+ */
+bool IsRoot();
+
 /*
  * 运行命令
  */
