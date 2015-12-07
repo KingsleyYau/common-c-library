@@ -408,8 +408,9 @@ int GetProcessPid(string name) {
 		}
 
 		// 获取进程pid
+		bool bFlag = false;
 		if(iColumn != -1) {
-			while(fgets(buffer, 2048, ptr) != NULL) {
+			while( !bFlag && fgets(buffer, 2048, ptr) != NULL) {
 				string reslut = buffer;
 				if(string::npos != reslut.find(findName.c_str())) {
 					char *p = strtok(buffer, " ");
@@ -418,6 +419,7 @@ int GetProcessPid(string name) {
 							// 找到进程pid
 							iPid = atoi(p);
 							DLog("JNI", "GetProcessPid( 找到进程 pid : %s )", p);
+							bFlag = true;
 							break;
 						}
 						p = strtok(NULL, " ");
