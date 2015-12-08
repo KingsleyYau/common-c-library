@@ -447,7 +447,7 @@ bool IsRoot() {
 		bFlag = true;
 	}
 
-	ILog("JNI",
+	DLog("JNI",
 			"IsRoot( "
 			"bFlag : %s, "
 			"result : %s "
