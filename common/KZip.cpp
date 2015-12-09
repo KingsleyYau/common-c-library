@@ -34,7 +34,7 @@ KZip::~KZip() {
  * @param password 	生成的zip文件密钥
  */
 bool KZip::CreateZipFromDir(string src, string zipFile, string password, string comment) {
-	FileLog("KZip", "AddFile( "
+	DLog("KZip", "AddFile( "
 					"src : %s, "
 					"zipFile : %s, "
 					"password : %s, "
@@ -73,7 +73,7 @@ bool KZip::CreateZipFromDir(string src, string zipFile, string password, string 
  * @param parent 	父目录, 用于递归时候生成zip中路径
  */
 bool KZip::AddFile(string src, string parent) {
-	FileLog("KZip", "AddFile( "
+	DLog("KZip", "AddFile( "
 					"src : %s, "
 					"parent : %s"
 					" )",
@@ -122,7 +122,7 @@ bool KZip::AddFile(string src, string parent) {
  * @param fileName	zip中文件名称
  */
 bool KZip::AddFileToZip(string src, string fileName) {
-	FileLog("KZip", "AddFileToZip( "
+	DLog("KZip", "AddFileToZip( "
 					"src : %s, "
 					"fileName : %s"
 					" )",
@@ -151,7 +151,7 @@ bool KZip::AddFileToZip(string src, string fileName) {
 	if( (ret != ZIP_OK) )
 		return false;
 
-	FileLog("KZip", "AddFileToZip( crcFile : %d )", crcFile);
+	DLog("KZip", "AddFileToZip( crcFile : %d )", crcFile);
 	ret = zipOpenNewFileInZip3(
 			mZipFile,
 			fileName.c_str(),
@@ -198,7 +198,7 @@ bool KZip::AddFileToZip(string src, string fileName) {
 		zipCloseFileInZip(mZipFile);
 	}
 
-	FileLog("KZip", "AddFileToZip( finish )");
+	DLog("KZip", "AddFileToZip( finish )");
 	return bFlag;
 }
 
