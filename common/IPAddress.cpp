@@ -90,10 +90,6 @@ list<IpAddressNetworkInfo> IPAddress::GetNetworkInfoList() {
 						info.bUp = true;
 					}
 
-//					// 判断网卡类型, 是否PPPoE
-//					if(ifr_ip->ifr_flags & IF_PROTO_PPP) {
-//						info.bPPP = true;
-//					}
 				}
 
 				DLog("jni.IPAddress::GetNetworkInfoList", "#################################");
