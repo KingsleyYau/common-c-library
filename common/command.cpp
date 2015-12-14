@@ -226,6 +226,16 @@ string GetPhoneInfo(string param) {
 }
 
 /*
+ * IMEI
+ */
+string GetPhoneIMEI() {
+	char result[1024] = {'\0'};
+	__system_property_get("ro.gsm.imei", result);
+	return result;
+}
+
+
+/*
  * Model
  */
 string GetPhoneModel() {
@@ -477,16 +487,18 @@ string SystemComandExecuteWithResult(string command) {
 	string sCommand = command;
 	sCommand += " 2>&1";
 
+	DLog("JNI", "SystemComandExecuteWithResult( command : %s )", sCommand.c_str());
+
 	FILE *ptr = popen(sCommand.c_str(), "r");
 	if(ptr != NULL) {
 		char buffer[2048] = {'\0'};
-		while(fgets(buffer, 2048, ptr) != NULL) {
+		while(fgets(buffer, sizeof(buffer) -1, ptr) != NULL) {
 			result += buffer;
 		}
 		pclose(ptr);
 		ptr = NULL;
 	}
-	DLog("JNI", "SystemComandExecuteWithResult( \n%s\nresult : %s )", sCommand.c_str(), result.c_str());
+	DLog("JNI", "SystemComandExecuteWithResult( result :\n%s\n )", result.c_str());
 	return result;
 }
 

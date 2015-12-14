@@ -23,6 +23,11 @@ bool GetPhoneInfo();
 string GetPhoneInfo(string param);
 
 /*
+ * IMEI
+ */
+string GetPhoneIMEI();
+
+/*
  * Model
  */
 string GetPhoneModel();
