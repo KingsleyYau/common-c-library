@@ -248,7 +248,7 @@ void RequestTicketController::ReplyTicketCallbackHandle(long requestId, const st
 // ----------------------- ResolvedTicket -----------------------
 long RequestTicketController::ResolvedTicket(const string& ticketId)
 {
-	char temp[16];
+//	char temp[16];
 	HttpEntiy entiy;
 
 	// ticketid

@@ -119,6 +119,10 @@ public:
 					bpemf = permission[AUTHORIZATION_BPEMF].asInt();
 				}
 			}
+
+			if ( root[AUTHORIZATION_RECHARGECREDIT].isInt() ) {
+				rechargeCredit = root[AUTHORIZATION_RECHARGECREDIT].asInt();
+			}
 		}
 	}
 
@@ -146,6 +150,8 @@ public:
 		livechat = false;
 		admirer = false;
 		bpemf = false;
+
+		rechargeCredit = 0;
 	}
 	virtual ~LoginItem() {
 
@@ -174,6 +180,7 @@ public:
 	 * @param livechat			LiveChat详细风控标识（true：有风控，false：无）
 	 * @param admirer			意向信风控标识（true：有风控，false：无）
 	 * @param bpemf				EMF风控标识（true：有风控，false：无）
+	 * @param rechargeCredit	自动买点配置（0：无权限，大于0：每次买点的数量）
 	 */
 
 	string manid;
@@ -197,6 +204,7 @@ public:
 	bool admirer;
 	bool bpemf;
 	bool videoreceived;
+	int rechargeCredit;
 };
 
 #endif /* LOGINITEM_H_ */

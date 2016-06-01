@@ -6,11 +6,42 @@
  */
 
 #include "LCMessageItem.h"
-#include "CommonFunc.h"
+#include "LCEmotionManager.h"
+#include "LCVoiceManager.h"
+#include "LCPhotoManager.h"
+#include "LCVideoManager.h"
+#include "LCUserItem.h"
+#include <common/CommonFunc.h>
+#include <manrequesthandler/item/Record.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
+
+using namespace lcmm;
+
+
+long LCMessageItem::m_dbTime = 0;
 
 LCMessageItem::LCMessageItem()
 {
-	Clear();
+	m_msgId = 0;
+	m_sendType = SendType_Unknow;
+	m_fromId = "";
+	m_toId = "";
+	m_inviteId = "";
+	m_createTime = 0;
+	m_statusType = StatusType_Unprocess;
+	m_msgType = MT_Unknow;
+
+	m_textItem = NULL;
+	m_warningItem = NULL;
+	m_emotionItem = NULL;
+	m_voiceItem = NULL;
+	m_photoItem = NULL;
+	m_videoItem = NULL;
+	m_systemItem = NULL;
+	m_customItem = NULL;
+
+	m_userItem = NULL;
 }
 
 LCMessageItem::~LCMessageItem()
@@ -48,7 +79,7 @@ bool LCMessageItem::Init(
 // 获取生成时间
 long LCMessageItem::GetCreateTime()
 {
-	return GetCurrentTime();
+	return (long)(getCurrentTime() / 1000);
 }
 
 // 更新生成时间
@@ -84,7 +115,7 @@ bool LCMessageItem::InitWithRecord(
 				, const string& selfId
 				, const string& userId
 				, const string& inviteId
-				, const Record* record
+				, const Record& record
 				, LCEmotionManager* emotionMgr
 				, LCVoiceManager* voiceMgr
 				, LCPhotoManager* photoMgr
@@ -92,101 +123,99 @@ bool LCMessageItem::InitWithRecord(
 {
 	bool result = false;
 	m_msgId = msgId;
-	m_toId = (record->toflag == LRT_RECV ? selfId : userId);
-	m_fromId = (record->toflag == LRT_RECV ? userId : selfId);
+	m_toId = (record.toflag == LRT_RECV ? selfId : userId);
+	m_fromId = (record.toflag == LRT_RECV ? userId : selfId);
 	m_inviteId = inviteId;
-	m_sendType = (record->toflag == LRT_RECV ? SendType_Recv : SendType_Send);
+	m_sendType = (record.toflag == LRT_RECV ? SendType_Recv : SendType_Send);
 	m_statusType = StatusType_Finish;
-	m_createTime = GetLocalTimeWithServerTime(record->adddate);
+	m_createTime = GetLocalTimeWithServerTime(record.adddate);
 
-	switch(record->messageType) {
+	switch(record.messageType) {
 	case LRM_TEXT: {
-		if (NULL != record->textMsg)
+		if (!record.textMsg.empty())
 		{
 			LCTextItem* textItem = new LCTextItem;
-			textItem->Init(record->textMsg);
+			textItem->Init(record.textMsg);
 			SetTextItem(textItem);
 			result = true;
 		}
 	}break;
 	case LRM_INVITE: {
-		if (NULL != record->inviteMsg)
+		if (!record.inviteMsg.empty())
 		{
 			LCTextItem* textItem = new LCTextItem;
-			textItem->Init(record->inviteMsg);
+			textItem->Init(record.inviteMsg);
 			SetTextItem(textItem);
 			result = true;
 		}
 	}break;
-	case Warning: {
-		if (NULL != record->warningMsg)
+	case LRM_WARNING: {
+		if (!record.warningMsg.empty())
 		{
 			LCWarningItem* warningItem = new LCWarningItem;
-			warningItem->Init(record->warningMsg);
+			warningItem->Init(record.warningMsg);
 			SetWarningItem(warningItem);
 			result = true;
 		}
 	}break;
-	case Emotion: {
-		if (NULL != record->emotionId)
+	case LRM_EMOTION: {
+		if (!record.emotionId.empty())
 		{
-			LCEmotionItem* emotionItem = emotionMgr->GetEmotion(record->emotionId);
+			LCEmotionItem* emotionItem = emotionMgr->GetEmotion(record.emotionId);
 			SetEmotionItem(emotionItem);
 			result = true;
 		}
 	}break;
-	case Photo: {
-		if (NULL != record->photoId)
+	case LRM_PHOTO: {
+		if (!record.photoId.empty())
 		{
 			LCPhotoItem* photoItem = new LCPhotoItem;
 			// 男士端发送的为已付费
-			bool photoCharge = (m_sendType == SendType_Send ? true : record->photoCharge);
+			bool photoCharge = (m_sendType == SendType_Send ? true : record.photoCharge);
 			photoItem->Init(
-					record->photoId
+					record.photoId
 					, ""
-					, record->photoDesc
-					, photoMgr->GetPhotoPath(record->photoId, PhotoModeType.Fuzzy, PhotoSizeType.Large)
-					, photoMgr->GetPhotoPath(record->photoId, PhotoModeType.Fuzzy, PhotoSizeType.Middle)
-					, photoMgr->GetPhotoPath(record->photoId, PhotoModeType.Clear, PhotoSizeType.Original)
-					, photoMgr->GetPhotoPath(record->photoId, PhotoModeType.Clear, PhotoSizeType.Large)
-					, photoMgr->GetPhotoPath(record->photoId, PhotoModeType.Clear, PhotoSizeType.Middle)
+					, record.photoDesc
+					, photoMgr->GetPhotoPath(record.photoId, GMT_FUZZY, GPT_LARGE)
+					, photoMgr->GetPhotoPath(record.photoId, GMT_FUZZY, GPT_MIDDLE)
+					, photoMgr->GetPhotoPath(record.photoId, GMT_CLEAR, GPT_ORIGINAL)
+					, photoMgr->GetPhotoPath(record.photoId, GMT_CLEAR, GPT_LARGE)
+					, photoMgr->GetPhotoPath(record.photoId, GMT_CLEAR, GPT_MIDDLE)
 					, photoCharge);
 			SetPhotoItem(photoItem);
 			result = true;
 		}
 	}break;
-	case Voice: {
-		if (NULL != record->voiceId)
+	case LRM_VOICE: {
+		if (!record.voiceId.empty())
 		{
 			LCVoiceItem* voiceItem = new LCVoiceItem();
-			voiceItem->Init(record->voiceId
-					, voiceMgr->GetVoicePath(record->voiceId, record->voiceType)
-					, record->voiceTime, record->voiceType
+			voiceItem->Init(record.voiceId
+					, voiceMgr->GetVoicePath(record.voiceId, record.voiceType)
+					, record.voiceTime
+					, record.voiceType
 					, ""
 					, true);
 			SetVoiceItem(voiceItem);
 			result = true;
 		}
 	}break;
-	case Video: {
-		if (NULL != record->videoId)
+	case LRM_VIDEO: {
+		if (!record.videoId.empty())
 		{
-			LCVideoItem videoItem = new LCVideoItem();
-			videoItem.init(
-					record->videoId
-					, record->videoSendId
-					, record->videoDesc
-					, videoMgr.getVideoPhotoPath(userId, record->videoId, inviteId, VideoPhotoType.Big)
-					, videoMgr.getVideoPhotoPath(userId, record->videoId, inviteId, VideoPhotoType.Default)
+			lcmm::LCVideoItem* videoItem = new lcmm::LCVideoItem;
+			videoItem->Init(
+					record.videoId
+					, record.videoSendId
+					, record.videoDesc
 					, ""
-					, videoMgr.getVideoPath(userId, record->videoId, inviteId)
-					, record->videoCharge);
-			setVideoItem(videoItem);
+					, record.videoCharge);
+			SetVideoItem(videoItem);
 			result = true;
 		}
 	}break;
 	default: {
-		Log.e("livechat", String.format("%s::%s() unknow message type", "LCMessageItem", "InitWithRecord"));
+		FileLog("LiveChatManager", "LCMessageItem::InitWithRecord() unknow message type");
 	}break;
 	}
 	return result;
@@ -204,7 +233,7 @@ void LCMessageItem::SetVoiceItem(LCVoiceItem* theVoiceItem)
 }
 
 // 获取语音item
-LCVoiceItem* LCMessageItem::GetVoiceItem()
+LCVoiceItem* LCMessageItem::GetVoiceItem() const
 {
 	return m_voiceItem;
 }
@@ -221,13 +250,13 @@ void LCMessageItem::SetPhotoItem(LCPhotoItem* thePhotoItem)
 }
 
 // 获取图片item
-LCPhotoItem* LCMessageItem::GetPhotoItem()
+LCPhotoItem* LCMessageItem::GetPhotoItem() const
 {
 	return m_photoItem;
 }
 
 // 设置视频item
-void LCMessageItem::SetVideoItem(LCVideoItem* theVideoItem)
+void LCMessageItem::SetVideoItem(lcmm::LCVideoItem* theVideoItem)
 {
 	if (m_msgType == MT_Unknow
 			&& theVideoItem != NULL)
@@ -238,7 +267,7 @@ void LCMessageItem::SetVideoItem(LCVideoItem* theVideoItem)
 }
 
 // 获取视频item
-LCVideoItem* LCMessageItem::GetVideoItem()
+lcmm::LCVideoItem* LCMessageItem::GetVideoItem() const
 {
 	return m_videoItem;
 }
@@ -255,7 +284,7 @@ void LCMessageItem::SetTextItem(LCTextItem* theTextItem)
 }
 
 // 获取文本item
-LCTextItem LCMessageItem::GetTextItem()
+LCTextItem* LCMessageItem::GetTextItem() const
 {
 	return m_textItem;
 }
@@ -272,7 +301,7 @@ void LCMessageItem::SetWarningItem(LCWarningItem* theWarningItem)
 }
 
 // 获取warning item
-LCWarningItem* LCMessageItem::GetWarningItem()
+LCWarningItem* LCMessageItem::GetWarningItem() const
 {
 	return m_warningItem;
 }
@@ -289,7 +318,7 @@ void LCMessageItem::SetEmotionItem(LCEmotionItem* theEmotionItem)
 }
 
 // 获取高级表情item
-LCEmotionItem* LCMessageItem::GetEmotionItem()
+LCEmotionItem* LCMessageItem::GetEmotionItem() const
 {
 	return m_emotionItem;
 }
@@ -306,9 +335,26 @@ void LCMessageItem::SetSystemItem(LCSystemItem* theSystemItem)
 }
 
 // 获取系统消息item
-LCSystemItem* LCMessageItem::GetSystemItem()
+LCSystemItem* LCMessageItem::GetSystemItem() const
 {
 	return m_systemItem;
+}
+
+// 设置自定义消息item
+void LCMessageItem::SetCustomItem(LCCustomItem* theCustomItem)
+{
+	if (m_msgType == MT_Unknow
+			&& theCustomItem != NULL)
+	{
+		m_customItem = theCustomItem;
+		m_msgType = MT_Custom;
+	}
+}
+
+// 获取自定义消息item
+LCCustomItem* LCMessageItem::GetCustomItem() const
+{
+	return m_customItem;	
 }
 
 // 设置用户item
@@ -318,7 +364,7 @@ void LCMessageItem::SetUserItem(LCUserItem* theUserItem)
 }
 
 // 获取用户item
-LCUserItem* LCMessageItem::GetUserItem()
+LCUserItem* LCMessageItem::GetUserItem() const
 {
 	return m_userItem;
 }
@@ -341,8 +387,9 @@ void LCMessageItem::Clear()
 	delete m_warningItem;
 	m_warningItem = NULL;
 
-	delete m_emotionItem;
-	m_emotionItem = NULL;
+	// in LCEmotionManager release
+	//delete m_emotionItem;
+	//m_emotionItem = NULL;
 
 	delete m_voiceItem;
 	m_voiceItem = NULL;
@@ -355,6 +402,9 @@ void LCMessageItem::Clear()
 
 	delete m_systemItem;
 	m_systemItem = NULL;
+
+	delete m_customItem;
+	m_customItem = NULL;
 
 	m_userItem = NULL;
 }

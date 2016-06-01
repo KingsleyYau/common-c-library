@@ -11,8 +11,13 @@
 #include "TaskManager.h"
 #include "ITransportDataHandler.h"
 #include "TaskDef.h"
-#include <KLog.h>
+#include <common/KLog.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
+
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 CTaskManager::CTaskManager(void)
 {
@@ -186,7 +191,7 @@ void CTaskManager::OnRecv(const TransportProtocol* tp)
 			else {
 				// 没有找到该任务，等待任务添加到队列
 				waitTime++;
-				usleep(100 * 1000);
+				usleep(100);
 			}
 		} while (true);
 	}
@@ -200,7 +205,6 @@ void CTaskManager::OnRecv(const TransportProtocol* tp)
 	}
 
 	FileLog("LiveChatClient", "CTaskManager::OnRecv() get task:%p, m_mgrListener:%p", task, m_mgrListener);
-
 	if (NULL != task) {
 		task->Handle(tp);
 

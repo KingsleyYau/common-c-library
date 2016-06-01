@@ -8,6 +8,7 @@
 
 #include "PngReader.h"
 #include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 PngReader::PngReader()
 {
@@ -15,6 +16,12 @@ PngReader::PngReader()
 	m_readPtr = NULL;
 	m_readInfoPtr = NULL;
 	m_readEndInfoPtr = NULL;
+
+	m_width = 0;
+	m_height = 0;
+	m_numPass = 0;
+	m_colorType = 0;
+	m_bitDepth = 0;
 }
 
 PngReader::~PngReader()
@@ -42,8 +49,6 @@ bool PngReader::Init()
 	bool result = false;
 
 	do {
-		png_uint_32 i = 0;
-
 		// 打开源文件
 		m_file = fopen(m_path.c_str(), "rb");
 		if (m_file == NULL) {
@@ -84,6 +89,12 @@ bool PngReader::Init()
 		result = true;
 	} while (0);
 
+	if (result) 
+	{
+		// 获取图片信息
+		result = GetPngInfo(m_width, m_height, m_numPass, m_colorType, m_bitDepth);
+	}
+
 	if (!result)
 	{
 		Release();
@@ -110,6 +121,36 @@ void PngReader::Release()
 	}
 }
 
+// 获取图片宽度
+png_uint_32 PngReader::GetWidth() const
+{
+	return m_width;
+}
+
+// 获取图片高度
+png_uint_32 PngReader::GetHeight() const
+{
+	return m_height;
+}
+
+// 获取图片数据保存类型
+int PngReader::GetNumPass() const
+{
+	return m_numPass;
+}
+
+// 获取图片颜色类型
+int PngReader::GetColorType() const
+{
+	return m_colorType;
+}
+
+// 获取多少bit一个像素
+int PngReader::GetBitDepth() const
+{
+	return m_bitDepth;
+}
+
 // 设置至结尾
 void PngReader::SetEnd()
 {
@@ -119,14 +160,12 @@ void PngReader::SetEnd()
 }
 
 // 获取png信息
-bool PngReader::GetPngInfo(png_uint_32& width, png_uint_32& height, int& numPass)
+bool PngReader::GetPngInfo(png_uint_32& width, png_uint_32& height, int& numPass, int& colorType, int& bitDepth)
 {
 	bool result = false;
 	if (NULL != m_readPtr
 		&& NULL != m_readInfoPtr)
 	{
-		int bitDepth;
-		int colorType;
 		int interlaceType;
 		int compressionType;
 		int filterType;

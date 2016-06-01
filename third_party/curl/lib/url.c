@@ -3208,8 +3208,11 @@ ConnectionExists(struct SessionHandle *data,
           continue;
       }
 
-      if((!(needle->handler->flags & PROTOPT_CREDSPERREQUEST)) ||
-         (wantNTLMhttp || check->ntlm.state != NTLMSTATE_NONE)) {
+      if((!(needle->handler->flags & PROTOPT_CREDSPERREQUEST))
+#ifdef USE_NTLM
+         || (wantNTLMhttp || check->ntlm.state != NTLMSTATE_NONE)
+#endif
+		 ) {
         /* This protocol requires credentials per connection or is HTTP+NTLM,
            so verify that we're using the same name and password as well */
         if(!strequal(needle->user, check->user) ||

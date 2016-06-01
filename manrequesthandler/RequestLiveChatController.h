@@ -25,42 +25,71 @@ using namespace std;
 #include "item/RecordMutiple.h"
 #include "item/LCSendPhotoItem.h"
 #include "item/LCVideoItem.h"
+#include "item/MagicIconConfig.h"
+#include "item/ThemeConfig.h"
 
-typedef void (*OnCheckCoupon)(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg);
-typedef void (*OnUseCoupon)(long requestId, bool success, string errnum, string errmsg, string userId);
-typedef void (*OnQueryChatVirtualGift)(long requestId, bool success, list<Gift> giftList, int totalCount, string path, string version,string errnum, string errmsg);
-typedef void (*OnQueryChatRecord)(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId);
-typedef void (*OnQueryChatRecordMutiple)(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg);
-typedef void (*OnSendPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item);
-typedef void (*OnPhotoFee)(long requestId, bool success, const string& errnum, const string& errmsg);
-typedef void (*OnGetPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-typedef void (*OnUploadVoice)(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId);
-typedef void (*OnPalyVoice)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-typedef void (*OnSendGift)(long requestId, bool success, const string& errnum, const string& errmsg);
-typedef void (*OnQueryRecentVideoList)(long requestId, bool success, list<LCVideoItem> itemList, string errnum, string errmsg);
-typedef void (*OnGetVideoPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-typedef void (*OnGetVideo)(long requestId, bool success, const string& errnum, const string& errmsg, const string& url);
-typedef struct RequestLiveChatControllerCallback {
-	OnCheckCoupon onCheckCoupon;
-	OnUseCoupon onUseCoupon;
-	OnQueryChatVirtualGift onQueryChatVirtualGift;
-	OnQueryChatRecord onQueryChatRecord;
-	OnQueryChatRecordMutiple onQueryChatRecordMutiple;
-	OnSendPhoto onSendPhoto;
-	OnPhotoFee onPhotoFee;
-	OnGetPhoto onGetPhoto;
-	OnUploadVoice onUploadVoice;
-	OnPalyVoice onPalyVoice;
-	OnSendGift onSendGift;
-	OnQueryRecentVideoList onQueryRecentVideoList;
-	OnGetVideoPhoto onGetVideoPhoto;
-	OnGetVideo onGetVideo;
-} RequestLiveChatControllerCallback;
+//virtual void OnCheckCoupon)(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg);
+//virtual void OnUseCoupon)(long requestId, bool success, string errnum, string errmsg, string userId);
+//virtual void OnQueryChatVirtualGift)(long requestId, bool success, list<Gift> giftList, int totalCount, string path, string version,string errnum, string errmsg);
+//virtual void OnQueryChatRecord)(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId);
+//virtual void OnQueryChatRecordMutiple)(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg);
+//virtual void OnSendPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item);
+//virtual void OnPhotoFee)(long requestId, bool success, const string& errnum, const string& errmsg);
+//virtual void OnGetPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+//virtual void OnUploadVoice)(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId);
+//virtual void OnPalyVoice)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+//virtual void OnSendGift)(long requestId, bool success, const string& errnum, const string& errmsg);
+//virtual void OnQueryRecentVideoList)(long requestId, bool success, list<LCVideoItem> itemList, string errnum, string errmsg);
+//virtual void OnGetVideoPhoto)(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+//virtual void OnGetVideo)(long requestId, bool success, const string& errnum, const string& errmsg, const string& url);
+//typedef struct RequestLiveChatControllerCallback {
+//	OnCheckCoupon onCheckCoupon;
+//	OnUseCoupon onUseCoupon;
+//	OnQueryChatVirtualGift onQueryChatVirtualGift;
+//	OnQueryChatRecord onQueryChatRecord;
+//	OnQueryChatRecordMutiple onQueryChatRecordMutiple;
+//	OnSendPhoto onSendPhoto;
+//	OnPhotoFee onPhotoFee;
+//	OnGetPhoto onGetPhoto;
+//	OnUploadVoice onUploadVoice;
+//	OnPalyVoice onPalyVoice;
+//	OnSendGift onSendGift;
+//	OnQueryRecentVideoList onQueryRecentVideoList;
+//	OnGetVideoPhoto onGetVideoPhoto;
+//	OnGetVideo onGetVideo;
+//} RequestLiveChatControllerCallback;
+
+class IRequestLiveChatControllerCallback
+{
+public:
+	IRequestLiveChatControllerCallback() {}
+	virtual ~IRequestLiveChatControllerCallback() {}
+public:
+	virtual void OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg) {};
+	virtual void OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId) {};
+	virtual void OnQueryChatVirtualGift(long requestId, bool success, list<Gift> giftList, int totalCount, string path, string version,string errnum, string errmsg) {};
+	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId) {};
+	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg) {};
+	virtual void OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item) {};
+	virtual void OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg) {};
+	virtual void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
+	virtual void OnUploadVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId) {};
+	virtual void OnPlayVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
+	virtual void OnSendGift(long requestId, bool success, const string& errnum, const string& errmsg) {};
+	virtual void OnQueryRecentVideoList(long requestId, bool success, list<LCVideoItem> itemList, string errnum, string errmsg) {};
+	virtual void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
+	virtual void OnGetVideo(long requestId, bool success, const string& errnum, const string& errmsg, const string& url) {};
+	virtual void OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config){};
+	virtual void OnChatRecharge(long requestId, bool success, const string& errnum, const string& errmsg, double credits) {};
+	virtual void OnGetThemeConfig(long requestId, bool success, const string& errnum, const string& errmsg, const ThemeConfig& config){};
+	virtual void OnGetThemeDetail(long requestId, bool success, const string& errnum, const string& errmsg, const ThemeItemList& themeList){};
+	virtual void OnCheckFunctions(long requestId, bool success, const string& errnum, const string& errmsg, list<string>& flagList) {};
+};
 
 
 class RequestLiveChatController : public RequestBaseController, public IHttpRequestManagerCallback {
 public:
-	RequestLiveChatController(HttpRequestManager* pHttpRequestManager, RequestLiveChatControllerCallback callback/*, CallbackManager* pCallbackManager*/);
+	RequestLiveChatController(HttpRequestManager* pHttpRequestManager, IRequestLiveChatControllerCallback* callback/*, CallbackManager* pCallbackManager*/);
 	virtual ~RequestLiveChatController();
 
 	/**
@@ -158,7 +187,7 @@ public:
 			);
 
 	/**
-	 * 6.14.获取微视频文件URL（http post）（New）
+	 * 6.14.获取微视频文件URL（http post）
 	 * @param womanId		女士ID
 	 * @param videoid		视频ID
 	 * @param inviteid		邀请ID
@@ -172,9 +201,61 @@ public:
 			string womanId,
 			string videoid,
 			string inviteid,
-			int toflag,
+			GETVIDEO_CLIENT_TYPE toflag,
 			string sendid
 			);
+
+	/**
+	 * 6.15 查询小高级表情配置
+	 */
+	long GetMagicIconConfig();
+
+	/**
+	 * 6.16.开聊自动买点（http post）
+	 * @param womanId		女士ID
+	 */
+	long ChatRecharge(
+			string womanId,
+			string user_sid,
+			string user_id
+			);
+
+	/**
+	 * 6.17.查询主题配置（http post）
+	 * user_sid 用户SessionId
+	 * user_id  用户Id
+	 */
+	long GetThemeConfig(
+			string user_sid,
+			string user_id
+			);
+
+	/**
+	 * 6.18.获取指定主题（http post）
+	 * themeIds 指定主题Id列表
+	 * user_sid 用户SessionId
+	 * user_id  用户Id
+	 */
+	long GetThemeDetail(
+			string themeIds,
+			string user_sid,
+			string user_id
+			);
+
+	/**
+	 * 6.19.检测功能是否开通（http post）
+	 * @param founctions 功能列表
+	 * @param deviceType 设备类型
+	 * @param versionCode 版本号
+	 * @param user_sid sessionId
+	 * @param user_id 用户ID
+	 */
+	long CheckFunctions(
+			string functions,
+			int deviceType,
+			string versionCode,
+			string user_sid,
+			string user_id);
 
 protected:
 	virtual void onSuccess(long requestId, string path, const char* buf, int size);
@@ -185,7 +266,7 @@ private:
 	string GetTempFilePath(const string& filePath);
 
 private:
-	RequestLiveChatControllerCallback mRequestLiveChatControllerCallback;
+	IRequestLiveChatControllerCallback* mRequestLiveChatControllerCallback;
 
 	void HandleQueryChatVirtualGift(TiXmlDocument &doc, list<Gift> &giftList, int &totalCount,
 			string &path, string &version);

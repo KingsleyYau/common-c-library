@@ -21,13 +21,12 @@ public:
 	virtual ~KTcpSocket();
 	KTcpSocket operator=(const KTcpSocket &obj);
 
-	void SetAddress(sockaddr_in addr);
+	void SetAddress(struct sockaddr_in addr);
 	string GetIP();
 	int GetPort();
 
 	bool IsConnected();
 	void SetConnnected();
-
 	/*
 	 * Client
 	 */
@@ -35,7 +34,7 @@ public:
 	 * Connect一般用法都是阻塞(可以不阻塞)，所以bBlock意思是连接成功后的socket发送和接收数据是否阻塞
 	 * uiTimeout:仅设置了nonblocking时候有效
 	 */
-	virtual int Connect(std::string strAddress, unsigned int uiPort, bool bBlocking = false);
+	virtual int Connect(string strAddress, unsigned int uiPort, bool bBlocking = false);
 	virtual int SendData(char* pBuffer, unsigned int uiSendLen, unsigned int uiTimeout = 3000);
 	virtual int RecvData(char* pBuffer, unsigned int uiRecvLen, bool bRecvAll = true, bool* pbAlive = NULL, unsigned int uiTimeout = 1000);
 
@@ -57,11 +56,10 @@ public:
 
 	virtual void Close();
 
-private:
-	string mIp;
-	unsigned int miPort;
-
-	bool mbConnected;
+protected:
+	int m_iPort;
+	string m_sAddress;
+	bool m_bConnected;
 };
 
 #endif /* KTcpSocket_H_ */

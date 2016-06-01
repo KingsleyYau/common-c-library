@@ -14,6 +14,7 @@
 #include "LCPhotoItem.h"
 #include "LCVideoItem.h"
 #include "LCSystemItem.h"
+#include "LCCustomItem.h"
 #include <string>
 #include <list>
 using namespace std;
@@ -62,7 +63,7 @@ public:
 
 public:
 	// 初始化
-	bool LCMessageItem::Init(
+	bool Init(
 			int msgId
 			, SendType sendType
 			, const string& fromId
@@ -72,18 +73,18 @@ public:
 	// 获取生成时间
 	static long GetCreateTime();
 	// 更新生成时间
-	static void RenewCreateTime();
+	void RenewCreateTime();
 	// 设置服务器当前数据库时间
 	static void SetDbTime(long dbTime);
 	// 把服务器时间转换为手机时间
 	static long GetLocalTimeWithServerTime(long serverTime);
 	// 使用Record初始化MessageItem
-	bool LCMessageItem::InitWithRecord(
+	bool InitWithRecord(
 					int msgId
 					, const string& selfId
 					, const string& userId
 					, const string& inviteId
-					, const Record* record
+					, const Record& record
 					, LCEmotionManager* emotionMgr
 					, LCVoiceManager* voiceMgr
 					, LCPhotoManager* photoMgr
@@ -91,35 +92,39 @@ public:
 	// 设置语音item
 	void SetVoiceItem(LCVoiceItem* theVoiceItem);
 	// 获取语音item
-	LCVoiceItem* GetVoiceItem();
+	LCVoiceItem* GetVoiceItem() const;
 	// 设置图片item
 	void SetPhotoItem(LCPhotoItem* thePhotoItem);
 	// 获取图片item
-	LCPhotoItem* GetPhotoItem();
+	LCPhotoItem* GetPhotoItem() const;
 	// 设置视频item
-	void SetVideoItem(LCVideoItem* theVideoItem);
+	void SetVideoItem(lcmm::LCVideoItem* theVideoItem);
 	// 获取视频item
-	LCVideoItem* GetVideoItem();
+	lcmm::LCVideoItem* GetVideoItem() const;
 	// 设置文本item
 	void SetTextItem(LCTextItem* theTextItem);
 	// 获取文本item
-	LCTextItem GetTextItem();
+	LCTextItem* GetTextItem() const;
 	// 设置warning item
 	void SetWarningItem(LCWarningItem* theWarningItem);
 	// 获取warning item
-	LCWarningItem* GetWarningItem();
+	LCWarningItem* GetWarningItem() const;
 	// 设置高级表情item
 	void SetEmotionItem(LCEmotionItem* theEmotionItem);
 	// 获取高级表情item
-	LCEmotionItem* GetEmotionItem();
+	LCEmotionItem* GetEmotionItem() const;
 	// 设置系统消息item
 	void SetSystemItem(LCSystemItem* theSystemItem);
 	// 获取系统消息item
-	LCSystemItem* GetSystemItem();
+	LCSystemItem* GetSystemItem() const;
+	// 设置自定义消息item
+	void SetCustomItem(LCCustomItem* theCustomItem);
+	// 获取自定义消息item
+	LCCustomItem* GetCustomItem() const;
 	// 设置用户item
 	void SetUserItem(LCUserItem* theUserItem);
 	// 获取用户item
-	LCUserItem* GetUserItem();
+	LCUserItem* GetUserItem() const;
 	// 重置所有成员变量
 	void Clear();
 
@@ -132,7 +137,7 @@ public:
 	string			m_fromId;		// 发送者ID
 	string 			m_toId;			// 接收者ID
 	string 			m_inviteId;		// 邀请ID
-	long 			m_createTime;	// 接收/发送时间
+	long			m_createTime;	// 接收/发送时间
 	StatusType 		m_statusType;	// 处理状态
 	MessageType		m_msgType;		// 消息类型
 
@@ -142,8 +147,9 @@ private:
 	LCEmotionItem*	m_emotionItem;	// 高级表情ID
 	LCVoiceItem*	m_voiceItem;	// 语音item
 	LCPhotoItem*	m_photoItem;	// 图片item
-	LCVideoItem*	m_videoItem;	// 微视频item
+	lcmm::LCVideoItem*	m_videoItem;	// 微视频item
 	LCSystemItem*	m_systemItem;	// 系统消息item
+	LCCustomItem*	m_customItem;	// 自定义消息item
 
 	LCUserItem*		m_userItem;		// 用户item
 

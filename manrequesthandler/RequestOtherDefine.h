@@ -111,6 +111,7 @@
 #define OTHER_SYNCONFIG_APKVERNAME		"apk_version_name"
 #define OTHER_SYNCONFIG_APKFORCEUPDATE	"apk_force_update"
 #define OTHER_SYNCONFIG_FACEBOOK_ENABLE	"facebook_enable"
+#define OTHER_SYNCONFIG_CHATSCENE_ENABLE	"chatscene_enable"
 #define OTHER_SYNCONFIG_APKVERIFY		"apk_file_verify"
 #define OTHER_SYNCONFIG_APKVERURL		"apk_version_url"
 #define OTHER_SYNCONFIG_CHATVOICEURL	"chat_voice_hosturl"
@@ -118,6 +119,10 @@
 #define OTHER_SYNCONFIG_ADDCREDITS2URL	"addcredits2_url"
 #define OTHER_SYNCONFIG_STOREURL		"store_url"
 #define OTHER_SYNCONFIG_IPCOUNTRY		"ipcountry"
+#define OTHER_SYNCONFIG_IOSVERCODE		"ios_version_code"
+#define OTHER_SYNCONFIG_IOSVERNAME		"ios_version_name"
+#define OTHER_SYNCONFIG_IOSFORCEUPDATE	"ios_force_update"
+#define OTHER_SYNCONFIG_IOSSTOREURL     "ios_store_url"
 
 // 收集移动设备的地理位置
 #define OTHER_PHONELOCATION_PATH	"/other/phone_location"
@@ -183,6 +188,7 @@ static const char* GetSiteId(OTHER_SITE_TYPE siteType) {
 	case OTHER_SITE_LA:
 		siteId = OTHER_SYNCONFIG_LA;
 		break;
+    case OTHER_SITE_ALL:break;
 	}
 	return siteId;
 };

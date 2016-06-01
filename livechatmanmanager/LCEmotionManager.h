@@ -7,13 +7,15 @@
 
 #pragma once
 
-#include <HttpDownloader.h>
-#include "LCEmotionItem.h"
-#include <Other.h>
-#include <IAutoLock.h>
-#include <RequestOtherController.h>
+#include <httpclient/HttpDownloader.h>
+#include <common/IAutoLock.h>
+#include <manrequesthandler/RequestOtherController.h>
+#include <manrequesthandler/item/Other.h>
+#include "LCEmotionDownloader.h"
 
 #include <map>
+#include <list>
+#include <common/list_lock.h>
 
 using namespace std;
 
@@ -28,16 +30,36 @@ public:
 	virtual void OnDownloadEmotionPlayImage(bool result, LCEmotionItem* emotionItem) = 0;
 };
 
+class LCMessageItem;
 class LCEmotionDownloader;
 class LCEmotionManager : private LCEmotionDownloaderCallback
 {
 private:
 	// <emotionId, item>
 	typedef map<string, LCEmotionItem*> EmotionMap;
-	// <msgId, item>
-	typedef map<int, LCEmotionItem*> ToSendMap;
+	// <msgId, LCMessageItem>
+	typedef map<int, LCMessageItem*> ToSendMap;
 	// <emotionId, downloader>
 	typedef map<string, LCEmotionDownloader*> EmotionDownloaderMap;
+private:
+	// 已下载完成的downloader（待释放）
+	typedef struct _tagFinishDownloaderItem {
+		LCEmotionDownloader*	downloader;
+		long long finishTime;
+
+		_tagFinishDownloaderItem()
+		{
+			downloader = NULL;
+			finishTime = 0;
+		}
+
+		_tagFinishDownloaderItem(const _tagFinishDownloaderItem& item)
+		{
+			downloader = item.downloader;
+			finishTime = item.finishTime;
+		}
+	} FinishDownloaderItem;
+	typedef list_lock<FinishDownloaderItem>	FinishDownloaderList;	// 已下载完成的downloader（待释放）
 
 public:
 	LCEmotionManager();
@@ -48,6 +70,8 @@ public:
 	bool SetDirPath(const string& dirPath, const string& logPath);
 	// 初始化
 	bool Init(const string& host, LCEmotionManagerCallback* callback);
+	// 设置http认证帐号
+	void SetAuthorization(const string& httpUser, const string& httpPassword);
 private:
 	// 设备下载路径
 	bool SetDownloadPath(const string& downloadPath);
@@ -67,15 +91,16 @@ private:
 	bool SaveConfigItemToFile();
 
 	// ------------------- 高级表情ID的map表操作 --------------------
+public:
+	// 获取/添加高级表情item
+	LCEmotionItem* GetEmotion(const string& emotionId);
 private:
 	// 添加配置item的高级表情至map
 	void AddEmotionsWithConfigItem(const OtherEmotionConfigItem& configItem);
 	// 批量添加高级表情至map
-	void AddEmotions(OtherEmotionConfigItem::EmotionList& emotionList);
+	void AddEmotions(const OtherEmotionConfigItem::EmotionList& emotionList);
 	// 添加高级表情至map
 	bool AddEmotion(LCEmotionItem* item);
-	// 获取/添加高级表情item
-	LCEmotionItem* GetEmotion(const string& emotionId);
 	// 清除所有高级表情item
 	void RemoveAllEmotionItem();
 	// 高级表情ID map加锁
@@ -103,6 +128,8 @@ public:
 	string GetImageDir();
 	// 获取缩略图路径
 	string GetImagePath(const string& emotionId);
+	// 获取高级表情图片下载URL
+	string GetImageURL(const string& emotionId);
 	// 获取播放大图的下载URL
 	string GetPlayBigImageUrl(const string& emotionId);
 	// 获取播放大图路径
@@ -132,12 +159,18 @@ public:
 	// 停止下载image
 	bool StopDownloadImage(LCEmotionItem* item);
 	// 停止所有image下载
-	bool StopAllDownloadImage();
+	void StopAllDownloadImage();
+	// 释放所有待释放Downloader(已下载完成，包括成功/失败)
+	void ClearAllDownloader();
+	// 清除超过一段时间已下载完成的downloader
+	void ClearFinishDownloaderWithTimer();
 private:
 	// 下载image map加锁
 	void LockImgDownloadMap();
 	// 下载image map解锁
 	void UnlockImgDownloadMap();
+	// 添加downloader到待释放列表(已下载完成，包括成功/失败)
+	void AddToFinishDownloaderList(LCEmotionDownloader* downloader);
 
 	// ------------ 下载播放image ------------
 public:
@@ -154,8 +187,8 @@ public:
 
 	// ------------- LCEmotionDownloaderCallback -------------
 private:
-	virtual void onSuccess(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item);
-	virtual void onFail(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item);
+	virtual void onSuccess(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item);
+	virtual void onFail(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item);
 
 private:
 	EmotionMap	m_emotionMap;		// 高级表情ID与item的map表
@@ -172,8 +205,13 @@ private:
 	IAutoLock*				m_imgDownloadMapLock;	// 高级表情图片下载map表锁
 	EmotionDownloaderMap	m_playImgDownloadMap;	// 高级表情播放图片下载map表
 	IAutoLock*				m_playDownloadMapLock;	// 高级表情播放图片下载map表锁
+	string		m_httpUser;			// http认证帐号
+	string		m_httpPassword;		// http认证密码
+	FinishDownloaderList	m_finishDownloaderList;		// 待释放下载器列表
 
-	long 		m_emotionConfigReqId;	// GetEmotionConfig的RequestId
 	OtherEmotionConfigItem	m_configItem;			// 高级表情配置item
-	LCEmotionManagerCallback	m_callback;	// 回调
+	LCEmotionManagerCallback*	m_callback;	// 回调
+
+public:
+	long 		m_emotionConfigReqId;	// GetEmotionConfig的RequestId
 };

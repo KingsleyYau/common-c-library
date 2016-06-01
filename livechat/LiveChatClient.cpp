@@ -7,8 +7,9 @@
 
 #include "LiveChatClient.h"
 #include "TaskManager.h"
-#include <KLog.h>
-#include "CommonDef.h"
+#include <common/KLog.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 // task include
 #include "CheckVerTask.h"
@@ -29,6 +30,7 @@
 #include "UseTryTicketTask.h"
 #include "GetTalkListTask.h"
 #include "SendPhotoTask.h"
+#include "SendLadyPhotoTask.h"
 #include "ShowPhotoTask.h"
 #include "GetUserInfoTask.h"
 #include "GetUsersInfoTask.h"
@@ -44,6 +46,18 @@
 #include "GetLadyChatInfoTask.h"
 #include "SendLadyEditingMsgTask.h"
 #include "PlayVideoTask.h"
+#include "SendLadyVideoTask.h"
+#include "GetLadyConditionTask.h"
+#include "GetLadyCustomTemplateTask.h"
+#include "UploadPopLadyAutoInviteTask.h"
+#include "UploadAutoChargeStatusTask.h"
+#include "SendMagicIconTask.h"
+#include "GetPaidThemeTask.h"
+#include "GetAllPaidThemeTask.h"
+#include "UploadThemeListVerTask.h"
+#include "ManFeeThemeTask.h"
+#include "ManApplyThemeTask.h"
+#include "PlayThemeMotionTask.h"
 #include "HearbeatTask.h"
 
 CLiveChatClient::CLiveChatClient()
@@ -329,7 +343,7 @@ bool CLiveChatClient::SendLadyEditingMsg(const string& userId)
 }
 
 // 发送聊天消息
-bool CLiveChatClient::SendMessage(const string& userId, const string& message, bool illegal, int ticket)
+bool CLiveChatClient::SendTextMessage(const string& userId, const string& message, bool illegal, int ticket)
 {
 	bool result = false;
 	FileLog("LiveChatClient", "CLiveChatClient::SendMessage() begin");
@@ -559,6 +573,32 @@ bool CLiveChatClient::SendPhoto(const string& userId, const string& inviteId, co
 		FileLog("LiveChatClient", "CLiveChatClient::SendPhoto() task:%p end", task);
 	}
 	FileLog("LiveChatClient", "CLiveChatClient::SendPhoto() end");
+	return result;
+}
+
+// 女士发送图片
+bool CLiveChatClient::SendLadyPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charget, const string& photoDesc, int ticket)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendLadyPhoto() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		SendLadyPhotoTask* task = new SendLadyPhotoTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendLadyPhoto() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, inviteId, photoId, sendId, charget, photoDesc, ticket);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::SendLadyPhoto() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::SendLadyPhoto() end");
 	return result;
 }
 
@@ -922,6 +962,317 @@ bool CLiveChatClient::PlayVideo(const string& userId, const string& inviteId, co
 	return result;
 }
 
+// 女士发送微视频
+bool CLiveChatClient::SendLadyVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendLadyVideo() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		SendLadyVideoTask* task = new SendLadyVideoTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendLadyVideo() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, inviteId, videoId, sendId, charge, videoDesc, ticket);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::SendLadyVideo() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::SendLadyVideo() end");
+	return result;
+}
+
+// 获取女士择偶条件
+bool CLiveChatClient::GetLadyCondition(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCondition() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		GetLadyConditionTask* task = new GetLadyConditionTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCondition() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCondition() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCondition() end");
+	return result;
+}
+
+// 获取女士自定义邀请模板
+bool CLiveChatClient::GetLadyCustomTemplate(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCustomTemplate() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		GetLadyCustomTemplateTask* task = new GetLadyCustomTemplateTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCustomTemplate() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCustomTemplate() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCustomTemplate() end");
+	return result;
+}
+
+// 弹出女士自动邀请消息通知
+bool CLiveChatClient::UploadPopLadyAutoInvite(const string& userId, const string& msg, const string& key)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::UploadPopLadyAutoInvite() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		UploadPopLadyAutoInviteTask* task = new UploadPopLadyAutoInviteTask();
+		FileLog("LiveChatClient", "CLiveChatClient::UploadPopLadyAutoInvite() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, msg, key);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::UploadPopLadyAutoInvite() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::UploadPopLadyAutoInvite() end");
+	return result;
+}
+
+// 上传自动充值状态
+bool CLiveChatClient::UploadAutoChargeStatus(bool isCharge)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::UploadAutoChargeStatus() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		UploadAutoChargeStatusTask* task = new UploadAutoChargeStatusTask();
+		FileLog("LiveChatClient", "CLiveChatClient::UploadAutoChargeStatus() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(isCharge);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::UploadAutoChargeStatus() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::UploadAutoChargeStatus() end");
+	return result;
+}
+
+// 发送小高级表情
+bool CLiveChatClient::SendMagicIcon(const string& userId, const string& iconId, int ticket)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendMagicIcon() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		SendMagicIconTask* task = new SendMagicIconTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendMagicIcon() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, iconId, ticket);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::SendMagicIcon() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::SendMagicIcon() end");
+	return result;
+}
+
+// 获取指定男/女士的已购主题包
+bool CLiveChatClient::GetPaidTheme(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetPaidTheme() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		GetPaidThemeTask* task = new GetPaidThemeTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetPaidTheme() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetPaidTheme() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetPaidTheme() end");
+	return result;
+}
+
+// 获取男/女士所有已购主题包
+bool CLiveChatClient::GetAllPaidTheme()
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetAllPaidTheme() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		GetAllPaidThemeTask* task = new GetAllPaidThemeTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetAllPaidTheme() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetAllPaidTheme() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetAllPaidTheme() end");
+	return result;
+}
+
+// 上传主题包列表版本号
+bool CLiveChatClient::UploadThemeListVer(int themeVer)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::UploadThemeListVer() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		UploadThemeListVerTask* task = new UploadThemeListVerTask();
+		FileLog("LiveChatClient", "CLiveChatClient::UploadThemeListVer() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(themeVer);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::UploadThemeListVer() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::UploadThemeListVer() end");
+	return result;
+}
+
+// 男士购买主题包
+bool CLiveChatClient::ManFeeTheme(const string& userId, const string& themeId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::ManFeeTheme() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		ManFeeThemeTask* task = new ManFeeThemeTask();
+		FileLog("LiveChatClient", "CLiveChatClient::ManFeeTheme() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, themeId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::ManFeeTheme() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::ManFeeTheme() end");
+	return result;
+}
+
+// 男士应用主题包
+bool CLiveChatClient::ManApplyTheme(const string& userId, const string& themeId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::ManApplyTheme() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		ManApplyThemeTask* task = new ManApplyThemeTask();
+		FileLog("LiveChatClient", "CLiveChatClient::ManApplyTheme() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, themeId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::ManApplyTheme() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::ManApplyTheme() end");
+	return result;
+}
+
+// 男/女士播放主题包动画
+bool CLiveChatClient::PlayThemeMotion(const string& userId, const string& themeId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::PlayThemeMotion() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		PlayThemeMotionTask* task = new PlayThemeMotionTask();
+		FileLog("LiveChatClient", "CLiveChatClient::PlayThemeMotion() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, themeId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::PlayThemeMotion() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::PlayThemeMotion() end");
+	return result;
+}
+
 // 获取用户账号
 string CLiveChatClient::GetUser()
 {
@@ -937,6 +1288,8 @@ void CLiveChatClient::OnConnect(bool success)
 		FileLog("LiveChatClient", "CLiveChatClient::OnConnect() CheckVersionProc()");
 		// 连接服务器成功，检测版本号
 		CheckVersionProc();
+		// 启动发送心跳包线程
+		HearbeatThreadStart();
 	}
 	else {
 		FileLog("LiveChatClient", "CLiveChatClient::OnConnect() LCC_ERR_CONNECTFAIL, m_listener:%p", m_listener);
@@ -1031,13 +1384,6 @@ bool CLiveChatClient::LoginProc()
 		int seq = m_seqCounter.GetAndIncrement();
 		loginTask->SetSeq(seq);
 		result =  m_taskManager->HandleRequestTask(loginTask);
-
-		// 启动心跳处理线程
-		m_isHearbeatThreadRun = true;
-		if (NULL == m_hearbeatThread) {
-			m_hearbeatThread = IThreadHandler::CreateThreadHandler();
-			m_hearbeatThread->Start(HearbeatThread, this);
-		}
 	}
 	return result;
 }
@@ -1075,6 +1421,16 @@ bool CLiveChatClient::UploadDeviceTypeProc()
 }
 
 // ------------------------ 心跳处理函数 ------------------------------
+void CLiveChatClient::HearbeatThreadStart()
+{
+	// 启动心跳处理线程
+	m_isHearbeatThreadRun = true;
+	if (NULL == m_hearbeatThread) {
+		m_hearbeatThread = IThreadHandler::CreateThreadHandler();
+		m_hearbeatThread->Start(HearbeatThread, this);
+	}
+}
+
 TH_RETURN_PARAM CLiveChatClient::HearbeatThread(void* arg)
 {
 	CLiveChatClient* pThis = (CLiveChatClient*)arg;
@@ -1089,8 +1445,8 @@ void CLiveChatClient::HearbeatProc()
 	const unsigned long nSleepStep = 200;	// ms
 	const unsigned long nSendStep = 30 * 1000; // ms
 
-	unsigned long preTime = getCurrentTime();
-	unsigned long curTime = getCurrentTime();
+	long long preTime = getCurrentTime();
+	long long curTime = getCurrentTime();
 	do {
 		curTime = getCurrentTime();
 		if (DiffTime(preTime, curTime) >= nSendStep) {

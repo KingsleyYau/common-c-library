@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include "ITransportPacketHandler.h"
 #include "TransportPacketHandler.h"
-#include "CommonDef.h"
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 ITransportPacketHandler* ITransportPacketHandler::Create()
 {

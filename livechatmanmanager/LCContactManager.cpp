@@ -7,6 +7,7 @@
 
 #include "LCContactManager.h"
 #include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCContactManager::LCContactManager()
 {
@@ -33,11 +34,11 @@ void LCContactManager::UpdateWithContactList(const TalkUserList& userList)
 	m_contactListMap.clear();
 
 	// 插入联系人map表
-	for (TalkUserList::const_iterator iter;
+	for (TalkUserList::const_iterator iter = userList.begin();
 		iter != userList.end();
 		iter++)
 	{
-		m_contactListMap.insert(ContactUserMap::value_type((*iter).userId), false);
+		m_contactListMap.insert(ContactUserMap::value_type((*iter).userId, false));
 	}
 
 	// 解锁
@@ -59,7 +60,7 @@ bool LCContactManager::IsExist(const string& userId)
 	ContactUserMap::const_iterator iter;
 	// 判断联系人
 	iter = m_contactListMap.find(userId);
-	result = (iter != m_blockListMap.end());
+	result = (iter != m_contactListMap.end());
 
 	// 解锁
 	if (NULL != m_contactListMapLock) {

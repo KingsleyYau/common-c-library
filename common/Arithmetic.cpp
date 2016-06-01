@@ -6,7 +6,7 @@
  * Description  : Class for Arithmetic
  */
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "aes.h"
@@ -194,7 +194,7 @@ int Arithmetic::Base64Decode(const char* data, int length, char* code)
     int i = 0;
 	int j = 0;
 	int l = length;
-	int k;
+	int k = 0;
 
 	if (length == 0){
 		return 0;
@@ -376,7 +376,7 @@ int Arithmetic::decode_urlspecialchar(const char* data, int length, char* code)
 
 unsigned long Arithmetic::MakeCRC32(char* data, int i_in_len)
 {
-    register unsigned long rulCrc32 = 0xFFFFFFFF;
+    unsigned long rulCrc32 = 0xFFFFFFFF;
     for (int i = 0; i < i_in_len; i++){
         rulCrc32 = UPDC32(data[i], rulCrc32);
     }
@@ -412,8 +412,8 @@ bool Arithmetic::Mac2String(char* pstr, char* Mac)
 void Arithmetic::encipher(void* aData, const void* aKey)
 {
     const long cnDelta = 0x9E3779B9;
-    register long y = ((long*)aData)[0], z = ((long*)aData)[1];
-    register long sum = 0;
+    long y = ((long*)aData)[0], z = ((long*)aData)[1];
+    long sum = 0;
     long a = ((long*)aKey)[0], b = ((long*)aKey)[1];
     long c = ((long*)aKey)[2], d = ((long*)aKey)[3];
     int n = 32;
@@ -430,8 +430,8 @@ void Arithmetic::encipher(void* aData, const void* aKey)
 void Arithmetic::decipher(void* aData, const void* aKey)
 {
     const long cnDelta = 0x9E3779B9;
-    register long y = ((long*)aData)[0], z = ((long*)aData)[1];
-    register long sum = 0xC6EF3720;
+    long y = ((long*)aData)[0], z = ((long*)aData)[1];
+    long sum = 0xC6EF3720;
     long a = ((long*)aKey)[0], b = ((long*)aKey)[1];
     long c = ((long*)aKey)[2], d = ((long*)aKey)[3];
     int n = 32;
@@ -471,7 +471,7 @@ string Arithmetic::AesEncrypt(string initKey, string src) {
 	{
 		memset(out, 0, outLen);
 		unsigned char in[keyLen] = {0};
-		unsigned char temp[keyLen] = {0};
+//		unsigned char temp[keyLen] = {0};
 		int count = 0;
 
 		// 分块加密，先对整块加密

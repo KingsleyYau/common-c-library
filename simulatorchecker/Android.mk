@@ -10,14 +10,13 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := simulatorchecker
+LOCAL_MODULE := simulatorchecker
 
 LOCAL_MODULE_FILENAME := libsimulatorchecker
 
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../third_party/google_breakpad/src
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../common
+LOCAL_C_INCLUDES := $(COMMON_C_LIBRARY_PATH)
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)/google_breakpad/src
 
 LOCAL_STATIC_LIBRARIES += common
 LOCAL_STATIC_LIBRARIES += zip

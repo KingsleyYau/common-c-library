@@ -11,6 +11,10 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#ifdef IOS
+#include <zlib.h>
+#endif
+
 #include <common/KLog.h>
 
 #define WRITEBUFFERSIZE (16384)
@@ -21,6 +25,7 @@ KZip::KZip() {
 	mZipFile = NULL;
 	mPassword = "";
 	mComment = "";
+	FileLog("common", "KZip( zlib version : %s )", zlibVersion());
 }
 
 KZip::~KZip() {
@@ -34,7 +39,7 @@ KZip::~KZip() {
  * @param password 	生成的zip文件密钥
  */
 bool KZip::CreateZipFromDir(string src, string zipFile, string password, string comment) {
-	DLog("KZip", "AddFile( "
+	FileLog("common", "AddFile( "
 					"src : %s, "
 					"zipFile : %s, "
 					"password : %s, "
@@ -73,7 +78,7 @@ bool KZip::CreateZipFromDir(string src, string zipFile, string password, string 
  * @param parent 	父目录, 用于递归时候生成zip中路径
  */
 bool KZip::AddFile(string src, string parent) {
-	DLog("KZip", "AddFile( "
+	FileLog("common", "AddFile( "
 					"src : %s, "
 					"parent : %s"
 					" )",
@@ -122,7 +127,7 @@ bool KZip::AddFile(string src, string parent) {
  * @param fileName	zip中文件名称
  */
 bool KZip::AddFileToZip(string src, string fileName) {
-	DLog("KZip", "AddFileToZip( "
+	FileLog("common", "AddFileToZip( "
 					"src : %s, "
 					"fileName : %s"
 					" )",
@@ -151,7 +156,7 @@ bool KZip::AddFileToZip(string src, string fileName) {
 	if( (ret != ZIP_OK) )
 		return false;
 
-	DLog("KZip", "AddFileToZip( crcFile : %d )", crcFile);
+	FileLog("common", "AddFileToZip( crcFile : %d )", crcFile);
 	ret = zipOpenNewFileInZip3(
 			mZipFile,
 			fileName.c_str(),
@@ -198,7 +203,7 @@ bool KZip::AddFileToZip(string src, string fileName) {
 		zipCloseFileInZip(mZipFile);
 	}
 
-	DLog("KZip", "AddFileToZip( finish )");
+	FileLog("common", "AddFileToZip( finish )");
 	return bFlag;
 }
 
@@ -212,7 +217,11 @@ int KZip::GetFileCrc(
 		) {
    unsigned long calculate_crc = 0;
    int err = ZIP_OK;
-   unsigned long size_read = 0;
+#ifndef IOS
+    unsigned long size_read = 0;
+#else
+    unsigned int size_read = 0;
+#endif
    unsigned long total_read = 0;
 
    FILE * fin = fopen(filenameinzip, "rb");
@@ -228,7 +237,11 @@ int KZip::GetFileCrc(
 			   }
 		   }
 		   if ( size_read > 0 ) {
+#ifndef IOS
 			   calculate_crc = crc32(calculate_crc, buf, size_read);
+#else
+               calculate_crc = crc32(calculate_crc, (Bytef *)buf, size_read);
+#endif
 		   }
 		   total_read += size_read;
 	   } while ( ( err == ZIP_OK ) && ( size_read > 0 ) );

@@ -12,8 +12,8 @@
 #include <list>
 using namespace std;
 
-#include "../RequestLiveChatDefine.h"
-#include "../../xml/tinyxml.h"
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <xml/tinyxml.h>
 #include <common/CommonFunc.h>
 
 // 发送私密照片LC_SENDPHOTO_PATH(/livechat/setstatus.php?action=man_send_photo)

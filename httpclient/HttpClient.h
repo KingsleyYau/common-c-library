@@ -10,7 +10,8 @@
 #define HttpClient_H_
 
 #include "HttpEntiy.h"
-#include <curl/curl.h>
+#include <curl/include/curl/curl.h>
+#include <list>
 
 class HttpClient;
 class IHttpClientCallback {
@@ -36,6 +37,10 @@ public:
 	static void CleanCookies(string site);
 	// 获取指定域名cookies
 	static string GetCookies(string site);
+	// 获取所有域名的cookies
+	static list<string> GetCookiesInfo();
+	// 设置cookies
+	static void SetCookiesInfo(const list<string>& cookies);
 
 	void Stop();
 	void Init(string url);

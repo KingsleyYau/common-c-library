@@ -8,7 +8,7 @@
 #pragma once
 
 #include "LCMessageItem.h"
-#include "ILiveChatClientDef.h"
+#include <livechat/ILiveChatClientDef.h>
 #include <string>
 #include <list>
 using namespace std;
@@ -53,9 +53,15 @@ public:
 	LCMessageItem* GetTheOtherLastMessage();
 	// 结束聊天处理
 	void EndTalk();
+	// 设置在线状态
+	bool SetUserOnlineStatus(USER_STATUS_TYPE statusType);
+	// 插入待发消息列表
+	bool InsertSendMsgList(LCMessageItem* item);
+	// pop出最前一条待发消息
+	LCMessageItem* PopSendMsgList();
 
 	// 比较函数
-	static bool Sort(const LCUserItem* item1, const LCUserItem* item2);
+	static bool Sort(LCUserItem* item1, LCUserItem* item2);
 
 public:
 	// 聊天消息列表加锁
@@ -65,7 +71,7 @@ public:
 	// 待发送消息列表加锁
 	void LockSendMsgList();
 	// 待发送消息列表解锁
-	void UnlockMsgList();
+	void UnlockSendMsgList();
 
 
 public:

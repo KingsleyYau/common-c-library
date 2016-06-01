@@ -7,6 +7,7 @@
 
 #include "ISocketHandler.h"
 //#include <KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 
 #ifdef WIN32
@@ -33,7 +34,7 @@ public:
 	{
 		if (INVALID_SOCKET != m_socket)
 		{
-			shutdown(m_socket, SHUT_RDWR);
+			shutdown(m_socket, 2);
 		}
 	}
 
@@ -106,8 +107,8 @@ public:
 	}
 	
 	// 发送
-	virtual bool Send(void* data, unsigned int dataLen) {
-		bool result = false;
+	virtual HANDLE_RESULT Send(void* data, unsigned int dataLen) {
+		HANDLE_RESULT result = HANDLE_FAIL;
 
 		int total = 0;
 		while (true) {
@@ -120,7 +121,7 @@ public:
 			}
 
 			if (total == dataLen) {
-				result = true;
+				result = HANDLE_SUCCESS;
 				break;
 			}
 		}
@@ -128,14 +129,14 @@ public:
 	}
 	
 	// 接收
-	virtual bool Recv(void* data, unsigned int dataSize, unsigned int& dataLen) {
-		bool result = false;
+	virtual HANDLE_RESULT Recv(void* data, unsigned int dataSize, unsigned int& dataLen) {
+		HANDLE_RESULT result = HANDLE_FAIL;
 
 		dataLen = 0;
 		int length = recv(m_socket, (char*)data, dataSize, 0);
 		if (length > 0) {
 			dataLen = length;
-			result = true;
+			result = HANDLE_SUCCESS;
 		}
 
 		return result;

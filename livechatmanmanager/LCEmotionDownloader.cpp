@@ -7,6 +7,8 @@
 
 #include "LCEmotionDownloader.h"
 #include <common/CommonFunc.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 LCEmotionDownloader::LCEmotionDownloader()
 {
@@ -25,9 +27,14 @@ bool LCEmotionDownloader::Start(const string& url
 								, const string& filePath
 								, EmotionFileType fileType
 								, LCEmotionItem* item
-								, LCEmotionDownloaderCallback* callback)
+								, LCEmotionDownloaderCallback* callback
+								, const string& httpUser
+								, const string& httpPassword)
 {
 	bool result = false;
+
+	FileLog("LiveChatManager", "LCEmotionDownloader::Start() url:%s, filePath:%s, fileType:%d, item:%p, callback:%p"
+			, url.c_str(), filePath.c_str(), fileType, item, callback);
 
 	if (!url.empty()
 		&& !filePath.empty()
@@ -38,7 +45,10 @@ bool LCEmotionDownloader::Start(const string& url
 		m_emotionItem = item;
 		m_callback = callback;
 		m_fileType = fileType;
-		result = m_downloader.StartDownload(url, filePath, this);
+		result = m_downloader.StartDownload(url, filePath, this, httpUser, httpPassword);
+
+		FileLog("LiveChatManager", "LCEmotionDownloader::Start() url:%s, filePath:%s, fileType:%d, result:%d"
+				, url.c_str(), filePath.c_str(), fileType, result);
 	}
 
 	return result;
@@ -50,7 +60,7 @@ void LCEmotionDownloader::Stop()
 	m_downloader.Stop();
 }
 
-// IHttpDownloaderCallback
+// --------------- IHttpDownloaderCallback ---------------
 // 下载成功
 void LCEmotionDownloader::onSuccess(HttpDownloader* loader)
 {
@@ -64,22 +74,16 @@ void LCEmotionDownloader::onSuccess(HttpDownloader* loader)
 	}
 
 	if (m_callback != NULL) {
-		m_callback.onSuccess(m_fileType, m_emotionItem);
+		m_callback->onSuccess(this, m_fileType, m_emotionItem);
 	}
-
-	m_callback = NULL;
-	m_emotionItem = NULL;
 }
 
 // 下载失败
 void LCEmotionDownloader::onFail(HttpDownloader* loader)
 {
 	if (m_callback != NULL) {
-		m_callback.onFail(m_fileType, m_emotionItem);
+		m_callback->onFail(this, m_fileType, m_emotionItem);
 	}
-
-	m_callback = NULL;
-	m_emotionItem = NULL;
 }
 
 // 下载进度更新

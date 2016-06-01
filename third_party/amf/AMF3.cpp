@@ -1,76 +1,107 @@
 #include "AMF3.h"
 
 #define __int64 long long
-#define BYTE char
+// modify by samson 2016-03-29 修复由于符号位导致移位出错的问题
+//#define BYTE char
+#define BYTE unsigned char
+
 
 namespace AMF3
 {
 __int64 swap_i64(__int64 data)
 {
-	BYTE buf[8];
-	::memcpy(buf,&data,8);
+	// --- mask by samson 2016-03-29 ---
+	// 修复由于符号位导致移位出错的问题
 
+	//BYTE buf[8];
+	//::memcpy(buf,&data,8);
+
+	//__int64 retvalue = 0;
+	//__int64 tmp;
+
+	//tmp = buf[0];
+	//retvalue = tmp<<56;
+
+	//tmp = buf[1];
+	//retvalue |= tmp<<48;
+
+	//tmp = buf[2];
+	//retvalue |= tmp<<40;
+
+	//tmp = buf[3];
+	//retvalue |= tmp<<32;
+
+	//tmp = buf[4];
+	//retvalue |= tmp<<24;
+
+	//tmp = buf[5];
+	//retvalue |= tmp<<16;
+
+	//tmp = buf[6];
+	//retvalue |= tmp<<8;
+
+	//tmp = buf[7];
+	//retvalue |= tmp;
+	// -----------------------------------
+
+	// --- add by samson 2016-03-29 ---
 	__int64 retvalue = 0;
-	__int64 tmp;
 
-	tmp = buf[0];
-	retvalue = tmp<<56;
-
-	tmp = buf[1];
-	retvalue |= tmp<<48;
-
-	tmp = buf[2];
-	retvalue |= tmp<<40;
-
-	tmp = buf[3];
-	retvalue |= tmp<<32;
-
-	tmp = buf[4];
-	retvalue |= tmp<<24;
-
-	tmp = buf[5];
-	retvalue |= tmp<<16;
-
-	tmp = buf[6];
-	retvalue |= tmp<<8;
-
-	tmp = buf[7];
-	retvalue |= tmp;
+	BYTE *src = (BYTE*)&data;
+	BYTE *des = (BYTE*)&retvalue;
+	for (int i = 0; i < sizeof(data); i++)
+	{
+		des[i] = src[sizeof(data)-1-i];
+	}
+	// --------------------------------
 
 	return retvalue;
 }
 
 unsigned __int64 swap_u64(unsigned __int64 data)
 {
-	BYTE buf[8];
-	::memcpy(buf,&data,8);
+	// --- mask by samson 2016-03-29 ---
+	//BYTE buf[8];
+	//::memcpy(buf,&data,8);
 
+	//unsigned __int64 retvalue = 0;
+	//unsigned __int64 tmp;
+
+	//tmp = buf[0];
+	//retvalue = tmp<<56;
+
+	//tmp = buf[1];
+	//retvalue |= tmp<<48;
+
+	//tmp = buf[2];
+	//retvalue |= tmp<<40;
+
+	//tmp = buf[3];
+	//retvalue |= tmp<<32;
+
+	//tmp = buf[4];
+	//retvalue |= tmp<<24;
+
+	//tmp = buf[5];
+	//retvalue |= tmp<<16;
+
+	//tmp = buf[6];
+	//retvalue |= tmp<<8;
+
+	//tmp = buf[7];
+	//retvalue |= tmp;
+	// --------------------------------
+
+	// --- add by samson 2016-03-29 ---
 	unsigned __int64 retvalue = 0;
-	unsigned __int64 tmp;
 
-	tmp = buf[0];
-	retvalue = tmp<<56;
-
-	tmp = buf[1];
-	retvalue |= tmp<<48;
-
-	tmp = buf[2];
-	retvalue |= tmp<<40;
-
-	tmp = buf[3];
-	retvalue |= tmp<<32;
-
-	tmp = buf[4];
-	retvalue |= tmp<<24;
-
-	tmp = buf[5];
-	retvalue |= tmp<<16;
-
-	tmp = buf[6];
-	retvalue |= tmp<<8;
-
-	tmp = buf[7];
-	retvalue |= tmp;
+	BYTE *src = (BYTE*)&data;
+	BYTE *des = (BYTE*)&retvalue;
+	for (int i = 0; i < sizeof(data); i++)
+	{
+		des[i] = src[sizeof(data)-1-i];
+	}
+	// --------------------------------
 
 	return retvalue;
 }
@@ -953,6 +984,8 @@ void write_elem(context* ctx,amf_object_handle obj)
 	case DT_NULL:
 	case DT_FALSE:
 	case DT_TRUE:
+    case DT_XMLDOC:
+    case DT_XML:
 	break;
 	case DT_INTEGER:
 		write_u29(ctx,obj->intValue);

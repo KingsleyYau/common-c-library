@@ -6,6 +6,7 @@
  */
 
 #include "IThreadHandler.h"
+#include <common/CheckMemoryLeak.h>
 
 #ifdef WIN32
 

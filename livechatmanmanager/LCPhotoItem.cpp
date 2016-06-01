@@ -8,6 +8,7 @@
 #include "LCPhotoItem.h"
 #include <manrequesthandler/RequestLiveChatController.h>
 #include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCPhotoItem::LCPhotoItem()
 {
@@ -20,7 +21,6 @@ LCPhotoItem::LCPhotoItem()
 	m_showSrcFilePath = "";
 	m_thumbSrcFilePath = "";
 	m_charge = false;
-	m_status = Finish;
 }
 
 LCPhotoItem::~LCPhotoItem()
@@ -65,7 +65,7 @@ bool LCPhotoItem::Init(const string& photoId				// 图片ID
 		m_showSrcFilePath = showSrcFilePath;
 	}
 
-	if ( IsFileexist(thumbSrcFilePath) )
+	if ( IsFileExist(thumbSrcFilePath) )
 	{
 		m_thumbSrcFilePath = thumbSrcFilePath;
 	}
@@ -74,30 +74,99 @@ bool LCPhotoItem::Init(const string& photoId				// 图片ID
 }
 
 // 设置图片处理状态
-void LCPhotoItem::SetProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+LCPhotoItem::ProcessStatus LCPhotoItem::GetProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
 {
+	ProcessStatus status = Unknow;
 	if (modeType == GMT_CLEAR) {
 		if (sizeType == GPT_LARGE
 			|| sizeType == GPT_MIDDLE)
 		{
-			statusType = DownloadShowSrcPhoto;
+			status = DownloadShowSrcPhoto;
 		}
 		else if (sizeType == GPT_ORIGINAL)
 		{
-			statusType = DownloadSrcPhoto;
+			status = DownloadSrcPhoto;
 		}
 		else {
-			statusType = DownloadThumbSrcPhoto;
+			status = DownloadThumbSrcPhoto;
 		}
 	}
 	else if (modeType == GMT_FUZZY) {
 		if (sizeType == GPT_LARGE
 			|| sizeType == GPT_MIDDLE)
 		{
-			statusType = DownloadShowFuzzyPhoto;
+			status = DownloadShowFuzzyPhoto;
 		}
 		else {
-			statusType = DownloadThumbFuzzyPhoto;
+			status = DownloadThumbFuzzyPhoto;
 		}
 	}
+
+	return status;
+}
+
+// 添加图片处理状态
+void LCPhotoItem::AddProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+{
+	ProcessStatus status = GetProcessStatus(modeType, sizeType);
+	if (Unknow != status) {
+		m_statusList.lock();
+		m_statusList.push_back(status);
+		m_statusList.unlock();
+	}
+}
+
+// 移除图片处理状态
+void LCPhotoItem::RemoveProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+{
+	ProcessStatus status = GetProcessStatus(modeType, sizeType);
+	if (Unknow != status) {
+		m_statusList.lock();
+		m_statusList.erase(status);
+		m_statusList.unlock();
+	}
+}
+
+// 判断是否处理状态
+bool LCPhotoItem::IsProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+{
+	bool result = false;
+
+	ProcessStatus status = GetProcessStatus(modeType, sizeType);
+	m_statusList.lock();
+	result = m_statusList.has(status);
+	m_statusList.unlock();
+
+	return result;
+}
+
+// 添加购买图片处理状态
+void LCPhotoItem::AddFeeStatus()
+{
+	m_statusList.lock();
+	if (!m_statusList.has(PhotoFee))
+	{
+		m_statusList.push_back(PhotoFee);
+	}
+	m_statusList.unlock();
+}
+
+// 移除购买图片处理状态
+void LCPhotoItem::RemoveFeeStatus()
+{
+	m_statusList.lock();
+	m_statusList.erase(PhotoFee);
+	m_statusList.unlock();
+}
+
+// 判断是否付费状态
+bool LCPhotoItem::IsFee()
+{
+	bool result = false;
+
+	m_statusList.lock();
+	result = m_statusList.has(PhotoFee);
+	m_statusList.unlock();
+
+	return result;
 }

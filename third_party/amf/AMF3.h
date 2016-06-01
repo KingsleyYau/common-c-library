@@ -35,6 +35,7 @@ the following conditions are met:
 #ifndef __AMF3_H__
 #define __AMF3_H__
 
+#include <stdlib.h>
 #include <string>
 #include <map>
 #include <vector>

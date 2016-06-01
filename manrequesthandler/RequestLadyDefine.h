@@ -65,6 +65,8 @@
 #define LADY_VIDEO_TIME			"time"
 #define LADY_VIDEO_PHOTO		"photo"
 
+#define LADY_PHOTOLOCKNUM       "photoLockNum"
+
 /* 4.7.获取女士Direct Call TokenID */
 #define LADY_LOVECALLID			"lovecallid"
 #define LADY_LC_CENTERNUMBER	"lc_centernumber"

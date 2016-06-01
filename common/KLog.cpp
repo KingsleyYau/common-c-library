@@ -6,9 +6,22 @@
  *      Email: Kingsleyyau@gmail.com
  */
 #include "KLog.h"
+
+#ifndef _WIN32  /* _WIN32 */
 #include <sys/syscall.h>
-// modify by samson, 把定义放到头文件，给外部知道
-//#define MAX_LOG_BUFFER 512 * 1024
+#include <unistd.h>
+#ifdef IOS  /* IOS */
+#include <sys/time.h>
+#define GET_TID SYS_gettid
+#define Log(tag, format, ...) printf(format, ## __VA_ARGS__)
+#else
+#include <android/log.h>
+#define Log(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ## __VA_ARGS__)
+#define GET_TID __NR_gettid
+#endif  /* IOS */
+#else
+#include <windows.h>
+#endif  /* _WIN32 */
 
 static bool gLogEnable = true;
 void KLog::SetLogEnable(bool enable) {
@@ -20,7 +33,9 @@ void KLog::SetLogDirectory(string directory) {
 	gLogDirectory = directory;
 }
 
-int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, const char *fmt, ...) {
+#ifndef _WIN32
+int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, const char *fmt, ...) 
+{
 	if( !gLogEnable ) {
 		return 0;
 	}
@@ -32,7 +47,7 @@ int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, cons
 	time_t stm = time(NULL);
 	struct tm tTime;
 	localtime_r(&stm, &tTime);
-	int tid = (int)syscall(224);
+	int tid = (int)syscall(GET_TID);
 	snprintf(pTimeBuffer, 64, "[ tid: %d, %d-%02d-%02d %02d:%02d:%02d.%03d ]",
 			tid, tTime.tm_year + 1900, tTime.tm_mon + 1, tTime.tm_mday, tTime.tm_hour, tTime.tm_min, tTime.tm_sec, tNow.tv_usec/1000);
 
@@ -60,7 +75,7 @@ int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, cons
 	}
 
 #ifdef PRINT_JNI_LOG
-	DLog(fileNamePre, "%s", pDataBuffer);
+	Log(fileNamePre, "%s", pDataBuffer);
 #endif
 
     char pLogFilePath[1024] = {'\0'};
@@ -74,13 +89,13 @@ int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, cons
     	int iLen = -1;
     	fseek(file, 0L, SEEK_END);
 
-    	if(NULL != pTimeBuffer) {
+    	if(strlen(pTimeBuffer) > 0) {
     		iLen = fwrite(pTimeBuffer, 1, strlen(pTimeBuffer), file);
     		if(iLen != -1 ) {
 
     		}
     	}
-    	if(NULL != pDataBuffer) {
+    	if(strlen(pDataBuffer) > 0) {
     		iLen = fwrite(pDataBuffer, 1, strlen(pDataBuffer), file);
     		if(iLen != -1 ) {
 
@@ -93,3 +108,32 @@ int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, cons
 
 	return 1;
 }
+#else
+
+int KLog::LogToFile(const char *fileNamePre, int level, const char *logDir, const char *fmt, ...) 
+{
+	if( !gLogEnable ) {
+		return 0;
+	}
+
+	char pTimeBuffer[1024] = {'\0'}, pDataBuffer[MAX_LOG_BUFFER] = {'\0'};
+
+    SYSTEMTIME wtm;
+	GetLocalTime(&wtm);
+	DWORD tid = GetCurrentThreadId();
+	sprintf_s(pTimeBuffer, sizeof(pTimeBuffer), "[ tid: %d, %d-%02d-%02d %02d:%02d:%02d.%03d ]",
+		tid, wtm.wYear, wtm.wMonth, wtm.wDay, wtm.wHour, wtm.wMinute, wtm.wSecond, wtm.wMilliseconds);
+
+    va_list	agList;
+    va_start(agList, fmt);
+    vsnprintf(pDataBuffer, sizeof(pDataBuffer)-1, fmt, agList);
+    va_end(agList);
+
+    strcat(pDataBuffer, "\n");
+
+    //OutputDebugString(pDataBuffer);
+	printf(pDataBuffer);
+
+	return 1;
+}
+#endif

@@ -7,6 +7,7 @@
  */
 
 #include "HttpRequestHostManager.h"
+#include <common/CheckMemoryLeak.h>
 
 HttpRequestHostManager::HttpRequestHostManager() {
 	// TODO Auto-generated constructor stub

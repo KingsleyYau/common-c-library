@@ -26,6 +26,7 @@
 #define COMMON_DATA			"data"
 #define COMMON_DATA_COUNT	"dataCount"
 #define COMMON_DATA_LIST	"datalist"
+#define COMMON_ERRDATA_TYPE	"type"
 
 #define COMMON_PAGE_INDEX 	"pageIndex"
 #define COMMON_PAGE_SIZE 	"pageSize"

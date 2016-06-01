@@ -7,6 +7,7 @@
  */
 
 #include "RequestBaseController.h"
+#include <common/CheckMemoryLeak.h>
 
 RequestBaseController::RequestBaseController() {
 	// TODO Auto-generated constructor stub
@@ -64,7 +65,9 @@ bool RequestBaseController::HandleResult(const char* buf, int size, string &errn
 	Json::Value root;
 	Json::Reader reader;
 
-	if( reader.parse(buf, root, false) ) {
+	string strBuf("");
+	strBuf.assign(buf, size);
+	if( reader.parse(strBuf, root, false) ) {
 		FileLog("httprequest", "RequestBaseController::HandleResult( parse Json finish )");
 		if( root.isObject() ) {
 			if( root[COMMON_RESULT].isInt() && root[COMMON_RESULT].asInt() == 1 ) {

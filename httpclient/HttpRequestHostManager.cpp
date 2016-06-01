@@ -7,6 +7,7 @@
  */
 
 #include "HttpRequestHostManager.h"
+#include <common/CheckMemoryLeak.h>
 
 HttpRequestHostManager::HttpRequestHostManager() {
 	// TODO Auto-generated constructor stub
@@ -31,6 +32,9 @@ string HttpRequestHostManager::GetHostByType(SiteType type) {
 	case ChatVoiceSite:{
 		host = GetChatVoiceSite();
 	}break;
+	case TransSite: {
+		host = GetTransSite();
+	}break;
 	default:break;
 	}
 
@@ -45,7 +49,7 @@ string HttpRequestHostManager::GetHostByType(SiteType type) {
 	return host;
 }
 
-void HttpRequestHostManager::SetWebSite(string webSite) {
+void HttpRequestHostManager::SetWebSite(const string& webSite) {
 	mWebSite = webSite;
 }
 
@@ -53,11 +57,15 @@ string HttpRequestHostManager::GetWebSite() {
 	return mWebSite;
 }
 
-void HttpRequestHostManager::SetAppSite(string appSite) {
+void HttpRequestHostManager::SetAppSite(const string& appSite) {
 	mAppSite = appSite;
 }
 
-void HttpRequestHostManager::SetChatVoiceSite(string chatVoiceSite) {
+string HttpRequestHostManager::GetAppSite() {
+	return mAppSite;
+}
+
+void HttpRequestHostManager::SetChatVoiceSite(const string& chatVoiceSite) {
 	mChatVoiceSite = chatVoiceSite;
 }
 
@@ -65,6 +73,12 @@ string HttpRequestHostManager::GetChatVoiceSite() {
 	return mChatVoiceSite;
 }
 
-string HttpRequestHostManager::GetAppSite() {
-	return mAppSite;
+void HttpRequestHostManager::SetTransSite(const string& transSite)
+{
+	mTransSite = transSite;
+}
+
+string HttpRequestHostManager::GetTransSite()
+{
+	return mTransSite;
 }

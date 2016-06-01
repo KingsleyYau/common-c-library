@@ -7,6 +7,7 @@
  */
 
 #include "PngWriter.h"
+#include <common/CheckMemoryLeak.h>
 
 PngWriter::PngWriter()
 {
@@ -134,7 +135,7 @@ png_infop PngWriter::GetWriteEndInfo()
 }
 
 // 把读取的png信息写入到文件
-bool PngWriter::setWriteInfoByReadInfo(PngReader& readPng, png_uint_32 imageSize)
+bool PngWriter::SetWriteInfoByReadInfo(PngReader& readPng, png_uint_32 desWidth, png_uint_32 desHeight)
 {
 	bool result = false;
 
@@ -155,13 +156,13 @@ bool PngWriter::setWriteInfoByReadInfo(PngReader& readPng, png_uint_32 imageSize
 	if (png_get_IHDR(read_ptr, read_info_ptr, &width, &height, &bit_depth,
           &color_type, &interlace_type, &compression_type, &filter_type) != 0)
       {
-		png_set_IHDR(write_ptr, write_info_ptr, imageSize, imageSize, bit_depth,
+		png_set_IHDR(write_ptr, write_info_ptr, desWidth, desHeight, bit_depth,
             color_type, interlace_type, compression_type, filter_type);
 
 		result = true;
 	}
 
-	#ifdef PNG_FIXED_POINT_SUPPORTED
+#ifdef PNG_FIXED_POINT_SUPPORTED
 #ifdef PNG_cHRM_SUPPORTED
    {
       png_fixed_point white_x, white_y, red_x, red_y, green_x, green_y, blue_x,
@@ -412,7 +413,7 @@ bool PngWriter::setWriteInfoByReadInfo(PngReader& readPng, png_uint_32 imageSize
 	return result;
 }
 // 把读取结尾的png信息写入到文件
-bool PngWriter::setWriteEndInfoByReadEndInfo(PngReader& readPng)
+bool PngWriter::SetWriteEndInfoByReadEndInfo(PngReader& readPng)
 {
 	bool result = false;
 

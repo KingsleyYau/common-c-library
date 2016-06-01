@@ -8,6 +8,7 @@
 #include "CrashHandler.h"
 #include <common/command.h>
 #include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 namespace {
 static bool filterCallback(void* context) {
@@ -55,6 +56,9 @@ CrashHandler::~CrashHandler() {
 }
 
 void CrashHandler::DumpTxtInfo() {
+	// print momory leak log
+	OutputMemoryLeakInfo(mCrashDirectory.c_str());
+
 	string fileName = eh->minidump_descriptor().path();//descriptor.path();
 	string::size_type index = fileName.find_last_of("/", fileName.length() - 1);
 	if( index != string::npos ) {

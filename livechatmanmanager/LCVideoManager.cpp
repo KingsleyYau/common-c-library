@@ -6,15 +6,27 @@
  */
 
 #include "LCVideoManager.h"
-#include "IAutoLock.h"
-#include <RequestLiveChatDefine.h>
-#include <HttpRequestDefine.h>
-#include <HttpDownloader.h>
-#include <md5.h>
-#include <CommonFunc.h>
+#include <common/IAutoLock.h>
+#include "LCUserItem.h"
+#include "LCVideoItem.h"
+#include "LCMessageItem.h"
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <httpclient/HttpRequestDefine.h>
+#include <httpclient/HttpDownloader.h>
+#include <common/md5.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCVideoManager::LCVideoManager()
 {
+	m_callback = NULL;
+	m_userMgr = NULL;
+
+	m_requestMgr = NULL;
+	m_requestController = NULL;
+	m_httpUser = "";
+	m_httpPassword = "";
+
 	m_dirPath = "";
 }
 
@@ -24,16 +36,59 @@ LCVideoManager::~LCVideoManager()
 }
 
 // 初始化
-bool LCVideoManager::Init(const string& dirPath)
+bool LCVideoManager::Init(LCVideoManagerCallback* callback, LCUserManager* userMgr)
 {
-	m_dirPath = dirPath;
-	if (!m_dirPath.empty()
-		&& m_dirPath.at(m_dirPath.length()-1) != '/'
-		&& m_dirPath.at(m_dirPath.length()-1) != '\\')
+	bool result= false;
+	if (NULL != callback
+		&& NULL != userMgr)
 	{
-		m_dirPath += "/";
+		m_callback = callback;
+		m_userMgr = userMgr;
+
+		result = true;
 	}
-	return !m_dirPath.empty();
+	return result;
+}
+
+// 设置本地缓存目录
+bool LCVideoManager::SetDirPath(const string& dirPath)
+{
+	bool result = false;
+
+	if (!dirPath.empty())
+	{
+		m_dirPath = dirPath;
+		if (m_dirPath.at(m_dirPath.length()-1) != '/'
+			&& m_dirPath.at(m_dirPath.length()-1) != '\\')
+		{
+			m_dirPath += "/";
+
+			// 创建目录
+			result = MakeDir(m_dirPath);
+		}
+	}
+	return result;
+}
+
+// 设置http接口参数
+bool LCVideoManager::SetHttpRequest(HttpRequestManager* requestMgr, RequestLiveChatController* requestController)
+{
+	bool result = false;
+
+	if (NULL != requestMgr
+		&& NULL != requestController)
+	{
+		m_requestMgr = requestMgr;
+		m_requestController = requestController;
+	}
+	return result;
+}
+
+// 设置http认证帐号
+void LCVideoManager::SetAuthorization(const string& httpUser, const string& httpPassword)
+{
+	m_httpUser = httpUser;
+	m_httpPassword = httpPassword;
 }
 
 // --------------------------- 获取视频本地缓存路径 -------------------------
@@ -68,6 +123,24 @@ string LCVideoManager::GetVideoPhotoPath(const string& userId
 	return path;
 }
 
+// 获取视频图片文件路径（仅已存在）
+string LCVideoManager::GetVideoPhotoPathWithExist(const string& userId
+						, const string& videoId
+						, const string& inviteId
+						, VIDEO_PHOTO_TYPE type)
+{
+	string filePath = "";
+	string path = GetVideoPhotoPath(userId, videoId, inviteId, type);
+	if (!path.empty())
+	{
+		if (IsFileExist(path))
+		{
+			filePath = path;
+		}
+	}
+	return filePath;
+}
+
 // 获取视频图片临时文件路径
 string LCVideoManager::GetVideoPhotoTempPath(const string& userId
 											, const string& videoId
@@ -100,6 +173,21 @@ string LCVideoManager::GetVideoPath(const string& userId, const string& videoId,
 		path = m_dirPath + cFileName;
 	}
 	return path;
+}
+
+// 获取视频文件路径(仅已存在)
+string LCVideoManager::GetVideoPathWithExist(const string& userId, const string& videoId, const string& inviteId)
+{
+	string filePath = "";
+	string path = GetVideoPath(userId, videoId, inviteId);
+	if (!path.empty())
+	{
+		if (IsFileExist(path))
+		{
+			filePath = path;
+		}
+	}
+	return filePath;
 }
 
 // 获取视频临时文件路径
@@ -140,26 +228,31 @@ void LCVideoManager::RemoveAllVideoFile()
 
 // --------------------------- Video消息处理 -------------------------
 // 根据videoId获取消息列表里的所有视频消息
-LCMessageList LCVideoManager::GetMessageItem(const string& videoId, LCUserItem* userItem)
+LCMessageList LCVideoManager::GetMessageItem(const string& userId, const string& videoId)
 {
 	LCMessageList result;
-	userItem->LockMsgList();
-	if (!userItem->m_msgList.empty())
+
+	LCUserItem* userItem = m_userMgr->GetUserItem(userId);
+	if (NULL != userItem)
 	{
-		for (LCMessageList::iterator iter = userItem->m_msgList.begin();
-				iter != userItem->m_msgList.end();
-				iter++)
+		userItem->LockMsgList();
+		if (!userItem->m_msgList.empty())
 		{
-			LCMessageItem* item = (*iter);
-			if (item->m_msgType == LCMessageItem::MT_Video
-				&& NULL != item->GetVideoItem()
-				&& item->GetVideoItem()->m_videoId == videoId)
+			for (LCMessageList::iterator iter = userItem->m_msgList.begin();
+					iter != userItem->m_msgList.end();
+					iter++)
 			{
-				result.push_back(item);
+				LCMessageItem* item = (*iter);
+				if (item->m_msgType == LCMessageItem::MT_Video
+					&& NULL != item->GetVideoItem()
+					&& item->GetVideoItem()->m_videoId == videoId)
+				{
+					result.push_back(item);
+				}
 			}
 		}
+		userItem->UnlockMsgList();
 	}
-	userItem->UnlockMsgList();
 	return result;
 }
 
@@ -175,7 +268,7 @@ void LCVideoManager::CombineMessageItem(LCUserItem* userItem)
 		LCMessageList manList;
 		// 找出所有男士和女士发出的视频消息
 		for (LCMessageList::iterator iter = userItem->m_msgList.begin();
-				iter != m_msgList.end();
+				iter != userItem->m_msgList.end();
 				iter++)
 		{
 			LCMessageItem* item = (*iter);
@@ -205,14 +298,14 @@ void LCVideoManager::CombineMessageItem(LCUserItem* userItem)
 				{
 					LCMessageItem* manItem = (*manIter);
 					LCMessageItem* womanItem = (*womanIter);
-					LCVideoItem* manVideoItem = manItem->GetVideoItem();
-					LCVideoItem* womanVideoItem = womanItem->GetVideoItem();
+					lcmm::LCVideoItem* manVideoItem = manItem->GetVideoItem();
+					lcmm::LCVideoItem* womanVideoItem = womanItem->GetVideoItem();
 					if (manVideoItem->m_videoId == womanVideoItem->m_videoId
 						&& manVideoItem->m_sendId == womanVideoItem->m_sendId)
 					{
 						// 男士发出的视频ID与女士发出的视频ID一致，需要合并
 						userItem->m_msgList.remove(manItem);
-						womanVideoItem.charget = true;
+						womanVideoItem->m_charge = true;
 					}
 				}
 			}
@@ -221,238 +314,383 @@ void LCVideoManager::CombineMessageItem(LCUserItem* userItem)
 	userItem->UnlockMsgList();
 }
 
-// --------------------------- 正在下载的视频图片对照表 -------------------------
-// 获取正在下载的视频图片RequestId
-long LCVideoManager::GetRequestIdWithVideoPhotoId(const string& videoId)
-{
-	long requestId = HTTPREQUEST_INVALIDREQUESTID;
-	LockVideoPhotoRequestMap();
-	VideoPhotoRequestMap::iterator iter = m_videoPhotoRequestMap.find(videoId);
-	if (iter != m_videoPhotoRequestMap.end()) {
-		requestId = (*iter).second;
-	}
-	UnlockVideoPhotoRequestMap();
-	return requestId;
-}
-
-// 判断视频图片是否在下载
-bool LCVideoManager::IsVideoPhotoRequest(const string& videoId)
-{
-	return GetRequestIdWithVideoPhotoId(videoId) != HTTPREQUEST_INVALIDREQUESTID;
-}
-
-// 获取并移除正在下载视频图片的视频Id
-string LCVideoManager::GetAndRemoveRequestVideoPhoto(long requestId)
-{
-	string videoId = "";
-	LockRequestVideoPhotoMap();
-	LockVideoPhotoRequestMap();
-	RequestVideoPhotoMap::iterator rvpIter = m_requestVideoPhotoMap.find(requestId);
-	if (rvpIter != m_requestVideoPhotoMap.end()) {
-		videoId = (*rvpIter).second;
-		m_requestVideoPhotoMap.erase(videoId);
-
-		VideoPhotoRequestMap::iterator vprIter = m_videoPhotoRequestMap.find(videoId);
-		if (vprIter != m_videoPhotoRequestMap.end()) {
-			m_videoPhotoRequestMap.erase(vprIter);
-		}
-	}
-	UnlockVideoPhotoRequestMap();
-	UnlockRequestVideoPhotoMap();
-	return videoId;
-}
-
-// 添加下载的视频图片
-bool LCVideoManager::AddRequestVideoPhoto(long requestId, const string& videoId)
+// --------------------------- 视频图片 -------------------------
+// 开始下载视频图片
+bool LCVideoManager::DownloadVideoPhoto(const string& userId, const string& sId, const string& womanId, const string& videoId, const string& inviteId, VIDEO_PHOTO_TYPE type)
 {
 	bool result = false;
-	LockRequestVideoPhotoMap();
-	LockVideoPhotoRequestMap();
-	if (!videoId.empty()
-		&& requestId != HTTPREQUEST_INVALIDREQUESTID)
+
+	result = IsDownloadVideoPhoto(videoId);
+	if (!result) 
 	{
-		if (m_requestVideoPhotoMap.find(requestId) == m_requestVideoPhotoMap.end())
+		LCVideoPhotoDownloader* downloader = new LCVideoPhotoDownloader;
+		if (NULL != downloader)
 		{
-			m_requestVideoPhotoMap.insert(RequestVideoPhotoMap::value_type(requestId, videoId));
-			m_videoPhotoRequestMap.insert(VideoPhotoRequestMap::value_type(videoId, requestId));
-
-			result = true;
-		}
-	}
-	UnlockVideoPhotoRequestMap();
-	UnlockRequestVideoPhotoMap();
-	return result;
-}
-
-// 清除所有下载的视频图片
-list<long> LCVideoManager::ClearAllRequestVideoPhoto()
-{
-	list<long> result;
-	LockRequestVideoPhotoMap();
-	LockVideoPhotoRequestMap();
-
-	// 找到所有下载视频图片的request
-	for (RequestVideoPhotoMap::iterator iter = m_requestVideoPhotoMap.begin();
-			iter != m_requestVideoPhotoMap.end();
-			iter++)
-	{
-		result.push_back((*iter).first);
-	}
-
-	// 清空表
-	m_requestVideoPhotoMap.clear();
-	m_videoPhotoRequestMap.clear();
-
-	UnlockRequestVideoPhotoMap();
-	UnlockVideoPhotoRequestMap();
-	return result;
-}
-
-// --------------------------- 正在下载的视频对照表 -------------------------
-// 获取正在下载的视频下载器
-public FileDownloader getDownloaderWithVideoId(String videoId)
-{
-	FileDownloader fileDownloader = null;
-	synchronized(mVideoDownloadMap) {
-		fileDownloader = mVideoDownloadMap.get(videoId);
-	}
-	return fileDownloader;
-}
-
-/**
- * 判断视频是否在下载
- * @param videoId	视频ID
- * @return
- */
-public boolean isVideoDownload(String videoId)
-{
-	return getDownloaderWithVideoId(videoId) != null;
-}
-
-/**
- * 获取并移除正在下载的视频
- * @param requestId	请求ID
- * @return 视频ID
- */
-public String getAndRemoveDownloadVideo(FileDownloader fileDownloader)
-{
-	String videoId = "";
-	synchronized (mDownloadVideoMap)
-	{
-		videoId = mDownloadVideoMap.remove(fileDownloader);
-		if (null != videoId) {
-			synchronized(mVideoDownloadMap) {
-				mVideoDownloadMap.remove(videoId);
+			string filePath = GetVideoPhotoPath(womanId, videoId, inviteId, type);
+			result = downloader->Init(m_requestMgr, m_requestController, this);
+			result = result && downloader->StartDownload(this, userId, sId, womanId, videoId, inviteId, type, filePath);
+			if (result)
+			{
+				m_downloadVideoPhotoMap.lock();
+				m_downloadVideoPhotoMap.insertItem(videoId, downloader);
+				m_downloadVideoPhotoMap.unlock();
+			}
+			else {
+				delete downloader;
 			}
 		}
 	}
-	return videoId;
-}
 
-/**
- * 添加下载的视频
- * @param fileDownloader	下载器
- * @param videoId			视频ID
- * @return
- */
-public boolean addDownloadVideo(FileDownloader fileDownloader, String videoId) {
-	boolean result = false;
-	synchronized (mDownloadVideoMap)
+	return result;
+}
+	
+// 判断视频图片是否正在下载
+bool LCVideoManager::IsDownloadVideoPhoto(const string& videoId)
+{
+	bool result = false;
+
+	LCVideoPhotoDownloader* downloader = NULL;
+
+	m_downloadVideoPhotoMap.lock();
+	result = m_downloadVideoPhotoMap.findWithKey(videoId, downloader);
+	m_downloadVideoPhotoMap.unlock();
+
+	return result;
+}
+	
+// 停止下载视频图片
+bool LCVideoManager::StopDownloadVideoPhoto(const string& videoId)
+{
+	bool result = false;
+
+	LCVideoPhotoDownloader* downloader = NULL;
+	m_downloadVideoPhotoMap.lock();
+	if (m_downloadVideoPhotoMap.findWithKey(videoId, downloader))
 	{
-		if (null != videoId
-			&& !videoId.empty()
-			&& null != fileDownloader
-			&& null == mDownloadVideoMap.get(fileDownloader))
-		{
-			mDownloadVideoMap.put(fileDownloader, videoId);
-			synchronized(mVideoDownloadMap) {
-				mVideoDownloadMap.put(videoId, fileDownloader);
-			}
-			result = true;
-		}
+		result = downloader->Stop();
 	}
+	m_downloadVideoPhotoMap.unlock();
+
 	return result;
 }
 
-/**
- * 清除所有下载的video
- */
-public ArrayList<FileDownloader> clearAllRequestVideo() {
-	ArrayList<FileDownloader> list = null;
-	synchronized (mDownloadVideoMap)
+// 清除超过一段时间已下载完成的视频图片下载器
+void LCVideoManager::ClearFinishVideoPhotoDownloaderWithTimer()
+{
+	// 清除间隔时间（1秒）
+	static const int stepSecond = 1 * 1000;
+
+	m_finishVideoPhotoDownloaderList.lock();
+	for (FinishVideoPhotoDownloaderList::iterator iter = m_finishVideoPhotoDownloaderList.begin();
+		iter != m_finishVideoPhotoDownloaderList.end();
+		iter = m_finishVideoPhotoDownloaderList.begin())
 	{
-		if (mDownloadVideoMap.size() > 0) {
-			list = new ArrayList<FileDownloader>(mDownloadVideoMap.keySet());
+		if (getCurrentTime() - (*iter).finishTime >= stepSecond)
+		{
+			// 超过限制时间
+			delete (*iter).downloader;
+			m_finishVideoPhotoDownloaderList.erase(iter);
+			continue;
 		}
-		mDownloadVideoMap.clear();
-
-		synchronized(mVideoDownloadMap) {
-			mVideoDownloadMap.clear();
+		else {
+			break;
 		}
 	}
-	return list;
+	m_finishVideoPhotoDownloaderList.unlock();
+}
+	
+// 停止并清除所有视频图片下载
+void LCVideoManager::ClearAllDownloadVideoPhoto()
+{
+	// 获取正在下载的下载器列表
+	DownloadVideoPhotoMap::ValueList downloaderList;
+	m_downloadVideoPhotoMap.lock();
+	downloaderList = m_downloadVideoPhotoMap.getValueList();
+	m_downloadVideoPhotoMap.unlock();
+
+	// 停止所有下载
+	for (DownloadVideoPhotoMap::ValueList::iterator iter = downloaderList.begin();
+		iter != downloaderList.end();
+		iter++)
+	{
+		(*iter)->Stop();
+	}
+
+	// 清除已完成的下载器
+	ClearAllFinishVideoPhotoDownloader();
 }
 
-// 正在下载视频map表(HttpDownloader, videoId)加锁
-void LCVideoManager::LockDownloadVideoMap()
+// 清除所有已下载完成的视频图片下载器
+void LCVideoManager::ClearAllFinishVideoPhotoDownloader()
 {
-	if (NULL != m_downloadVideoMapLock) {
-		m_downloadVideoMapLock->Lock();
+	m_finishVideoPhotoDownloaderList.lock();
+	for (FinishVideoPhotoDownloaderList::iterator iter = m_finishVideoPhotoDownloaderList.begin();
+		iter != m_finishVideoPhotoDownloaderList.end();
+		iter++)
+	{
+		delete (*iter).downloader;
+	}
+	m_finishVideoPhotoDownloaderList.clear();
+	m_finishVideoPhotoDownloaderList.unlock();
+}
+
+// 接口请求回调
+void LCVideoManager::OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath)
+{
+	// 获取对应的下载器
+	LCVideoPhotoDownloader* downloader = NULL;
+	m_downloadVideoPhotoMap.lock();
+	DownloadVideoPhotoMap::ValueList downloaderList;
+	downloaderList = m_downloadVideoPhotoMap.getValueList();
+	for (DownloadVideoPhotoMap::ValueList::iterator iter = downloaderList.begin();
+		iter != downloaderList.end();
+		iter++)
+	{
+		if ((*iter)->GetRequestId() == requestId)
+		{
+			downloader = (*iter);
+			break;
+		}
+	}
+	m_downloadVideoPhotoMap.unlock();
+
+	// 回调到downloader
+	if (NULL != downloader)
+	{
+		downloader->OnGetVideoPhoto(requestId, success, errnum, errmsg, filePath);
 	}
 }
 
-// 正在下载视频map表(HttpDownloader, videoId)解锁
-void LCVideoManager::UnlockDownloadVideoMap()
+// -- LCVideoPhotoDownloaderCallback --
+void LCVideoManager::onFinish(LCVideoPhotoDownloader* downloader, bool success, const string& errnum, const string& errmsg)
 {
-	if (NULL != m_downloadVideoMapLock) {
-		m_downloadVideoMapLock->Unlock();
+	// 获取该视频对应的消息列表
+	LCMessageList msgList = GetMessageItem(downloader->GetWomanId(), downloader->GetVideoId());
+
+	// callback
+	if (NULL != m_callback)
+	{
+		m_callback->OnDownloadVideoPhoto(
+			success
+			, errnum
+			, errmsg
+			, downloader->GetWomanId()
+			, downloader->GetInviteId()
+			, downloader->GetVideoId()
+			, downloader->GetVideoPhotoType()
+			, downloader->GetFilePath()
+			, msgList);
 	}
+
+	// 插入到已完成列表
+	FinishVideoPhotoDownloaderItem finishItem;
+	finishItem.downloader = downloader;
+	finishItem.finishTime = getCurrentTime();
+	m_finishVideoPhotoDownloaderList.lock();
+	m_finishVideoPhotoDownloaderList.push_back(finishItem);
+	m_finishVideoPhotoDownloaderList.unlock();
 }
 
-// 正在下载视频map表(videoId, FileDownloader)加锁
-void LCVideoManager::LockVideoDownloadMap()
+// --------------------------- 视频 -------------------------
+// 开始下载视频
+bool LCVideoManager::DownloadVideo(const string& userId, const string& sid, const string& womanId, const string& videoId, const string& inviteId, const string& videoUrl)
 {
-	if (NULL != m_videoDownloadMapLock) {
-		m_videoDownloadMapLock->Lock();
+	bool result = false;
+
+	result = IsDownloadVideo(videoId);
+	if (!result)
+	{
+		// 需要下载
+		LCVideoDownloader* downloader = new LCVideoDownloader;
+		if (NULL != downloader)
+		{
+			string filePath = GetVideoPath(womanId, videoId, inviteId);
+			result = downloader->StartDownload(this, userId, sid, womanId, videoId, inviteId, videoUrl, filePath, m_httpUser, m_httpPassword);
+			if (result)
+			{
+				m_downloadVideoMap.lock();
+				m_downloadVideoMap.insertItem(videoId, downloader);
+				m_downloadVideoMap.unlock();
+			}
+			else {
+				delete downloader;
+			}
+		}
 	}
+
+	return result;
+}
+	
+// 判断视频是否正在下载
+bool LCVideoManager::IsDownloadVideo(const string& videoId)
+{
+	bool result = false;
+
+	LCVideoDownloader* downloader = NULL;
+	m_downloadVideoMap.lock();
+	result = m_downloadVideoMap.findWithKey(videoId, downloader);
+	m_downloadVideoMap.unlock();
+
+	return result;
+}
+	
+// 停止下载视频
+bool LCVideoManager::StopDownloadVideo(const string& videoId)
+{
+	bool result = false;
+
+	LCVideoDownloader* downloader = NULL;
+	m_downloadVideoMap.lock();
+	if (m_downloadVideoMap.findWithKey(videoId, downloader))
+	{
+		downloader->Stop();
+		result = true;
+	}
+	m_downloadVideoMap.unlock();
+
+	return result;
 }
 
-// 正在下载视频map表(videoId, FileDownloader)解锁
-void LCVideoManager::UnlockVideoDownloadMap()
+// 清除超过一段时间已下载完成的视频图片下载器
+void LCVideoManager::ClearFinishVideoDownloaderWithTimer()
 {
-	if (NULL != m_videoDownloadMapLock) {
-		m_videoDownloadMapLock->Unlock();
+	// 清除间隔时间（1秒）
+	static const int stepSecond = 1 * 1000;
+
+	m_finishVideoDownloaderList.lock();
+	for (FinishVideoDownloaderList::iterator iter = m_finishVideoDownloaderList.begin();
+		iter != m_finishVideoDownloaderList.end();
+		iter = m_finishVideoDownloaderList.begin())
+	{
+		if (getCurrentTime() - (*iter).finishTime >= stepSecond)
+		{
+			// 超过限制时间
+			delete (*iter).downloader;
+			m_finishVideoDownloaderList.erase(iter);
+			continue;
+		}
+		else {
+			break;
+		}
 	}
+	m_finishVideoDownloaderList.unlock();
+}
+	
+// 清除所有下载的视频
+void LCVideoManager::ClearAllDownloadVideo()
+{
+	// 获取所有正在下载的视频下载器
+	DownloadVideoMap::ValueList downloaderList;
+	m_downloadVideoMap.lock();
+	downloaderList = m_downloadVideoMap.getValueList();
+	m_downloadVideoMap.unlock();
+
+	// 停止所有下载器
+	for (DownloadVideoMap::ValueList::iterator iter = downloaderList.begin();
+		iter != downloaderList.end();
+		iter++)
+	{
+		(*iter)->Stop();
+	}
+
+	// 清除所有已完成的下载器
+	ClearAllFinishVideoDownloader();
 }
 
-// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）加锁
-void LCVideoManager::LockRequestVideoPhotoMap()
+// 清除所有已下载完成的视频下载器
+void LCVideoManager::ClearAllFinishVideoDownloader()
 {
-	if (NULL != m_requestVideoPhotoMapLock) {
-		m_requestVideoPhotoMapLock->Lock();
+	m_finishVideoDownloaderList.lock();
+	for (FinishVideoDownloaderList::iterator iter = m_finishVideoDownloaderList.begin();
+		iter != m_finishVideoDownloaderList.end();
+		iter++)
+	{
+		delete (*iter).downloader;
 	}
+	m_finishVideoDownloaderList.clear();
+	m_finishVideoDownloaderList.unlock();
 }
 
-// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）解锁
-void LCVideoManager::UnlockRequestVideoPhotoMap()
+// -- LCVideoDownloaderCallback --
+void LCVideoManager::onFinish(LCVideoDownloader* downloader, bool success)
 {
-	if (NULL != m_requestVideoPhotoMapLock) {
-		m_requestVideoPhotoMapLock->Unlock();
+	// 获取该视频对应的消息列表
+	LCMessageList msgList = GetMessageItem(downloader->GetWomanId(), downloader->GetVideoId());
+
+	// callback
+	if (NULL != m_callback)
+	{
+		m_callback->OnDownloadVideo(
+			success
+			, downloader->GetWomanId()
+			, downloader->GetVideoId()
+			, downloader->GetInviteId()
+			, downloader->GetFilePath()
+			, msgList);
 	}
+
+	// 插入到已完成列表
+	FinishVideoDownloaderItem finishItem;
+	finishItem.downloader = downloader;
+	finishItem.finishTime = getCurrentTime();
+	m_finishVideoDownloaderList.lock();
+	m_finishVideoDownloaderList.push_back(finishItem);
+	m_finishVideoDownloaderList.unlock();
 }
 
-// 正在下载视频图片map表(videoId, RequestId)加锁
-void LCVideoManager::LockVideoPhotoRequestMap()
+// --------------------------- 付费 -------------------------
+// 添加正在付费视频
+bool LCVideoManager::AddPhotoFee(LCMessageItem* item, long requestId)
 {
-	if (NULL != m_videoPhotoRequestMapLock) {
-		m_videoPhotoRequestMapLock->Lock();
-	}
-}
+	bool result = false;
 
-// 正在下载视频图片map表(videoId, RequestId)解锁
-void LCVideoManager::UnlockVideoPhotoRequestMap()
+	m_videoFeeMap.lock();
+	result = m_videoFeeMap.insertItem(item, requestId);
+	m_videoFeeMap.unlock();
+
+	return result;
+}
+	
+// 判断视频是否正在付费
+bool LCVideoManager::IsPhotoFee(LCMessageItem* item)
 {
-	if (NULL != m_videoPhotoRequestMapLock) {
-		m_videoPhotoRequestMapLock->Unlock();
+	bool result = false;
+
+	long requestId = HTTPREQUEST_INVALIDREQUESTID;
+	m_videoFeeMap.lock();
+	result = m_videoFeeMap.findWithKey(item, requestId);
+	m_videoFeeMap.unlock();
+
+	return result;
+}
+	
+// 移除正在付费视频
+LCMessageItem* LCVideoManager::RemovePhotoFee(long requestId)
+{
+	LCMessageItem* item = NULL;
+
+	m_videoFeeMap.lock();
+	m_videoFeeMap.findWithValue(requestId, item);
+	m_videoFeeMap.unlock();
+
+	return item;
+}
+	
+// 清除所有正在付费的视频
+void LCVideoManager::ClearAllPhotoFee()
+{
+	// 获取请求列表
+	VideoFeeMap::ValueList requestIdList;
+	m_videoFeeMap.lock();
+	requestIdList = m_videoFeeMap.getValueList();
+	m_videoFeeMap.clear();
+	m_videoFeeMap.unlock();
+
+	// 停止请求
+	for (VideoFeeMap::ValueList::iterator iter = requestIdList.begin();
+		iter != requestIdList.end();
+		iter++)
+	{
+		m_requestMgr->StopRequest((*iter));
 	}
 }

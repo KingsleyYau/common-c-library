@@ -7,6 +7,7 @@
 
 #include "ILiveChatClient.h"
 #include "LiveChatClient.h"
+#include <common/CheckMemoryLeak.h>
 
 // 生成LiveChat客户端实现类
 ILiveChatClient* ILiveChatClient::CreateClient()

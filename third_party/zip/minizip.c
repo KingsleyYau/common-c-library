@@ -22,8 +22,10 @@ Changes:
 # include <sys/types.h>
 # include <sys/stat.h>
 #else
+#ifndef IOS
 # include <direct.h>
 # include <io.h>
+#endif
 #endif
 
 #include "zip.h"
@@ -64,7 +66,7 @@ uLong filetime(f, tmzip, dt)
 #else
 #ifdef unix
 uLong filetime(f, tmzip, dt)
-    char *f;               /* name of file to get info on */
+    const char *f;               /* name of file to get info on */
     tm_zip *tmzip;         /* return value: access, modific. and creation times */
     uLong *dt;             /* dostime */
 {
@@ -106,7 +108,7 @@ uLong filetime(f, tmzip, dt)
 }
 #else
 uLong filetime(f, tmzip, dt)
-    char *f;                /* name of file to get info on */
+    const char *f;                /* name of file to get info on */
     tm_zip *tmzip;             /* return value: access, modific. and creation times */
     uLong *dt;             /* dostime */
 {
@@ -341,7 +343,7 @@ int main(argc,argv)
                    ((argv[i][1]>='0') || (argv[i][1]<='9'))) &&
                   (strlen(argv[i]) == 2)))
             {
-                FILE * fin;
+                FILE * fin = NULL;
                 int size_read;
                 const char* filenameinzip = argv[i];
                 const char *savefilenameinzip;

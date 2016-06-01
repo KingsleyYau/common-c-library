@@ -24,14 +24,14 @@ public:
 		bool result = false;
 		if( root.isObject() ) {
 			if( root[COMMON_RESULT].isInt() ) {
-				status = root[COMMON_RESULT].asInt() + 1;
+				status = (CouponStatus)root[COMMON_RESULT].asInt();
 				result = true;
 			}
 		}
 		return result;
 	}
 
-	Coupon() {		status = 0;
+	Coupon() {		status = CouponStatus_None;
 	}
 	virtual ~Coupon() {
 
@@ -41,8 +41,7 @@ public:
 	 * 5.1.查询是否符合试聊条件回调
 	 * @param status			试聊状态
 	 */
-	int status;
-
+	CouponStatus status;
 };
 
 #endif /* COUPON_H_ */

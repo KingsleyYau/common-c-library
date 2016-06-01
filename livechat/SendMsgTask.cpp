@@ -9,7 +9,8 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json.h>
+#include <json/json/json.h>
+#include <common/CheckMemoryLeak.h>
 
 // 请求参数定义
 #define TARGETID_PARAM		"targetId"	// 对方用户Id
@@ -81,7 +82,7 @@ bool SendMsgTask::Handle(const TransportProtocol* tp)
 
 	// 通知listener
 	if (NULL != m_listener) {
-		m_listener->OnSendMessage(m_userId, m_message, m_ticket, m_errType, m_errMsg);
+		m_listener->OnSendTextMessage(m_userId, m_message, m_ticket, m_errType, m_errMsg);
 	}
 	
 	return result;
@@ -170,6 +171,6 @@ bool SendMsgTask::InitParam(const string& userId, const string& message, bool il
 void SendMsgTask::OnDisconnect()
 {
 	if (NULL != m_listener) {
-		m_listener->OnSendMessage(m_userId, m_message, m_ticket, LCC_ERR_CONNECTFAIL, "");
+		m_listener->OnSendTextMessage(m_userId, m_message, m_ticket, LCC_ERR_CONNECTFAIL, "");
 	}
 }

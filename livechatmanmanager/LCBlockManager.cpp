@@ -7,6 +7,7 @@
 
 #include "LCBlockManager.h"
 #include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCBlockManager::LCBlockManager()
 {
@@ -39,11 +40,11 @@ void LCBlockManager::UpdateWithBlockList(const TalkUserList& userList)
 	m_blockListMap.clear();
 
 	// 插入黑名单map表
-	for (TalkUserList::const_iterator iter;
+	for (TalkUserList::const_iterator iter = userList.begin();
 		iter != userList.end();
 		iter++)
 	{
-		m_blockListMap.insert(BlockUserMap::value_type((*iter).userId), false);
+		m_blockListMap.insert(BlockUserMap::value_type((*iter).userId, false));
 	}
 
 	// 解锁
@@ -64,11 +65,11 @@ void LCBlockManager::UpdateWithBlockUsers(const list<string>& userList)
 	m_blockUsersMap.clear();
 
 	// 插入黑名单map表
-	for (list<string>::const_iterator iter;
+	for (list<string>::const_iterator iter = userList.begin();
 		iter != userList.end();
 		iter++)
 	{
-		m_blockUsersMap.insert(BlockUserMap::value_type((*iter)), false);
+		m_blockUsersMap.insert(BlockUserMap::value_type((*iter), false));
 	}
 
 	// 解锁

@@ -761,6 +761,7 @@ public:
 		photoURL = "";
 		sendTime = "";
 		attachnum = 0;
+		template_type = 0;
 	}
 	virtual ~EMFAdmirerListItem() {}
 
@@ -817,7 +818,14 @@ public:
 			if (data[EMF_ADMIRERLIST_ATTACHNUM].isIntegral()) {
 				attachnum = data[EMF_ADMIRERLIST_ATTACHNUM].asInt();
 			}
-
+			if (data[EMF_ADMIRERLIST_TEMPLATE_TYPE].isString()) {
+				string type = data[EMF_ADMIRERLIST_TEMPLATE_TYPE].asString();
+				if( strcmp(type.c_str(), "A") == 0 ) {
+					template_type = 0;
+				} else if( strcmp(type.c_str(), "B") == 0 ){
+					template_type = 1;
+				}
+			}
 			if (!id.empty()) {
 				result = true;
 			}
@@ -841,6 +849,7 @@ public:
 	string	photoURL;	// 女士头像URL
 	string	sendTime;	// 发送时间
 	int		attachnum;	// 附件数目
+	int		template_type; // 主题类型（A:信件主题，B:虚拟礼物主题）
 };
 typedef list<EMFAdmirerListItem> EMFAdmirerList;
 

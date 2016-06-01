@@ -21,9 +21,17 @@
 #include "RecvEMFNoticeTask.h"
 #include "RecvKickOfflineTask.h"
 #include "RecvPhotoTask.h"
+#include "RecvShowPhotoTask.h"
 #include "RecvLadyVoiceCodeTask.h"
 #include "RecvIdentifyCodeTask.h"
 #include "RecvVideoTask.h"
+#include "RecvShowVideoTask.h"
+#include "RecvAutoInviteTask.h"
+#include "RecvAutoChargeResultTask.h"
+#include "RecvMagicIconTask.h"
+#include "RecvThemeMotionTask.h"
+#include "RecvThemeRecommendTask.h"
+#include <common/CheckMemoryLeak.h>
 
 // 根据 cmd 创建 task
 ITask* ITask::CreateTaskWithCmd(int cmd)
@@ -69,6 +77,9 @@ ITask* ITask::CreateTaskWithCmd(int cmd)
 	case TCMD_RECVPHOTO:
 		task = new RecvPhotoTask();
 		break;
+	case TCMD_RECVSHOWPHOTO:
+		task = new RecvShowPhotoTask();
+		break;
     case TCMD_RECVLADYVOICECODE:
         task = new RecvLadyVoiceCodeTask();
         break;
@@ -78,6 +89,24 @@ ITask* ITask::CreateTaskWithCmd(int cmd)
     case TCMD_RECVVIDEO:
         task = new RecvVideoTask();
         break;
+    case TCMD_RECVSHOWVIDEO:
+    	task = new RecvShowVideoTask();
+    	break;
+    case TCMD_RECVAUTOINVITEMSG:
+    	task = new RecvAutoInviteTask();
+    	break;
+    case TCMD_RECVAUTOCHARGE:
+		task = new RecvAutoChargeResultTask();
+		break;
+    case TCMD_RECVMAGICICON:
+    	task = new RecvMagicIconTask();
+		break;
+	case TCMD_RECVTHEMEMOTION:
+		task = new RecvThemeMotionTask();
+    	break;
+	case TCMD_RECVTHEMERECOMMEND:
+		task = new RecvThemeRecommendTask();
+		break;
 	}
 
 	return task;

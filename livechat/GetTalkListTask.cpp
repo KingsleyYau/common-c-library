@@ -10,7 +10,9 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 // 返回参数定义
 // 结构参数
@@ -128,6 +130,9 @@ bool GetTalkListTask::Handle(const TransportProtocol* tp)
 		m_listener->OnGetTalkList(m_listType, m_errType, m_errMsg, item);
 	}
 	
+	FileLog("LiveChatClient", "GetTalkListTask::Handle() result:%d, errType:%d, errMsg:%s, listener:%p"
+			, result, m_errType, m_errMsg.c_str(), m_listener);
+
 	return result;
 }
 	

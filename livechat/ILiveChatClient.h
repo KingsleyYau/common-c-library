@@ -25,7 +25,7 @@ public:
 	virtual void OnEndTalk(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg) = 0;
 	virtual void OnGetUserStatus(const UserIdList& inList, LCC_ERR_TYPE err, const string& errmsg, const UserStatusList& list) = 0;
 	virtual void OnGetTalkInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, const string& invitedId, bool charge, unsigned int chatTime) = 0;
-	virtual void OnSendMessage(const string& inUserId, const string& inMessage, int inTicket, LCC_ERR_TYPE err, const string& errmsg) = 0;
+	virtual void OnSendTextMessage(const string& inUserId, const string& inMessage, int inTicket, LCC_ERR_TYPE err, const string& errmsg) = 0;
 	virtual void OnSendEmotion(const string& inUserId, const string& inEmotionId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) = 0;
 	virtual void OnSendVGift(const string& inUserId, const string& inGiftId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) = 0;
 	virtual void OnGetVoiceCode(const string& inUserId, int ticket, LCC_ERR_TYPE err, const string& errmsg, const string& voiceCode) = 0;
@@ -33,6 +33,7 @@ public:
 	virtual void OnUseTryTicket(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, TRY_TICKET_EVENT tickEvent) = 0;
 	virtual void OnGetTalkList(int inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkListInfo& talkListInfo) = 0;
 	virtual void OnSendPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
+	virtual void OnSendLadyPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
 	virtual void OnShowPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
 	virtual void OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const UserInfoItem& userInfo) = 0;
 	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList) = 0;
@@ -44,6 +45,15 @@ public:
 	virtual void OnGetFeeRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) = 0;
 	virtual void OnGetLadyChatInfo(LCC_ERR_TYPE err, const string& errmsg, const list<string>& chattingList, const list<string>& chattingInviteIdList, const list<string>& missingList, const list<string>& missingInviteIdList) = 0;
 	virtual void OnPlayVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
+	virtual void OnSendLadyVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket) = 0;
+	virtual void OnGetLadyCondition(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const LadyConditionItem& item) = 0;
+	virtual void OnGetLadyCustomTemplate(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const vector<string>& contents, const vector<bool>& flags) = 0;
+	virtual void OnSendMagicIcon(const string& inUserId, const string& inIconId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) = 0;
+	virtual void OnGetPaidTheme(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeList) = 0;
+	virtual void OnGetAllPaidTheme(LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeInfoList) = 0;
+	virtual void OnManFeeTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item) = 0;
+	virtual void OnManApplyTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item) = 0;
+	virtual void OnPlayThemeMotion(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, bool success) = 0;
 	// 服务器主动请求
 	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message) = 0;
 	virtual void OnRecvEmotion(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& emotionId) = 0;
@@ -58,9 +68,16 @@ public:
 	virtual void OnRecvEMFNotice(const string& fromId, TALK_EMF_NOTICE_TYPE noticeType) = 0;
 	virtual void OnRecvKickOffline(KICK_OFFLINE_TYPE kickType) = 0;
 	virtual void OnRecvPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
+	virtual void OnRecvShowPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDec, int ticket) = 0;
 	virtual void OnRecvLadyVoiceCode(const string& voiceCode) = 0;
 	virtual void OnRecvIdentifyCode(const unsigned char* data, long dataLen) = 0;
 	virtual void OnRecvVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket) = 0;
+	virtual void OnRecvShowVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket) = 0;
+	virtual void OnRecvAutoInviteMsg(const string& womanId, const string& manId, const string& key) = 0;
+	virtual void OnRecvAutoChargeResult(const string& manId, double money, TAUTO_CHARGE_TYPE type, bool result, const string& code, const string& msg) = 0;
+	virtual void OnRecvMagicIcon(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& iconId) = 0;
+	virtual void OnRecvThemeMotion(const string& themeId, const string& manId, const string& womanId) = 0;
+	virtual void OnRecvThemeRecommend(const string& themeId, const string& manId, const string& womanId) = 0;
 };
 
 // LiveChat客户端接口类
@@ -96,7 +113,7 @@ public:
 	// 通知对方女士正在编辑消息
 	virtual bool SendLadyEditingMsg(const string& userId) = 0;
 	// 发送聊天消息
-	virtual bool SendMessage(const string& userId, const string& message, bool illegal, int ticket) = 0;
+	virtual bool SendTextMessage(const string& userId, const string& message, bool illegal, int ticket) = 0;
 	// 发送高级表情
 	virtual bool SendEmotion(const string& userId, const string& emotionId, int ticket) = 0;
 	// 发送虚拟礼物
@@ -113,6 +130,8 @@ public:
 	virtual bool GetTalkList(int listType) = 0;
 	// 发送图片
 	virtual bool SendPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
+	// 女士发送图片
+	virtual bool SendLadyPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
 	// 显示图片
 	virtual bool ShowPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) = 0;
 	// 获取用户信息
@@ -141,6 +160,30 @@ public:
 	virtual bool GetLadyChatInfo() = 0;
 	// 播放视频
 	virtual bool PlayVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charget, const string& videoDesc, int ticket) = 0;
+	// 女士发送微视频
+	virtual bool SendLadyVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket) = 0;
+	// 获取女士择偶条件
+	virtual bool GetLadyCondition(const string& userId) = 0;
+	// 获取女士自定义邀请模板
+	virtual bool GetLadyCustomTemplate(const string& userId) = 0;
+	// 弹出女士自动邀请消息通知
+	virtual bool UploadPopLadyAutoInvite(const string& userId, const string& msg, const string& key) = 0;
+	// 上传自动充值状态
+	virtual bool UploadAutoChargeStatus(bool isCharge) = 0;
+	// 发送小高级表情
+	virtual bool SendMagicIcon(const string& userId, const string& iconId, int ticket) = 0;
+	// 获取指定男/女士已购主题包
+	virtual bool GetPaidTheme(const string& userId) = 0;
+	// 获取男/女士所有已购主题包
+	virtual bool GetAllPaidTheme() = 0;
+	// 上传主题包列表版本号
+	virtual bool UploadThemeListVer(int themeVer) = 0;
+	// 男士购买主题包
+	virtual bool ManFeeTheme(const string& userId, const string& themeId) = 0;
+	// 男士应用主题包
+	virtual bool ManApplyTheme(const string& userId, const string& themeId) = 0;
+	// 男/女士播放主题包动画
+	virtual bool PlayThemeMotion(const string& userId, const string& themeId) = 0;
 
 public:
 	// 获取用户账号

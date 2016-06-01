@@ -69,7 +69,8 @@ public:
 					messageType = LRM_VIDEO;
 				}break;
 				case LRPM_MAGIC_ICON:{
-
+					magicIconId = message;
+					messageType = LRM_MAGIC_ICON;
 				}break;
 				default:{
 					messageType = LRM_UNKNOW;
@@ -79,7 +80,7 @@ public:
 		}
 	}
 
-	Record() {		toflag = 0;
+	Record() {		toflag = LRT_SEND;
 		adddate = 0;
 		messageType = LRM_UNKNOW;
 		textMsg = "";
@@ -97,6 +98,7 @@ public:
 		videoSendId = "";
 		videoDesc = "";
 		videoCharge = false;
+		magicIconId = "";
 	}
 
 	virtual ~Record() {
@@ -226,6 +228,7 @@ public:
 	 * @param videoSendId	视频发送ID
 	 * @param videoDesc		视频描述
 	 * @param videoCharge	视频是否已付费
+	 * @param magicIconId   小高表Id
 	 */
 	LIVECHAT_RECODE_TOFLAG toflag;
 	long adddate;
@@ -245,6 +248,7 @@ public:
 	string videoSendId;
 	string videoDesc;
 	bool videoCharge;
+	string magicIconId;
 };
 
 #endif /* RECORD_H_ */

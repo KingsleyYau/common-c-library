@@ -9,9 +9,10 @@
 #include "TransportPacketHandler.h"
 #include "ITask.h"
 #include "ISocketHandler.h"
-#include "IAutoLock.h"
-#include "CommonDef.h"
-#include <KLog.h>
+#include <common/IAutoLock.h>
+#include <common/CommonFunc.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 CTransportDataHandler::CTransportDataHandler(void)
 {
@@ -50,6 +51,9 @@ bool CTransportDataHandler::Init(ITransportDataHandlerListener* listener)
 	// 创建待发送队列锁
 	if (NULL == m_sendTaskListLock) {
 		m_sendTaskListLock = IAutoLock::CreateAutoLock();
+		if (NULL != m_sendTaskListLock) {
+			m_sendTaskListLock->Init();
+		}
 	}
 	FileLog("LiveChatClient", "CTransportDataHandler::Init() create m_sendTaskListLock:%p", m_sendTaskListLock);
 
@@ -70,11 +74,17 @@ bool CTransportDataHandler::Init(ITransportDataHandlerListener* listener)
 
 	if (NULL == m_startLock) {
 		m_startLock = IAutoLock::CreateAutoLock();
+		if (NULL != m_startLock) {
+			m_startLock->Init();
+		}
 	}
 	FileLog("LiveChatClient", "CTransportDataHandler::Init() create m_startLock:%p", m_startLock);
 
 	if (NULL == m_socketLock) {
 		m_socketLock = IAutoLock::CreateAutoLock();
+		if (NULL != m_socketLock) {
+			m_socketLock->Init();
+		}
 	}
 	FileLog("LiveChatClient", "CTransportDataHandler::Init() create m_socketLock:%p", m_socketLock);
 
@@ -98,6 +108,9 @@ bool CTransportDataHandler::Init(ITransportDataHandlerListener* listener)
 void CTransportDataHandler::Uninit()
 {
 	FileLog("LiveChatClient", "CTransportDataHandler::Uninit()");
+
+	delete m_sendTaskListLock;
+	m_sendTaskListLock = NULL;
 
 	delete m_sendThread;
 	m_sendThread = NULL;
@@ -167,7 +180,7 @@ bool CTransportDataHandler::Stop()
 bool CTransportDataHandler::StopProc()
 {
 	FileLog("LiveChatClient", "CTransportDataHandler::StopProc() begin");
-	long startTime = getCurrentTime();
+	long long startTime = getCurrentTime();
 
 	// 断开连接
 	DisconnectProc();
@@ -190,8 +203,8 @@ bool CTransportDataHandler::StopProc()
 	}
 	m_socketLock->Unlock();
 
-	long endTime = getCurrentTime();
-	long diffTime = DiffTime(startTime, endTime);
+	long long endTime = getCurrentTime();
+	long long diffTime = DiffTime(startTime, endTime);
 
 	FileLog("LiveChatClient", "CTransportDataHandler::StopProc() end, m_bStart:%d, diffTime:%ld", m_bStart, diffTime);
 
@@ -286,11 +299,12 @@ void CTransportDataHandler::RecvThreadProc(void)
 void CTransportDataHandler::RecvProc(void)
 {
 	// 接收处理
-	const unsigned int bufferSize = 1024 * 10;
+	const unsigned int bufferSize = 1024 * 100;
 	unsigned char *buffer = new unsigned char[bufferSize];
 	unsigned int bufferLength = 0;
 	unsigned int bufferOffset = 0;
 	ISocketHandler::HANDLE_RESULT result = ISocketHandler::HANDLE_FAIL;
+	UNPACKET_RESULT_TYPE unpackResult = UNPACKET_SUCCESS;
 
 	FileLog("LiveChatClient", "CTransportDataHandler::RecvProc()");
 
@@ -298,7 +312,7 @@ void CTransportDataHandler::RecvProc(void)
 	{
 		memset(buffer, 0, bufferSize);
 
-		while (true)
+		while (unpackResult != UNPACKET_ERROR)
 		{
 			do {
 				result = m_socketHandler->Recv(buffer + bufferOffset, bufferSize - bufferOffset, bufferLength);
@@ -318,23 +332,31 @@ void CTransportDataHandler::RecvProc(void)
 				FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() bufferOffset:%d, bufferLength:%d, recvLength:%d", bufferOffset, bufferLength, bufferLength-bufferOffset);
 
 				// 开始解包
-				UNPACKET_RESULT_TYPE unpackResult;
 				do {
 					TransportProtocol* tp = NULL;
 					unsigned int useLen = 0;
 
-					unpackResult = m_packetHandler->Unpacket(buffer, bufferLength, &tp, useLen);
+					unpackResult = m_packetHandler->Unpacket(buffer, bufferLength, bufferSize, &tp, useLen);
 					if (unpackResult == UNPACKET_SUCCESS) {
 						m_listener->OnRecv(tp);
 					}
 
 					if (unpackResult != UNPACKET_MOREDATA
+						&& unpackResult != UNPACKET_ERROR
 						&& useLen > 0)
 					{
 						// 移除已解包的数据
 						RemoveData(buffer, bufferLength, useLen);
 						bufferLength -= useLen;
 					}
+
+					// 严重错误，需要重新连接
+					if (unpackResult == UNPACKET_ERROR)
+					{
+						DisconnectProc();
+						break;
+					}
+
 					FileLog("LiveChatClient", "CTransportDataHandler::RecvProc() unpack:%d, bufferLength:%d", unpackResult, bufferLength);
 				} while (unpackResult != UNPACKET_MOREDATA);
 				// 记录未解包的数据长度
@@ -390,7 +412,7 @@ bool CTransportDataHandler::ConnectProc()
 		}
 	}
 
-	FileLog("LiveChatClient", "CTransportDataHandler::ConnectProc() end");
+	FileLog("LiveChatClient", "CTransportDataHandler::ConnectProc() end, result:%d", result);
 	return result;
 }
 
@@ -398,7 +420,7 @@ void CTransportDataHandler::SendProc()
 {
 	FileLog("LiveChatClient", "CTransportDataHandler::SendProc()");
 
-	unsigned int bufferSize = 1024 * 10;
+	unsigned int bufferSize = 1024 * 100;
 	unsigned char* buffer = new unsigned char[bufferSize];
 	while (m_bStart) {
 		ITask* task = NULL;

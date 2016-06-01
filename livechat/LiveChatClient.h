@@ -42,7 +42,7 @@ public:
 	// 通知对方女士正在编辑消息
 	virtual bool SendLadyEditingMsg(const string& userId);
 	// 发送聊天消息
-	virtual bool SendMessage(const string& userId, const string& message, bool illegal, int ticket);
+	virtual bool SendTextMessage(const string& userId, const string& message, bool illegal, int ticket);
 	// 发送高级表情
 	virtual bool SendEmotion(const string& userId, const string& emotionId, int ticket);
 	// 发送虚拟礼物
@@ -59,6 +59,8 @@ public:
 	virtual bool GetTalkList(int listType);
 	// 发送图片
 	virtual bool SendPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charget, const string& photoDesc, int ticket);
+	// 女士发送图片
+	virtual bool SendLadyPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket);
 	// 显示图片
 	virtual bool ShowPhoto(const string& userId, const string& inviteId, const string& photoId, const string& sendId, bool charget, const string& photoDesc, int ticket);
 	// 获取用户信息
@@ -87,6 +89,30 @@ public:
 	virtual bool GetLadyChatInfo();
 	// 播放视频
 	virtual bool PlayVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charget, const string& videoDesc, int ticket);
+	// 女士发送微视频
+	virtual bool SendLadyVideo(const string& userId, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket);
+	// 获取女士择偶条件
+	virtual bool GetLadyCondition(const string& userId);
+	// 获取女士自定义邀请模板
+	virtual bool GetLadyCustomTemplate(const string& userId);
+	// 弹出女士自动邀请消息通知
+	virtual bool UploadPopLadyAutoInvite(const string& userId, const string& msg, const string& key);
+	// 上传自动充值状态
+	virtual bool UploadAutoChargeStatus(bool isCharge);
+	// 发送小高级表情
+	virtual bool SendMagicIcon(const string& userId, const string& iconId, int ticket);
+	// 获取指定男/女士已购主题包
+	virtual bool GetPaidTheme(const string& userId);
+	// 获取男/女士所有已购主题包
+	virtual bool GetAllPaidTheme();
+	// 上传主题包列表版本号
+	virtual bool UploadThemeListVer(int themeVer);
+	// 男士购买主题包
+	virtual bool ManFeeTheme(const string& userId, const string& themeId);
+	// 男士应用主题包
+	virtual bool ManApplyTheme(const string& userId, const string& themeId);
+	// 男/女士播放主题包动画
+	virtual bool PlayThemeMotion(const string& userId, const string& themeId);
 
 public:
 	// 获取用户账号
@@ -116,6 +142,8 @@ private:
 	bool UploadDeviceIdProc();
 	// 上传设备类型
 	bool UploadDeviceTypeProc();
+	// 启动发送心跳包线程
+	void HearbeatThreadStart();
 
 protected:
 	static TH_RETURN_PARAM HearbeatThread(void* arg);

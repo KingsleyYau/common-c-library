@@ -9,6 +9,8 @@
 
 #include <string>
 #include <vector>
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <common/list_lock.h>
 using namespace std;
 
 typedef vector<string>	LCEmotionPathVector;
@@ -17,7 +19,7 @@ class LCPhotoItem
 public:
 	// 图片处理状态
 	typedef enum {
-		Finish,						// 已完成
+		Unknow,						// 未知状态
 		PhotoFee,					// 正在付费
 		DownloadThumbFuzzyPhoto,	// 正在下载拇指不清晰图
 		DownloadShowFuzzyPhoto,		// 正在下载用于显示的不清晰图
@@ -25,6 +27,9 @@ public:
 		DownloadShowSrcPhoto,		// 正在下载用于显示的原图
 		DownloadSrcPhoto,			// 正在下载原图
 	} ProcessStatus;
+
+	// 图片处理状态列表定义
+	typedef list_lock<ProcessStatus> ProcessStatusList;
 
 public:
 	LCPhotoItem();
@@ -43,8 +48,21 @@ public:
 			, bool charge						// 是否已付费
 			);
 
-	// 设置图片处理状态
-	void SetProcessStatus(LCPhotoModeType modeType, LCPhotoSizeType sizeType);
+	// 添加图片处理状态
+	void AddProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+	// 移除图片处理状态
+	void RemoveProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+	// 判断是否处理状态
+	bool IsProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+	// 添加购买图片处理状态
+	void AddFeeStatus();
+	// 移除购买图片处理状态
+	void RemoveFeeStatus();
+	// 判断是否正在付费状态
+	bool IsFee();
+
+public:
+	static ProcessStatus GetProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
 
 public:
 	string	m_photoId;				// 图片ID
@@ -56,5 +74,6 @@ public:
 	string 	m_showSrcFilePath;		// 用于显示的原图路径
 	string	m_thumbSrcFilePath;		// 拇指原图路径
 	bool	m_charge;				// 是否已付费
-	ProcessStatus	m_statusType;	// 图片处理状态
+private:
+	ProcessStatusList	m_statusList;	// 图片处理状态列表
 };

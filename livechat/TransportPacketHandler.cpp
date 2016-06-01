@@ -8,7 +8,8 @@
 #include "TransportPacketHandler.h"
 #include "ITask.h"
 #include "zlib.h"
-#include <KLog.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 // 使用 ntohl 需要include跨平台socket头文件
 #include "ISocketHandler.h"
@@ -39,15 +40,10 @@ bool CTransportPacketHandler::Packet(ITask* task, void* data, unsigned int dataS
 
 			// 获取数据
 			unsigned int bodyLen = 0;
-			result = task->GetSendData(protocol->data, dataSize - sizeof(NoHeadTransportProtocol), bodyLen);
+			result = task->GetSendData((void*)&(protocol->data), dataSize, bodyLen);
 			if  (result)
 			{
-				protocol->length = bodyLen;
 				dataLen = protocol->GetAllDataLength();
-
-				FileLog("LiveChatClient", "CTransportPacketHandler::Packet() NOHEAD_PROTOCOL, protocol->length:%d, dataLen:%d", protocol->length, dataLen);
-
-				protocol->length = ntohl(protocol->length);
 			}
 		}
 	}
@@ -83,31 +79,54 @@ bool CTransportPacketHandler::Packet(ITask* task, void* data, unsigned int dataS
 }
 	
 // 解包
-UNPACKET_RESULT_TYPE CTransportPacketHandler::Unpacket(void* data, unsigned int dataLen, TransportProtocol** ppTp, unsigned int& useLen)
+UNPACKET_RESULT_TYPE CTransportPacketHandler::Unpacket(void* data, unsigned int dataLen, unsigned int maxLen, TransportProtocol** ppTp, unsigned int& useLen)
 {
 	UNPACKET_RESULT_TYPE result = UNPACKET_FAIL;
 	useLen = 0;
 	*ppTp = NULL;
+	TransportProtocol* tp = (TransportProtocol*)data;
+	unsigned int length = 0;
 
 	FileLog("LiveChatClient", "CTransportPacketHandler::Unpacket() begin");
 
-	TransportProtocol* tp = (TransportProtocol*)data;
-	tp->header.length = ntohl(tp->header.length);
-	if (dataLen >= tp->header.length + sizeof(tp->header.length)) {
-		ShiftRight((unsigned char*)data + sizeof(tp->header.length) + sizeof(tp->header.shiftKey), tp->header.length - sizeof(tp->header.shiftKey), tp->header.shiftKey);
-		tp->header.cmd = ntohl(tp->header.cmd);
-		tp->header.seq = ntohl(tp->header.seq);
-
-		useLen = tp->header.length + sizeof(tp->header.length);
-		if (tp->header.zip == 1
-			&& tp->GetDataLength() > 0) 
+	if (dataLen >= sizeof(tp->header.length))
+	{
+		length = ntohl(tp->header.length);
+		if (length == 0)
 		{
-			// 需要解压
-			result = Unzip(tp, ppTp) ? UNPACKET_SUCCESS : result;
+			// 心跳包
+			useLen = sizeof(tp->header.length);
 		}
-		else {
-			*ppTp = tp;
-			result = UNPACKET_SUCCESS;
+		else
+		{
+			if (dataLen >= length + sizeof(length))
+			{
+				tp->header.length = length;
+				useLen = tp->header.length + sizeof(tp->header.length);
+				ShiftRight((unsigned char*)data + sizeof(tp->header.length) + sizeof(tp->header.shiftKey), tp->header.length - sizeof(tp->header.shiftKey), tp->header.shiftKey);
+				tp->header.cmd = ntohl(tp->header.cmd);
+				tp->header.seq = ntohl(tp->header.seq);
+
+				if (tp->header.zip == 1
+					&& tp->GetDataLength() > 0)
+				{
+					// 需要解压
+					result = Unzip(tp, ppTp) ? UNPACKET_SUCCESS : result;
+				}
+				else {
+					*ppTp = tp;
+					result = UNPACKET_SUCCESS;
+				}
+			}
+			else if (maxLen >= length + sizeof(length))
+			{
+				// 需要更多数据，且有足够buffer接收
+				result = UNPACKET_MOREDATA;
+			}
+			else {
+				// 严重错误，需要重新连接
+				result = UNPACKET_ERROR;
+			}
 		}
 	}
 	else {
@@ -158,7 +177,7 @@ bool CTransportPacketHandler::Unzip(TransportProtocol* tp, TransportProtocol** p
 
 	// 解压
 	int unret = Z_OK;
-	uLongf needBuffLen = 0;
+//	uLongf needBuffLen = 0;
 	do {
 
 		if (NULL != m_buffer && m_bufferLen > sizeof(tp->header)) {

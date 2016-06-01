@@ -8,9 +8,10 @@
 
 #include "CheckVerTask.h"
 #include "ILiveChatClient.h"
-#include <AmfParser.h>
-#include <json/json.h>
-#include <KLog.h>
+#include <amf/AmfParser.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 CheckVerTask::CheckVerTask(void)
 {
@@ -47,7 +48,7 @@ bool CheckVerTask::Handle(const TransportProtocol* tp)
 	AmfParser parser;
 	amf_object_handle root = parser.Decode((char*)tp->data, tp->GetDataLength());
 	if (!root.isnull()
-		&& root->type == DT_FALSE || root->type == DT_TRUE) 
+		&& (root->type == DT_FALSE || root->type == DT_TRUE))
 	{
 		m_errType = root->boolValue ? LCC_ERR_SUCCESS : LCC_ERR_CHECKVERFAIL;
 		m_errMsg = "";

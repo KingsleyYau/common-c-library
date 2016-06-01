@@ -9,7 +9,7 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json.h>
+#include <json/json/json.h>
 
 // 请求参数定义
 #define TOID_PARAM			"toId"			// 接收用户Id

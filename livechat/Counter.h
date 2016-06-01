@@ -42,6 +42,9 @@ public:
 	int GetInvalidValue() const;
 
 private:
+	void Uninit();
+
+private:
 	int			m_begin;	// 起始值
 	int			m_step;		// 步长
 	int			m_count;	// 计数

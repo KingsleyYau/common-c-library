@@ -259,12 +259,14 @@ void RequestVideoShowController::PlayVideoCallbackHandle(long requestId, const s
 	VSPlayVideoItem item;
 	string errnum = "";
 	string errmsg = "";
+	int memberType = 0;
 	bool bFlag = false;
 
 	if (requestRet) {
 		// request success
 		Json::Value dataJson;
-		if( HandleResult(buf, size, errnum, errmsg, &dataJson) ) {
+		Json::Value errDataJson;
+		if( HandleResult(buf, size, errnum, errmsg, &dataJson, &errDataJson) ) {
 			// success
 			bFlag = item.Parsing(dataJson);
 			if (!bFlag) {
@@ -276,6 +278,12 @@ void RequestVideoShowController::PlayVideoCallbackHandle(long requestId, const s
 							"(url:%s, size:%d, buf:%s)",
 							url.c_str(), size, buf);
 			}
+		}else{
+			if (errDataJson.isObject()) {
+				if(errDataJson[COMMON_ERRDATA_TYPE].isInt()){
+					memberType = errDataJson[COMMON_ERRDATA_TYPE].asInt();
+				}
+			}
 		}
 	}
 	else {
@@ -285,7 +293,7 @@ void RequestVideoShowController::PlayVideoCallbackHandle(long requestId, const s
 	}
 
 	if( m_Callback.onRequestVSPlayVideo != NULL ) {
-		m_Callback.onRequestVSPlayVideo(requestId, bFlag, errnum, errmsg, item);
+		m_Callback.onRequestVSPlayVideo(requestId, bFlag, errnum, errmsg, memberType, item);
 	}
 }
 

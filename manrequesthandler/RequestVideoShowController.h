@@ -13,7 +13,7 @@
 
 typedef void (*OnRequestVSVideoList)(long requestId, bool success, const string& errnum, const string& errmsg, int pageIndex, int pageSize, int dataCount, const VSVideoList& vsList);
 typedef void (*OnRequestVSVideoDetail)(long requestId, bool success, const string& errnum, const string& errmsg, const VSVideoDetailList& list);
-typedef void (*OnRequestVSPlayVideo)(long requestId, bool success, const string& errnum, const string& errmsg, const VSPlayVideoItem& item);
+typedef void (*OnRequestVSPlayVideo)(long requestId, bool success, const string& errnum, const string& errmsg, int memberType, const VSPlayVideoItem& item);
 typedef void (*OnRequestVSWatchedVideoList)(long requestId, bool success, const string& errnum, const string& errmsg, int pageIndex, int pageSize, int dataCount, const VSWatchedVideoList& vsList);
 typedef void (*OnRequestVSSaveVideo)(long requestId, bool success, const string& errnum, const string& errmsg);
 typedef void (*OnRequestVSRemoveVideo)(long requestId, bool success, const string& errnum, const string& errmsg);

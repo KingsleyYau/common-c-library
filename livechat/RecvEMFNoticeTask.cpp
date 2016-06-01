@@ -9,8 +9,9 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json.h>
-#include <KLog.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 // 请求参数定义
 #define FROMID_PARAM	"from"

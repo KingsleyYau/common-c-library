@@ -68,6 +68,8 @@
 #define AUTHORIZATION_ADMIRER			"admirer"
 #define AUTHORIZATION_BPEMF				"bpemf"
 
+#define AUTHORIZATION_RECHARGECREDIT	"recharge_credit"
+
 /* 找回密码 */
 #define AUTHORIZATION_SENDMAIL			"sendmail"
 

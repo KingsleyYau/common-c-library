@@ -8,7 +8,8 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-common_CFLAGS := -Wpointer-arith -Wwrite-strings -Wunused -Winline -Wnested-externs -Wmissing-declarations -Wmissing-prototypes -Wno-long-long -Wfloat-equal -Wno-multichar -Wsign-compare -Wno-format-nonliteral -Wendif-labels -Wstrict-prototypes -Wdeclaration-after-statement -Wno-system-headers -DHAVE_CONFIG_H
+common_CFLAGS := -Wpointer-arith -Wwrite-strings -Wunused -Winline -Wnested-externs -Wmissing-declarations -Wmissing-prototypes -Wno-long-long -Wfloat-equal -Wno-multichar -Wsign-compare -Wno-format-nonliteral -Wendif-labels -Wstrict-prototypes -Wdeclaration-after-statement -Wno-system-headers \
+	-DHAVE_CONFIG_H
 
 #########################
 # Build the libcurl library
@@ -18,9 +19,9 @@ include $(LOCAL_PATH)/lib/Makefile.inc
 
 LOCAL_SRC_FILES := $(addprefix lib/, $(CSOURCES))
 
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/include/
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/lib/
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../openssl/include
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)/curl/include/
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)/curl/lib/
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)/openssl/include
 
 LOCAL_CFLAGS += $(common_CFLAGS)
 

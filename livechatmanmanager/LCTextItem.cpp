@@ -7,6 +7,7 @@
 
 #include "LCTextItem.h"
 #include "LCMessageFilter.h"
+#include <common/CheckMemoryLeak.h>
 
 LCTextItem::LCTextItem()
 {

@@ -10,11 +10,16 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include <dirent.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
 #include <fstream>
+
+#ifndef _WIN32
+#include <dirent.h>
+#include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 // 判断文件是否存在
 bool IsFileExist(const string& path)
@@ -25,7 +30,11 @@ bool IsFileExist(const string& path)
 	if (0 == stat(path.c_str(), &st))
 	{
 		// 不是目录
-		if (!S_ISDIR(st.st_mode))
+#ifndef _WIN32
+		if (!S_ISDIR(st.st_mode)) 
+#else
+		if ((st.st_mode & _S_IFDIR) == 0) 
+#endif
 		{
 			result = true;
 		}
@@ -37,12 +46,23 @@ bool IsFileExist(const string& path)
 bool IsDirExist(const string& path)
 {
 	bool result = false;
+	string dirPath = path;
+	if (!dirPath.empty() 
+		&& (dirPath.at(dirPath.length()-1) == '\\'
+			|| dirPath.at(dirPath.length()-1) == '/')) 
+	{
+		dirPath.erase(dirPath.length()-1);
+	}
 
 	struct stat st = {0};
-	if (0 == stat(path.c_str(), &st))
+	if (0 == stat(dirPath.c_str(), &st))
 	{
 		// 是目录
-		if (S_ISDIR(st.st_mode))
+#ifndef _WIN32
+		if (S_ISDIR(st.st_mode)) 
+#else
+		if ((st.st_mode & _S_IFDIR) > 0) 
+#endif
 		{
 			result = true;
 		}
@@ -74,7 +94,16 @@ bool MakeDir(const string& path)
 			string parentDir = path.substr(0, pos);
 			if (!IsDirExist(parentDir)) {
 				// 设备可读写权限（没有执行权限）
-				result = (0 == mkdir(path.c_str(), 0660));
+#ifndef _WIN32
+#ifndef IOS
+				result = (0 == mkdir(parentDir.c_str(), 0660));
+#else
+                int mod = S_IRWXU | S_IRWXG | S_IRWXO;
+                result = (0 == mkdir(parentDir.c_str(), mod));
+#endif
+#else
+				result = (TRUE == CreateDirectory(parentDir.c_str(), NULL));
+#endif
 			}
 		}
 
@@ -98,7 +127,11 @@ bool RemoveDir(const string& path)
 	if (IsDirExist(path))
 	{
 		CleanDir(path);
+#ifndef _WIN32
 		result = (0 == rmdir(path.c_str()));
+#else
+		result = (TRUE == RemoveDirectory(path.c_str()));
+#endif
 	}
 
 	return result;
@@ -144,7 +177,12 @@ bool CopyFile(const string& srcPath, const string& desPath)
 //		cmd += " ";
 //		cmd += desPath;
 //		system(cmd.c_str());
+
 		// 方法2:使用c++
+#ifdef _WIN32
+		std::locale loc1 = std::locale::global(std::locale(""));
+#endif
+
 		ifstream srcStream(srcPath.c_str(), ios::in | ios::binary);
 		if (!srcStream.bad())
 		{
@@ -156,6 +194,9 @@ bool CopyFile(const string& srcPath, const string& desPath)
 			}
 			srcStream.close();
 		}
+#ifdef _WIN32
+		std::locale::global(std::locale(loc1));
+#endif
 
 		// 判断目标文件是否存在
 		result = IsFileExist(desPath);
@@ -169,6 +210,7 @@ bool CleanDir(const string& path)
 	bool result = false;
 	if (IsDirExist(path))
 	{
+#ifndef _WIN32
 		struct dirent *dp = NULL;
 		DIR *dfd = NULL;
 
@@ -198,6 +240,47 @@ bool CleanDir(const string& path)
 			}
 			closedir(dfd);
 		}
+#else
+		// 修正目录路径
+		string dirPath = path;
+		if (!dirPath.empty() 
+			&& dirPath.at(dirPath.length()-1) != '\\'
+			&& dirPath.at(dirPath.length()-1) != '/')
+		{
+			dirPath += '\\';
+		}
+
+		// 遍历目录文件
+		WIN32_FIND_DATA ffd; 
+		string strFind = dirPath + "*.*";
+		HANDLE hFind = FindFirstFile(strFind.c_str(), &ffd);
+		if (INVALID_HANDLE_VALUE != hFind)
+		{
+			while (true)
+			{
+				if (0 != strcmp(ffd.cFileName, ".")
+					&& 0 != strcmp(ffd.cFileName, ".."))
+				{
+					string subPath = path + '/' + ffd.cFileName;
+					if (IsFileExist(subPath)) {
+						// 删除文件
+						RemoveFile(subPath);
+					}
+					else if (IsDirExist(subPath)) {
+						// 删除目录
+						RemoveDir(subPath);
+					}
+				}
+
+				if(!FindNextFile(hFind, &ffd)) {
+					break;
+				}
+			}
+
+			// 关闭句柄
+			FindClose(hFind);
+		}
+#endif
 	}
 	return result;
 }
@@ -215,9 +298,11 @@ int GetRandomValue()
 	return rand();
 }
 
+#ifndef _WIN32
 // 获取当前时间（Unix Timestamp）
 long GetCurrentTime()
 {
 	return time(NULL);
 }
+#endif
 

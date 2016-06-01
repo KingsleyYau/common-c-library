@@ -9,8 +9,9 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json.h>
-#include <KLog.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 // 请求参数定义
 #define SEX_PARAM			"sex"		// 性别
@@ -93,6 +94,12 @@ bool GetUserStatusTask::Handle(const TransportProtocol* tp)
 				m_errMsg = "";
 				result = true;
 			}
+			else {
+				FileLog("LiveChatClient", "GetUserStatusTask::Handle() parsing fail:%s", root->strValue.c_str());
+			}
+		}
+		else {
+			FileLog("LiveChatClient", "GetUserStatusTask::Handle() root->type:%d", root->type);
 		}
 
 		// 解析失败协议
@@ -105,6 +112,9 @@ bool GetUserStatusTask::Handle(const TransportProtocol* tp)
 				result = true;
 			}
 		}
+	}
+	else {
+		FileLog("LiveChatClient", "GetUserStatusTask::Handle() root.isnull");
 	}
 
 	// 协议解析失败

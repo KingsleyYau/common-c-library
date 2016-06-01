@@ -47,6 +47,11 @@ public:
 	void SetHostManager(HttpRequestHostManager *httpRequestHostManager);
 
 	/**
+	 * 获取站点管理实例
+	 */
+	HttpRequestHostManager* GetHostManager();
+
+	/**
 	 * 设置认证信息
 	 */
 	void SetAuthorization(string user, string password);

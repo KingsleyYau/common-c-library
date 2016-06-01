@@ -7,23 +7,42 @@
 
 #include "LCVoiceManager.h"
 #include "LCMessageItem.h"
-#include <IAutoLock.h>
-#include <HttpRequestDefine.h>
-#include <CommonFunc.h>
+#include <common/IAutoLock.h>
+#include <httpclient/HttpRequestDefine.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCVoiceManager::LCVoiceManager()
 {
 	m_dirPath = "";
+
+	m_sendingMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_sendingMapLock) {
+		m_sendingMapLock->Init();
+	}
+
+	m_requestIdMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_requestIdMapLock) {
+		m_requestIdMapLock->Init();
+	}
+
+	m_requestMsgMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_requestMsgMapLock) {
+		m_requestMsgMapLock->Init();
+	}
 }
 
 LCVoiceManager::~LCVoiceManager()
 {
-
+	IAutoLock::ReleaseAutoLock(m_sendingMapLock);
+	IAutoLock::ReleaseAutoLock(m_requestIdMapLock);
+	IAutoLock::ReleaseAutoLock(m_requestMsgMapLock);
 }
 
 // 初始化
 bool LCVoiceManager::Init(const string& dirPath)
 {
+	bool result = false;
 	if (!dirPath.empty())
 	{
 		m_dirPath = dirPath;
@@ -31,9 +50,12 @@ bool LCVoiceManager::Init(const string& dirPath)
 			&& m_dirPath.at(m_dirPath.length()-1) != '\\')
 		{
 			m_dirPath += "/";
+
+			// 创建目录
+			result = MakeDir(m_dirPath);
 		}
 	}
-	return !m_dirPath.empty();
+	return result;
 }
 
 // 获取语音本地缓存文件路径
@@ -44,7 +66,7 @@ string LCVoiceManager::GetVoicePath(LCMessageItem* item)
 			&& !item->GetVoiceItem()->m_voiceId.empty()
 			&& !m_dirPath.empty())
 	{
-		path = getVoicePath(item->GetVoiceItem()->m_voiceId, item->GetVoiceItem()->m_fileType);
+		path = GetVoicePath(item->GetVoiceItem()->m_voiceId, item->GetVoiceItem()->m_fileType);
 	}
 	return path;
 }
@@ -124,8 +146,8 @@ long LCVoiceManager::GetRequestIdWithItem(LCMessageItem* item)
 	long requestId = HTTPREQUEST_INVALIDREQUESTID;
 
 	LockRequestMsgMap();
-	RequestIdMap::iterator iter = m_requestMsgMap.find(item->m_msgId);
-	if (iter != RequestMsgMap.end()) {
+	RequestMsgMap::iterator iter = m_requestMsgMap.find(item->m_msgId);
+	if (iter != m_requestMsgMap.end()) {
 		requestId = (*iter).second;
 	}
 	UnlockRequestMsgMap();
@@ -149,7 +171,7 @@ bool LCVoiceManager::AddRequestItem(long requestId, LCMessageItem* item)
 		}
 
 		if (m_requestMsgMap.end() == m_requestMsgMap.find(item->m_msgId)) {
-			m_requestMsgMap.insert(RequestMsgMap::value_type(item->m_msgId, item));
+			m_requestMsgMap.insert(RequestMsgMap::value_type(item->m_msgId, requestId));
 		}
 
 		result = true;
@@ -167,7 +189,7 @@ LCMessageItem* LCVoiceManager::GetAndRemoveRquestItem(long requestId)
 
 	LockRequestIdMap();
 	LockRequestMsgMap();
-	RequestIdMap::iter = m_requestIdMap.find(requestId);
+	RequestIdMap::iterator iter = m_requestIdMap.find(requestId);
 	if (iter != m_requestIdMap.end())
 	{
 		item = (*iter).second;

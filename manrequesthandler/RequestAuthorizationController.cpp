@@ -214,7 +214,7 @@ long RequestAuthorizationController::LoginWithFacebook(
 		string birthday_d,
 		string referrer
 		) {
-	char temp[16];
+//	char temp[16];
 
 	HttpEntiy entiy;
 	entiy.SetSaveCookie(true);
@@ -467,7 +467,7 @@ long RequestAuthorizationController::Login(
 		string manufacturer
 		) {
 
-	char temp[16];
+//	char temp[16];
 
 	HttpEntiy entiy;
 

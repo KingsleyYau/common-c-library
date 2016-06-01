@@ -9,6 +9,7 @@
 #include "HttpDownloader.h"
 #include <common/CommonFunc.h>
 #include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 #define TEMPFILENAME	".http.tmp"
 
@@ -18,7 +19,6 @@ HttpDownloader::HttpDownloader()
 	m_filePath = "";
 	m_callback = NULL;
 	m_isDownloading = false;
-	m_request.SetNoCacheData(true);
 	m_request.SetCallback(this);
 }
 
@@ -29,21 +29,34 @@ HttpDownloader::~HttpDownloader()
 }
 
 // 开始下载文件
-bool HttpDownloader::StartDownload(const string& url, const string& localPath, IHttpDownloaderCallback* callback)
+bool HttpDownloader::StartDownload(const string& url, const string& localPath, IHttpDownloaderCallback* callback, const string& httpUser, const string& httpPassword)
 {
 	bool result = false;
+
+	FileLog("LiveChatManager", "HttpDownloader::StratDownload() url:%s, localPath:%s, callback:%p"
+			, url.c_str(), localPath.c_str(), callback);
+
 	if (!url.empty() && !localPath.empty())
 	{
 		m_filePath = localPath;
 		m_callback = callback;
 
 		// 开始下载
-		if ( OpenTempFile() )
+		if (OpenTempFile())
 		{
+			FileLog("LiveChatManager", "HttpDownloader::StratDownload() begin download, url:%s, localPath:%s"
+					, url.c_str(), localPath.c_str());
+
 			HttpEntiy entiy;
-			entiy.SetGetMethod(true);
+			if (!httpUser.empty()) {
+				entiy.SetAuthorization(httpUser, httpPassword);
+			}
+
 			result = (HTTPREQUEST_INVALIDREQUESTID != m_request.StartRequest(url, entiy));
 			m_isDownloading = result;
+
+			FileLog("LiveChatManager", "HttpDownloader::StratDownload() start download, url:%s, localPath:%s, result:%d"
+					, url.c_str(), localPath.c_str(), result);
 		}
 
 		// 操作失败
@@ -97,13 +110,16 @@ bool HttpDownloader::OpenTempFile()
 {
 	bool result = false;
 
-	// 删除已存在的临时文件
-	RemoveTempFile();
+	if (NULL == m_pFile)
+	{
+		// 删除已存在的临时文件
+		RemoveTempFile();
 
-	// 打开临时文件
-	string tempFilePath = GetTempFilePath(m_filePath);
-	m_pFile = fopen(tempFilePath.c_str(), "a+b");
-	result = (NULL != m_pFile);
+		// 打开临时文件
+		string tempFilePath = GetTempFilePath(m_filePath);
+		m_pFile = fopen(tempFilePath.c_str(), "a+b");
+		result = (NULL != m_pFile);
+	}
 	return result;
 }
 
@@ -143,19 +159,14 @@ bool HttpDownloader::RenameTempFile()
 // IHttpRequestCallback
 void HttpDownloader::onSuccess(long requestId, string url, const char* buf, int size)
 {
-	FileLog(
-			"httprequest",
-			"HttpDownloader::onSuccess( "
-			"url : %s "
-			")",
-			url.c_str()
-			);
-
 	// 关闭文件
 	CloseTempFile();
 
 	// 修改文件名
 	RenameTempFile();
+
+	FileLog("LiveChatManager", "HttpDownloader::onSuccess() requestId:%d, url:%s, size:%d"
+			, requestId, url.c_str(), size);
 
 	// 回调
 	if (NULL != m_callback)
@@ -166,19 +177,14 @@ void HttpDownloader::onSuccess(long requestId, string url, const char* buf, int 
 
 void HttpDownloader::onFail(long requestId, string url)
 {
-	FileLog(
-			"httprequest",
-			"HttpDownloader::onFail( "
-			"url : %s "
-			")",
-			url.c_str()
-			);
-
 	// 关闭文件
 	CloseTempFile();
 
 	// 删除临时文件
 	RemoveTempFile();
+
+	FileLog("LiveChatManager", "HttpDownloader::onFail() requestId:%d, url:%s"
+			, requestId, url.c_str());
 
 	// 回调
 	if (NULL != m_callback)
@@ -189,26 +195,30 @@ void HttpDownloader::onFail(long requestId, string url)
 
 void HttpDownloader::onReceiveBody(long requestId, string url, const char* buf, int size)
 {
-	FileLog(
-			"httprequest",
-			"HttpDownloader::onReceiveBody( "
-			"url : %s, "
-			"size : %d "
-			")",
-			url.c_str(),
-			size
-			);
-
-	// 写文件
-	if (fwrite(buf, 1, size, m_pFile) != size)
+	size_t writeSize = 0;
+	if (NULL != m_pFile)
 	{
-		// 写文件失败
-		Stop();
+		// 写文件
+		writeSize = fwrite(buf, 1, size, m_pFile);
+		if (writeSize != size)
+		{
+			// 写文件失败
+			Stop();
+		}
 	}
+
+	FileLog("LiveChatManager", "HttpDownloader::onReceiveBody() requestId:%d, url:%s, size:%d, writeSize:%d"
+			, requestId, url.c_str(), size, writeSize);
 
 	// 回调
 	if (NULL != m_callback)
 	{
+		FileLog("LiveChatManager", "HttpDownloader::onReceiveBody() callback begin, requestId:%d"
+				, requestId);
+
 		m_callback->onUpdate(this);
+
+		FileLog("LiveChatManager", "HttpDownloader::onReceiveBody() callback end, requestId:%d"
+				, requestId);
 	}
 }

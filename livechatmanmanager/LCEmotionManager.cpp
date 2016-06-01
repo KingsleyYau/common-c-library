@@ -6,10 +6,13 @@
  */
 
 #include "LCEmotionManager.h"
+#include "LCEmotionItem.h"
 #include "LCEmotionDownloader.h"
 #include "LCMessageItem.h"
-#include <PngHandler.h>
+#include <imghandle/PngHandler.h>
+#include <common/CommonFunc.h>
 #include <string>
+#include <common/CheckMemoryLeak.h>
 
 using namespace std;
 
@@ -30,19 +33,46 @@ LCEmotionManager::LCEmotionManager()
 	m_dirPath = "";
 	m_host = "";
 	m_callback = NULL;
+	m_httpUser = "";
+	m_httpPassword = "";
 
 	m_emotionMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_emotionMapLock) {
+		m_emotionMapLock->Init();
+	}
+
 	m_toSendMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_toSendMapLock) {
+		m_toSendMapLock->Init();
+	}
+
 	m_imgDownloadMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_imgDownloadMapLock) {
+		m_imgDownloadMapLock->Init();
+	}
+
 	m_playDownloadMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_playDownloadMapLock) {
+		m_playDownloadMapLock->Init();
+	}
 }
 
 LCEmotionManager::~LCEmotionManager()
 {
 	IAutoLock::ReleaseAutoLock(m_emotionMapLock);
+	m_emotionMapLock = NULL;
+
 	IAutoLock::ReleaseAutoLock(m_toSendMapLock);
+	m_toSendMapLock = NULL;
+
 	IAutoLock::ReleaseAutoLock(m_imgDownloadMapLock);
+	m_imgDownloadMapLock = NULL;
+
 	IAutoLock::ReleaseAutoLock(m_playDownloadMapLock);
+	m_playDownloadMapLock = NULL;
+
+	RemoveAllEmotionItem();
+	ClearAllDownloader();
 }
 
 // 设置本地缓存目录路径
@@ -63,12 +93,6 @@ bool LCEmotionManager::SetDirPath(const string& dirPath, const string& logPath)
 
 		// 创建高级表情image文件目录
 		result = MakeDir(GetImageDir());
-
-		// 设置 ImageHandler打log目录
-		if (result)
-		{
-			ImageHandler.SetLogPath(logPath);
-		}
 	}
 	return result;
 }
@@ -100,11 +124,18 @@ bool LCEmotionManager::Init(const string& host
 				// 设置下载路径
 				SetDownloadPath(m_configItem.path);
 				// 添加高级表情
-				addEmotionsWithConfigItem(m_configItem);
+				AddEmotionsWithConfigItem(m_configItem);
 			}
 		}
 	}
 	return result;
+}
+
+// 设置http认证帐号
+void LCEmotionManager::SetAuthorization(const string& httpUser, const string& httpPassword)
+{
+	m_httpUser = httpUser;
+	m_httpPassword = httpPassword;
 }
 
 // 设置下载路径
@@ -134,20 +165,20 @@ bool LCEmotionManager::SetDownloadPath(const string& downloadPath)
 // 从文件中获取配置item
 bool LCEmotionManager::GetConfigItemWithFile() {
 	bool result = false;
-    try {
-    	String key = "OtherEmotionConfigItem_" + WebSiteManager.newInstance(null).GetWebSite().getSiteId();
-        SharedPreferences mSharedPreferences = mContext.getSharedPreferences("base64", Context.MODE_PRIVATE);
-        String personBase64 = mSharedPreferences.getString(key, "");
-        byte[] base64Bytes = Base64.decode(personBase64.getBytes(), Base64.DEFAULT);
-        ByteArrayInputStream bais = new ByteArrayInputStream(base64Bytes);
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        m_configItem = (OtherEmotionConfigItem) ois.readObject();
-        if (null != m_configItem) {
-        	result = true;
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
+//    try {
+//    	String key = "OtherEmotionConfigItem_" + WebSiteManager.newInstance(null).GetWebSite().getSiteId();
+//        SharedPreferences mSharedPreferences = mContext.getSharedPreferences("base64", Context.MODE_PRIVATE);
+//        String personBase64 = mSharedPreferences.getString(key, "");
+//        byte[] base64Bytes = Base64.decode(personBase64.getBytes(), Base64.DEFAULT);
+//        ByteArrayInputStream bais = new ByteArrayInputStream(base64Bytes);
+//        ObjectInputStream ois = new ObjectInputStream(bais);
+//        m_configItem = (OtherEmotionConfigItem) ois.readObject();
+//        if (null != m_configItem) {
+//        	result = true;
+//        }
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//    }
 	return result;
 }
 
@@ -156,21 +187,21 @@ bool LCEmotionManager::SaveConfigItemToFile()
 {
 	bool result = false;
 
-	try {
-		String key = "OtherEmotionConfigItem_" + WebSiteManager.newInstance(null).GetWebSite().getSiteId();
-		SharedPreferences mSharedPreferences = mContext.getSharedPreferences("base64", Context.MODE_PRIVATE);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos;
-		oos = new ObjectOutputStream(baos);
-		oos.writeObject(m_configItem);
-		String personBase64 = new String(Base64.encode(baos.toByteArray(), Base64.DEFAULT));
-		SharedPreferences.Editor editor = mSharedPreferences.edit();
-		editor.putString(key, personBase64);
-		result = editor.commit();
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+//	try {
+//		String key = "OtherEmotionConfigItem_" + WebSiteManager.newInstance(null).GetWebSite().getSiteId();
+//		SharedPreferences mSharedPreferences = mContext.getSharedPreferences("base64", Context.MODE_PRIVATE);
+//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//		ObjectOutputStream oos;
+//		oos = new ObjectOutputStream(baos);
+//		oos.writeObject(m_configItem);
+//		String personBase64 = new String(Base64.encode(baos.toByteArray(), Base64.DEFAULT));
+//		SharedPreferences.Editor editor = mSharedPreferences.edit();
+//		editor.putString(key, personBase64);
+//		result = editor.commit();
+//	} catch (IOException e) {
+//		// TODO Auto-generated catch block
+//		e.printStackTrace();
+//	}
 
 	return result;
 }
@@ -186,12 +217,10 @@ bool LCEmotionManager::UpdateConfigItem(const OtherEmotionConfigItem& configItem
 {
 	// 停止图片文件下载
 	StopAllDownloadImage();
-	// 停止3gp文件下载
-	StopAllDownload3gp();
 	// 删除本地缓存目录下所有文件
 	DeleteAllEmotionFile();
 	// 删除所有高级表情item
-	removeAllEmotionItem();
+	RemoveAllEmotionItem();
 
 	m_configItem = configItem;
 
@@ -200,7 +229,7 @@ bool LCEmotionManager::UpdateConfigItem(const OtherEmotionConfigItem& configItem
 	// 设置下载路径
 	SetDownloadPath(m_configItem.path);
 	// 添加高级表情
-	addEmotionsWithConfigItem(m_configItem);
+	AddEmotionsWithConfigItem(m_configItem);
 
 	return true;
 }
@@ -215,20 +244,20 @@ OtherEmotionConfigItem LCEmotionManager::GetConfigItem() const
 // 添加配置item的高级表情至map
 void LCEmotionManager::AddEmotionsWithConfigItem(const OtherEmotionConfigItem& configItem)
 {
-	addEmotions(configItem.manEmotionList);
-	addEmotions(configItem.ladyEmotionList);
+	AddEmotions(configItem.manEmotionList);
+	AddEmotions(configItem.ladyEmotionList);
 }
 
 // 批量添加高级表情至map
 void LCEmotionManager::AddEmotions(const OtherEmotionConfigItem::EmotionList& emotionList)
 {
-	for (OtherEmotionConfigItem::EmotionList iter = emotionList.begin();
+	for (OtherEmotionConfigItem::EmotionList::const_iterator iter = emotionList.begin();
 			iter != emotionList.end();
 			iter++)
 	{
-		if (!(*iter)->fileName.empty())
+		if (!(*iter).fileName.empty())
 		{
-			GetEmotion(emotionItem->fileName);
+			GetEmotion((*iter).fileName);
 		}
 	}
 }
@@ -236,23 +265,23 @@ void LCEmotionManager::AddEmotions(const OtherEmotionConfigItem::EmotionList& em
 // 添加高级表情至map
 bool LCEmotionManager::AddEmotion(LCEmotionItem* item)
 {
-	boolean result = false;
-	if (NULL != item && !item->emotionId.empty())
+	bool result = false;
+	if (NULL != item && !item->m_emotionId.empty())
 	{
 		LockEmotionMap();
 
 		// add to map
-		EmotionMap::const_iterator emotionIter = m_emotionMap.find(item->emotionId);
-		if (m_emotionMap.end() != emotionIter)
+		EmotionMap::const_iterator emotionIter = m_emotionMap.find(item->m_emotionId);
+		if (m_emotionMap.end() == emotionIter)
 		{
 			// 判断image文件是否存在，若存在则赋值
-			string imagePath = GetImagePath((*emotionIter).second->emotionId);
+			string imagePath = GetImagePath(item->m_emotionId);
 			if (IsFileExist(imagePath))
 			{
 				item->m_imagePath = imagePath;
 			}
 
-			m_emotionMap.insert(EmotionMap::value_type(item->emotionId, item));
+			m_emotionMap.insert(EmotionMap::value_type(item->m_emotionId, item));
 			result = true;
 		}
 
@@ -367,13 +396,13 @@ string LCEmotionManager::GetPlayMidImageUrl(const string& emotionId)
 // 获取播放中图路径
 string LCEmotionManager::GetPlayMidImagePath(const string& emotionId)
 {
-	return getImageDir() + emotionId + g_playMidPath;
+	return GetImageDir() + emotionId + g_playMidPath;
 }
 
 // 获取播放中图的子图路径(带%s，需要转换)
 string LCEmotionManager::GetPlayMidSubImagePath(const string& emotionId)
 {
-	return GetImageDir() + emotionId + m_playMidPath + m_playSubPath;
+	return GetImageDir() + emotionId + g_playMidPath + g_playSubPath;
 }
 
 // 获取播放小图的下载URL
@@ -385,7 +414,7 @@ string LCEmotionManager::GetPlaySmallImageUrl(const string& emotionId)
 // 获取播放小图路径
 string LCEmotionManager::GetPlaySmallImagePath(const string& emotionId)
 {
-	return getImageDir() + emotionId + g_playSmallPath;
+	return GetImageDir() + emotionId + g_playSmallPath;
 }
 
 // 获取播放小图的子图路径(带%s，需要转换)
@@ -429,11 +458,11 @@ bool LCEmotionManager::AddSendingItem(LCMessageItem* item)
 
 	LockToSendMap();
 
-	if (item->msgType == MessageType.Emotion
+	if (item->m_msgType == LCMessageItem::MT_Emotion
 		&& NULL != item->GetEmotionItem()
-		&& m_toSendMap.end() == m_toSendMap.find(item->msgId))
+		&& m_toSendMap.end() == m_toSendMap.find(item->m_msgId))
 	{
-		m_toSendMap.insert(ToSendMap::value_type(item->msgId, item));
+		m_toSendMap.insert(ToSendMap::value_type(item->m_msgId, item));
 		result = true;
 	}
 
@@ -475,24 +504,29 @@ bool LCEmotionManager::StartDownloadImage(LCEmotionItem* item)
 	bool result = false;
 	LockImgDownloadMap();
 
-	if (!item->m_emotionId.empty()) {
-		EmotionDownloaderMap::iterator iter = m_imgDownloadMap.find(item->m_emotionId);
-		if (iter == m_imgDownloadMap.end()) {
-			LCEmotionDownloader* loader = new LCEmotionDownloader;
-			if (NULL != loader) {
-				result = loader->Start(
-						GetImageURL(item->m_emotionId)
-						, GetImagePath(item->m_emotionId)
-						, LCEmotionDownloader.fimage
-						, item
-						, this);
+	EmotionDownloaderMap::iterator iter = m_imgDownloadMap.find(item->m_emotionId);
+	if (iter == m_imgDownloadMap.end() && !item->m_emotionId.empty())
+	{
+		LCEmotionDownloader* loader = new LCEmotionDownloader;
+		if (NULL != loader) {
+			FileLog("LiveChatManager", "LCEmotionManager::StartDownloadImage() emotionId:%s"
+					, item->m_emotionId.c_str());
+			result = loader->Start(
+					GetImageURL(item->m_emotionId)
+					, GetImagePath(item->m_emotionId)
+					, LCEmotionDownloader::fimage
+					, item
+					, this
+					, m_httpUser
+					, m_httpPassword);
 
-				if (result) {
-					m_imgDownloadMap.insert(EmotionDownloaderMap::value_type(item->m_emotionId, item));
-				}
-				else {
-					delete loader;
-				}
+			FileLog("LiveChatManager", "LCEmotionManager::StartDownloadImage() emotionId:%s, result:%d"
+					, item->m_emotionId.c_str(), result);
+			if (result) {
+				m_imgDownloadMap.insert(EmotionDownloaderMap::value_type(item->m_emotionId, loader));
+			}
+			else {
+				delete loader;
 			}
 		}
 	}
@@ -535,10 +569,8 @@ bool LCEmotionManager::StopDownloadImage(LCEmotionItem* item)
 }
 
 // 停止所有image下载
-bool LCEmotionManager::StopAllDownloadImage()
+void LCEmotionManager::StopAllDownloadImage()
 {
-	bool result = false;
-
 	// 加锁
 	LockImgDownloadMap();
 
@@ -550,7 +582,6 @@ bool LCEmotionManager::StopAllDownloadImage()
 		LCEmotionDownloader* loader = (*iter).second;
 		if (NULL != loader) {
 			loader->Stop();
-			delete loader;
 		}
 	}
 	// 清空map表
@@ -558,7 +589,6 @@ bool LCEmotionManager::StopAllDownloadImage()
 
 	// 解锁
 	UnlockImgDownloadMap();
-	return result;
 }
 
 // 下载image map加锁
@@ -577,6 +607,65 @@ void LCEmotionManager::UnlockImgDownloadMap()
 	}
 }
 
+// 添加downloader到待释放列表(已下载完成，包括成功/失败)
+void LCEmotionManager::AddToFinishDownloaderList(LCEmotionDownloader* downloader)
+{
+	m_finishDownloaderList.lock();
+
+	FinishDownloaderItem item;
+	item.finishTime = getCurrentTime();
+	item.downloader = downloader;
+	m_finishDownloaderList.push_back(item);
+
+	m_finishDownloaderList.unlock();
+}
+
+// 释放所有待释放Downloader(已下载完成，包括成功/失败)
+void LCEmotionManager::ClearAllDownloader()
+{
+	m_finishDownloaderList.lock();
+
+	for (FinishDownloaderList::iterator iter = m_finishDownloaderList.begin();
+		iter != m_finishDownloaderList.end();
+		iter++)
+	{
+		delete (*iter).downloader;
+	}
+	m_finishDownloaderList.clear();
+
+	m_finishDownloaderList.unlock();
+}
+
+// 清除超过一段时间已下载完成的downloader
+void LCEmotionManager::ClearFinishDownloaderWithTimer()
+{
+	// 清除间隔时间（秒）
+	static const int stepSecond = 1 * 1000;
+
+	m_finishDownloaderList.lock();
+	while (true)
+	{
+		FinishDownloaderList::iterator iter = m_finishDownloaderList.begin();
+		if (iter != m_finishDownloaderList.end())
+		{
+			if (getCurrentTime() - (*iter).finishTime >= stepSecond)
+			{
+				// 超过限制时间
+				delete (*iter).downloader;
+				m_finishDownloaderList.erase(iter);
+				continue;
+			}
+			else {
+				break;
+			}
+		}
+		else {
+			break;
+		}
+	}
+	m_finishDownloaderList.unlock();
+}
+
 // ------------ 下载播放image ------------
 // 开始下载播放image
 bool LCEmotionManager::StartDownloadPlayImage(LCEmotionItem* item)
@@ -588,21 +677,26 @@ bool LCEmotionManager::StartDownloadPlayImage(LCEmotionItem* item)
 
 	// 创建downloader并开始下载
 	EmotionDownloaderMap::iterator iter = m_playImgDownloadMap.find(item->m_emotionId);
-	if (iter != m_playImgDownloadMap.end() && !item->m_emotionId.empty())
+	if (iter == m_playImgDownloadMap.end() && !item->m_emotionId.empty())
 	{
 		LCEmotionDownloader* loader = new LCEmotionDownloader;
-		result = loader.Start(
-				GetPlayBigImageUrl(item->m_emotionId)
-				, GetPlayBigImagePath(item->m_emotionId)
-				, LCEmotionDownloader::fplaybigimage
-				, item
-				, this);
+		if (NULL != loader)
+		{
+			result = loader->Start(
+					GetPlayBigImageUrl(item->m_emotionId)
+					, GetPlayBigImagePath(item->m_emotionId)
+					, LCEmotionDownloader::fplaybigimage
+					, item
+					, this
+					, m_httpUser
+					, m_httpPassword);
 
-		if (result) {
-			m_playImgDownloadMap.insert(EmotionDownloaderMap::value_type(item->m_emotionId, loader));
-		}
-		else {
-			delete loader;
+			if (result) {
+				m_playImgDownloadMap.insert(EmotionDownloaderMap::value_type(item->m_emotionId, loader));
+			}
+			else {
+				delete loader;
+			}
 		}
 	}
 
@@ -684,7 +778,7 @@ void LCEmotionManager::UnlockPlayDownloadMap()
 }
 
 // ------------- LCEmotionDownloaderCallback -------------
-void LCEmotionManager::onSuccess(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item)
+void LCEmotionManager::onSuccess(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item)
 {
 	if (NULL != m_callback)
 	{
@@ -701,7 +795,7 @@ void LCEmotionManager::onSuccess(LCEmotionDownloader::EmotionFileType fileType, 
 		} break;
 		case LCEmotionDownloader::fplaybigimage: {
 			bool result = false;
-			if (PngHandler::ConvertEmotionPng(item->m_playBigPath))
+			if (PngHandler::ConvertImage(item->m_playBigPath))
 			{
 				// 裁剪播放图片成功
 				result = item->SetPlayBigSubPath(GetPlayBigSubImagePath(item->m_emotionId));
@@ -728,9 +822,11 @@ void LCEmotionManager::onSuccess(LCEmotionDownloader::EmotionFileType fileType, 
 			break;
 		}
 	}
+
+	AddToFinishDownloaderList(downloader);
 }
 
-void LCEmotionManager::onFail(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item)
+void LCEmotionManager::onFail(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item)
 {
 	if (NULL != m_callback)
 	{
@@ -758,5 +854,7 @@ void LCEmotionManager::onFail(LCEmotionDownloader::EmotionFileType fileType, LCE
 			break;
 		}
 	}
+
+	AddToFinishDownloaderList(downloader);
 }
 

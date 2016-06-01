@@ -14,7 +14,7 @@ using namespace std;
 
 #include <common/KMutex.h>
 
-#include "HttpRequest.h"
+#include <httpclient/HttpRequest.h>
 
 #include "HttpRequestHostManager.h"
 

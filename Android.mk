@@ -7,7 +7,7 @@
 #
 
 COMMON_C_LIBRARY_PATH := $(call my-dir)
-LIBRARY_THIRDY_PARTY_PATH: = $(COMMON_C_LIBRARY_PATH)/third_party
+COMMON_C_THIRDY_PARTY_PATH := $(COMMON_C_LIBRARY_PATH)/third_party
 
 include $(COMMON_C_LIBRARY_PATH)/Function.mk
 include $(call all-subdir-makefiles)

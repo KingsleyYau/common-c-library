@@ -8,6 +8,7 @@
 
 #include "RequestEnumDefine.h"
 #include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 static char CountryArray[][3] = {
 		"AF",

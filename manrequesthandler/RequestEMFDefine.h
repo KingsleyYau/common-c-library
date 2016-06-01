@@ -150,6 +150,7 @@ typedef list<string>	SendMsgAttachs;	// 附件ID数组
 #define EMF_SENDMSG_SENDTIME		"sendTime"
 // error item
 #define EMF_SENDMSG_MONEY			"money"
+#define EMF_MEMBER_TYPE             "type"
 
 // 追加邮件附件（已废弃）
 #define EMF_UPLOADIMAGE_PATH	"/emf/uploadimage"
@@ -183,7 +184,7 @@ typedef list<string>	SendMsgAttachs;	// 附件ID数组
 #define EMF_ADMIRERLIST_PHOTOURL	"photoURL"
 #define EMF_ADMIRERLIST_SENDTIME	"sendTime"
 #define EMF_ADMIRERLIST_ATTACHNUM	"attachnum"
-
+#define EMF_ADMIRERLIST_TEMPLATE_TYPE	"template_type"
 // 查询意向信详细信息
 #define EMF_ADMIRERVIEWER_PATH	"/emf/admirerviewer"
 // item
@@ -303,7 +304,7 @@ static const char* EMF_UPLOADATTACH_TYPE[] =
 	"1",	// 图片
 };
 
-static char* PRIVITE_PHOTO_SIZE_ARRAY[] = {
+static const char* PRIVITE_PHOTO_SIZE_ARRAY[] = {
 	"l",
 	"m",
 	"s",
@@ -311,7 +312,7 @@ static char* PRIVITE_PHOTO_SIZE_ARRAY[] = {
 };
 
 // 回复类型
-static char* REPLY_TYPE_ARRAY[] = {
+static const char* REPLY_TYPE_ARRAY[] = {
 	"emf",
 	"adr"
 };

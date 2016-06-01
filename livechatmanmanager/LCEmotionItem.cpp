@@ -7,6 +7,7 @@
 
 #include "LCEmotionItem.h"
 #include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 LCEmotionItem::LCEmotionItem()
 {
@@ -39,7 +40,7 @@ bool LCEmotionItem::Init(const string& emotionId
 				m_imagePath = imagePath;
 			}
 
-			if ( IsFileExist(playBigSubPath) )
+			if ( IsFileExist(playBigPath) )
 			{
 				m_playBigPath = playBigPath;
 			}
@@ -62,10 +63,10 @@ bool LCEmotionItem::SetPlayBigSubPath(const string& playBigSubPath)
 		char tempPath[2048] = {0};
 		for (i = 0; true; i++)
 		{
-			snprintf(tempPath, sizeof(tempPath), playBigSubPath, i);
+			snprintf(tempPath, sizeof(tempPath), playBigSubPath.c_str(), i);
 			if ( IsFileExist(tempPath) )
 			{
-				m_playBigPaths.push_back(tempPath);
+				tempPlayBigPaths.push_back(tempPath);
 			}
 			else
 			{

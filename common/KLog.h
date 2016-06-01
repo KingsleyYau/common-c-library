@@ -12,29 +12,28 @@
 #include <string>
 using namespace std;
 
+#ifndef _WIN32
 #include <dirent.h>
 #include <sys/stat.h>
+#endif
+
+#define DLog(tag, format, ...)
+#define ILog DLog
+#define ELog DLog
 
 #ifdef PRINT_JNI_LOG /* logcat */
-#include <android/log.h>
-
-#define DLog(tag, format, ...) __android_log_print(ANDROID_LOG_DEBUG, tag, format, ## __VA_ARGS__)
-#define ILog(tag, format, ...) __android_log_print(ANDROID_LOG_INFO, tag, format, ## __VA_ARGS__)
-#define ELog(tag, format, ...) __android_log_print(ANDROID_LOG_ERROR, tag, format, ## __VA_ARGS__)
 
 #if	defined(FILE_JNI_LOG) /* file */
 #define FileLog(fileNamePre, format, ...) KLog::LogToFile(fileNamePre, 1, NULL, format,  ## __VA_ARGS__)
-#elif defined(CONSLE_JNI_LOG) /* consle */
-#define FileLog(fileNamePre, format, ...) printf(format, ## __VA_ARGS__)
-#else
-#define FileLog(fileNamePre, format, ...) DLog(fileNamePre, format,  ## __VA_ARGS__) /* logcat杈撳嚭 */
+//#elif defined(CONSLE_JNI_LOG) /* consle */
+//#define FileLog(fileNamePre, format, ...) printf(format, ## __VA_ARGS__)
+//#else
+//#define FileLog(fileNamePre, format, ...) DLog(fileNamePre, format,  ## __VA_ARGS__) /* logcat杈撳嚭 */
 #endif /* FILE_JNI_LOG */
 
 #else /* no log */
 #define FileLog(fileNamePre, format, ...)
-#define DLog(tag, format, ...)
-#define ILog DLog
-#define ELog DLog
+
 #endif /* PRINT_JNI_LOG */
 
 class KLog {
@@ -46,6 +45,6 @@ public:
 };
 
 // add by samson，把定义放到头文件，给外部知道
-#define MAX_LOG_BUFFER 512 * 1024
+#define MAX_LOG_BUFFER 200 * 1024
 
 #endif

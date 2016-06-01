@@ -15,9 +15,10 @@ using namespace std;
 #include "../common/KLog.h"
 
 typedef enum SiteType {
-	AppSite,
-	WebSite,
-	ChatVoiceSite,
+	AppSite,		// app站点
+	WebSite,		// www站点
+	ChatVoiceSite,	// 语音文件站点
+	TransSite,		// 翻译站点
 } SiteType;
 
 class HttpRequestHostManager {
@@ -26,17 +27,20 @@ public:
 	virtual ~HttpRequestHostManager();
 
 	string GetHostByType(SiteType type);
-	void SetWebSite(string webSite);
+	void SetWebSite(const string& webSite);
 	string GetWebSite();
-	void SetAppSite(string appSite);
+	void SetAppSite(const string& appSite);
 	string GetAppSite();
-	void SetChatVoiceSite(string chatVoiceSite);
+	void SetChatVoiceSite(const string& chatVoiceSite);
 	string GetChatVoiceSite();
+	void SetTransSite(const string& transSite);
+	string GetTransSite();
 
 private:
 	string mWebSite;
 	string mAppSite;
 	string mChatVoiceSite;
+	string mTransSite;
 };
 
 #endif /* HTTPREQUESTHOSTMANAGER_H_ */

@@ -7,13 +7,13 @@
  */
 
 #include "SimulatorRecognition.h"
-#include "IPAddress.h"
+#include <common/IPAddress.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <algorithm>
-#include "command.h"
-#include "KLog.h"
+#include <common/command.h>
+#include <common/KLog.h>
 
 #include <stdint.h>
 

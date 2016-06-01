@@ -8,8 +8,9 @@
 
 #include "UploadDeviceTypeTask.h"
 #include "ILiveChatClient.h"
-#include <AmfParser.h>
-#include <json/json.h>
+#include <amf/AmfParser.h>
+#include <json/json/json.h>
+#include <common/CheckMemoryLeak.h>
 
 // 协议定义
 #define DEVICETYPE_ANDROID	30	// Android设备

@@ -6,10 +6,13 @@
  */
 
 #include "LCWarningItem.h"
+#include <common/CheckMemoryLeak.h>
 
 LCWarningItem::LCWarningItem()
 {
+	m_codeType = MESSAGE;
 	m_message = "";
+	m_linkItem = NULL;
 }
 
 LCWarningItem::~LCWarningItem()
@@ -19,13 +22,15 @@ LCWarningItem::~LCWarningItem()
 
 bool LCWarningItem::Init(const string& message)
 {
+	m_codeType = MESSAGE;
 	m_message = message;
 	return true;
 }
 
-bool LCWarningItem::Init(const string& message, const LCWarningLinkItem& linkItem)
+bool LCWarningItem::Init(const string& message, LCWarningLinkItem* linkItem)
 {
+	m_codeType = MESSAGE;
 	m_message = message;
-	m_linkType = linkType;
+	m_linkItem = linkItem;
 	return true;
 }

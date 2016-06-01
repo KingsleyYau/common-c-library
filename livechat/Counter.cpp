@@ -7,8 +7,8 @@
 
 #include <stdio.h>
 #include "Counter.h"
-#include "IAutoLock.h"
-#include "CommonDef.h"
+#include <common/IAutoLock.h>
+#include <common/CheckMemoryLeak.h>
 
 Counter::Counter(void)
 {
@@ -20,10 +20,7 @@ Counter::Counter(void)
 
 Counter::~Counter(void)
 {
-	if (m_bInit) {
-		IAutoLock::ReleaseAutoLock(m_lock);
-		m_lock = NULL;
-	}
+	Uninit();
 }
 
 // 初始化
@@ -44,6 +41,14 @@ bool Counter::Init(int begin, int step)
 		}
 	}
 	return m_bInit;
+}
+
+void Counter::Uninit()
+{
+	IAutoLock::ReleaseAutoLock(m_lock);
+	m_lock = NULL;
+
+	m_bInit = false;
 }
 
 // 重置计数

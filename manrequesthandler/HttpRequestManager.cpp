@@ -8,6 +8,7 @@
 
 #include "HttpRequestManager.h"
 #include "RequestDefine.h"
+#include <common/CheckMemoryLeak.h>
 
 HttpRequestManager::HttpRequestManager() {
 	// TODO Auto-generated constructor stub
@@ -51,7 +52,7 @@ long HttpRequestManager::StartRequest(string path, HttpEntiy& entiy, IHttpReques
 			callback
 			);
 
-	long requestId = -1;
+	long requestId = HTTPREQUEST_INVALIDREQUESTID;
 
 	string host = mHttpRequestHostManager->GetHostByType(type);
 

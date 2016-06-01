@@ -16,7 +16,9 @@ using namespace std;
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#ifndef IOS
 #include <net/if_arp.h>
+#endif
 #include <resolv.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -47,9 +49,10 @@ protected:
 	unsigned int GetTick();
 	bool IsTimeout(unsigned int uiStart, unsigned int uiTimeout);
 
-	socket_type mSocket;
+	socket_type m_Socket;
 
-	bool mbBlocking;
+	// 鏄惁闃诲
+	bool m_bBlocking;
 };
 
 #endif /* KSocket_H_ */

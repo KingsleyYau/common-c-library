@@ -189,7 +189,7 @@ void RequestAdvertController::WomanListAdvertCallbackHandle(long requestId, cons
 // ----------------------- PushAdvert -----------------------
 long RequestAdvertController::PushAdvert(const string& deviceId, const string& pushId)
 {
-	char temp[16];
+//	char temp[16];
 	HttpEntiy entiy;
 
 	// deviceId

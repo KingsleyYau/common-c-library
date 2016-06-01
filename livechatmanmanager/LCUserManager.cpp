@@ -6,11 +6,15 @@
  */
 
 #include "LCUserManager.h"
-#include "IAutoLock.h"
+#include <common/IAutoLock.h>
+#include <common/CheckMemoryLeak.h>
 
 LCUserManager::LCUserManager()
 {
 	m_userMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_userMapLock) {
+		m_userMapLock->Init();
+	}
 }
 
 LCUserManager::~LCUserManager()
@@ -152,10 +156,10 @@ LCUserList LCUserManager::GetInviteUsers()
 		}
 	}
 	// 排序
-	userList.sort(LCUserItem::Sort());
+	userList.sort(LCUserItem::Sort);
 	UnlockUserMap();
 
-	return list;
+	return userList;
 }
 
 // 获取在聊的用户item（包括付费和试聊券）
@@ -170,7 +174,7 @@ LCUserList LCUserManager::GetChatingUsers()
 	{
 		LCUserItem* userItem = (*iter).second;
 		if (userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_CHARGE
-			|| userItem_m_charType == LCUserItem::LC_CHATTYPE_IN_CHAT_USE_TRY_TICKET)
+			|| userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_USE_TRY_TICKET)
 		{
 			userList.push_back(userItem);
 		}

@@ -291,7 +291,6 @@ void RequestEMFController::InboxMsgCallbackHandle(long requestId, const string& 
 							url.c_str(), size, buf);
 			}
 		}
-
 	}
 	else {
 		// request fail
@@ -457,7 +456,7 @@ void RequestEMFController::OutboxMsgCallbackHandle(long requestId, const string&
 // ----------------------- MsgTotal -----------------------
 long RequestEMFController::MsgTotal(int sortType)
 {
-	char temp[16];
+//	char temp[16];
 	HttpEntiy entiy;
 	string strSortType("");
 	if (sortType < _countof(EMF_SORTBY_TYPE)) {
@@ -863,7 +862,7 @@ void RequestEMFController::AdmirerListCallbackHandle(long requestId, const strin
 // ----------------------- AdmirerViewer -----------------------
 long RequestEMFController::AdmirerViewer(const string& messageid)
 {
-	char temp[16] = {0};
+//	char temp[16] = {0};
 	HttpEntiy entiy;
 	// messageid
 	entiy.AddContent(EMF_REQUEST_MESSAGEID, messageid.c_str());
@@ -1524,7 +1523,7 @@ long RequestEMFController::GetVideoUrl(
 		string messageid
 		) {
 	HttpEntiy entiy;
-	char temp[32] = {0};
+//	char temp[32] = {0};
 
 	string url = EMF_SHORTVIDEOURL_PATH;
 
@@ -1594,7 +1593,6 @@ void RequestEMFController::GetVideoUrlCallbackHandle(long requestId, const strin
 							url.c_str(), size, buf);
 			}
 		}
-
 	}
 	else {
 		// request fail

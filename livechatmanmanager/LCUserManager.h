@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "LCUserItem.h"
 #include <string>
 #include <map>
 using namespace std;

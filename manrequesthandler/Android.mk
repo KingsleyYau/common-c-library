@@ -15,18 +15,15 @@ LOCAL_MODULE := manrequesthandler
 
 LOCAL_MODULE_FILENAME := libmanrequesthandler
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../
-LOCAL_C_INCLUDES += $(LIBRARY_THIRDY_PARTY_PATH)
-LOCAL_C_INCLUDES += $(LIBRARY_THIRDY_PARTY_PATH)/curl/include/
-LOCAL_C_INCLUDES += $(LIBRARY_THIRDY_PARTY_PATH)/openssl/include/
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../httpclient
+LOCAL_C_INCLUDES := $(COMMON_C_LIBRARY_PATH)
+LOCAL_C_INCLUDES += $(COMMON_C_THIRDY_PARTY_PATH)
 
 LOCAL_CFLAGS = -fpermissive -Wno-write-strings
 
 LOCAL_LDLIBS += -llog
 
-LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../third_party/openssl/lib/$(TARGET_ARCH)
-LOCAL_LDLIBS += -lz -lssl -lcrypto
+#LOCAL_LDFLAGS += -L$(LOCAL_PATH)/../third_party/openssl/lib/$(TARGET_ARCH)
+#LOCAL_LDLIBS += -lssl -lcrypto#-lz 
 
 LOCAL_STATIC_LIBRARIES += zip
 LOCAL_STATIC_LIBRARIES += common
@@ -42,5 +39,6 @@ LOCAL_CPPFLAGS	+= -fpermissive
 
 REAL_PATH := $(realpath $(LOCAL_PATH))
 LOCAL_SRC_FILES := $(call all-cpp-files-under, $(REAL_PATH))
+LOCAL_SRC_FILES += item/LadyDetail.cpp
 
 include $(BUILD_STATIC_LIBRARY)

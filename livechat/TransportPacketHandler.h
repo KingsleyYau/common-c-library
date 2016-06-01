@@ -19,7 +19,7 @@ public:
 	// 组包
 	virtual bool Packet(ITask* task, void* data, unsigned int dataSize, unsigned int& dataLen);
 	// 解包
-	virtual UNPACKET_RESULT_TYPE Unpacket(void* data, unsigned int dataLen, TransportProtocol** ppTp, unsigned int& useLen);
+	virtual UNPACKET_RESULT_TYPE Unpacket(void* data, unsigned int dataLen, unsigned int maxLen, TransportProtocol** ppTp, unsigned int& useLen);
 
 private:
 	// 移位解密

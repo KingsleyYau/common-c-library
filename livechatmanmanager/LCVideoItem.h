@@ -7,11 +7,24 @@
 
 #pragma once
 
+#include <manrequesthandler/RequestLiveChatDefine.h>
 #include <string>
+#include <common/list_lock.h>
 using namespace std;
+
+namespace lcmm
+{
 
 class LCVideoItem
 {
+public:
+	// 视频处理状态
+	typedef enum {
+		Unknow,						// 未知状态
+		VideoFee,					// 正在付费
+	} ProcessStatus;
+	typedef list_lock<ProcessStatus> ProcessStatusList;
+
 public:
 	LCVideoItem();
 	virtual ~LCVideoItem();
@@ -22,30 +35,23 @@ public:
 		const string& videoId
 		, const string& sendId
 		, const string& videoDesc
-		, const string& bigPhotoFilePath
-		, const string& thumbPhotoFilePath
 		, const string& videoUrl
-		, const string& videoFilePath
 		, bool charge);
 
-	// 更新视频图片下载标志
-	void UpdatePhotoDownloadSign(VIDEO_PHOTO_TYPE type, bool isDownloading);
-
-	// 更新视频图片路径
-	void UpdatePhotoPathWithType(const string& filePath, VIDEO_PHOTO_TYPE type);
+	// 添加/删除视频付费状态
+	void AddProcessStatusFee();
+	void RemoveProcessStatusFee();
+	// 判断视频是否付费状态
+	bool IsFee();
 
 public:
 	string	m_videoId;				// 视频ID
-	string	m_videoDesc;			// 视频描述
 	string	m_sendId;				// 发送ID
+	string	m_videoDesc;			// 视频描述
 	string	m_videoUrl;				// 视频URL
-	string	m_thumbPhotoFilePath;	// 小图路径
-	string	m_bigPhotoFilePath;		// 大图路径
-	string	m_videoFilePath;		// 视频路径
 	bool	m_charge;				// 是否已付费
-	bool	m_isVideoFeeding;		// 是否正在付费
-	bool	m_isThumbPhotoDownloading;	// 是否正在下载小图
-	bool	m_isBigPhotoDownloading;	// 是否正在下载大图
-	bool	m_isVideoDownloading;		// 是否正在下载视频
-	int		m_videoDownloadProgress;	// 视频下载进度(0-100)
+private:
+	ProcessStatusList m_statusList;	// 处理状态列表
 };
+
+}

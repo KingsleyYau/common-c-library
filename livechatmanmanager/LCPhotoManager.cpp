@@ -7,32 +7,79 @@
 
 #include "LCPhotoManager.h"
 #include "LCMessageItem.h"
-#include <HttpRequestDefine.h>
-#include <RequestLiveChatDefine.h>
-#include <CommonFunc.h>
-#include <md5.h>
+#include "LCUserItem.h"
+#include <httpclient/HttpRequestDefine.h>
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <common/CommonFunc.h>
+#include <common/md5.h>
+#include <common/IAutoLock.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 LCPhotoManager::LCPhotoManager()
 {
+	m_requestMgr = NULL;
+	m_requestController = NULL;
+
 	m_dirPath = "";
+
+	m_sendingMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_sendingMapLock) {
+		m_sendingMapLock->Init();
+	}
 }
 
 LCPhotoManager::~LCPhotoManager()
 {
+	IAutoLock::ReleaseAutoLock(m_sendingMapLock);
 
+	ClearAllDownload();
 }
 
 // 初始化
-bool LCPhotoManager::Init(const string& dirPath)
+bool LCPhotoManager::Init(LCPhotoManagerCallback* callback)
 {
-	m_dirPath = dirPath;
-	if (!m_dirPath.empty()
-		&& m_dirPath.at(m_dirPath.length() -1) != '/'
-		&& m_dirPath.at(m_dirPath.length() -1) != '\\')
+	bool result = false;
+	if (NULL != callback)
 	{
-		m_dirPath += "/";
+		m_callback = callback;
+		result = true;
 	}
-	return !m_dirPath.empty();
+	return result;
+}
+
+// 初始化
+bool LCPhotoManager::SetDirPath(const string& dirPath)
+{
+	bool result = false;
+
+	if (!dirPath.empty())
+	{
+		m_dirPath = dirPath;
+		if (m_dirPath.at(m_dirPath.length() -1) != '/'
+			&& m_dirPath.at(m_dirPath.length() -1) != '\\')
+		{
+			m_dirPath += "/";
+
+			// 创建目录
+			result = MakeDir(m_dirPath);
+		}
+	}
+	return result;
+}
+
+// 设置http接口参数
+bool LCPhotoManager::SetHttpRequest(HttpRequestManager* requestMgr, RequestLiveChatController* requestController)
+{
+	bool result = false;
+	if (NULL != requestMgr
+		&& NULL != requestController)
+	{
+		m_requestMgr = requestMgr;
+		m_requestController = requestController;
+		result = true;
+	}
+	return result;
 }
 
 // 获取图片本地缓存文件路径
@@ -80,51 +127,38 @@ string LCPhotoManager::GetPhotoPathWithMode(const string& photoId, GETPHOTO_PHOT
 	return path;
 }
 
-// 获取图片临时文件路径
-string LCPhotoManager::GetTempPhotoPath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
-{
-	string path = "";
-	if (item->m_msgType == LCMessageItem::MT_Photo && NULL != item->GetPhotoItem()
-			&& !item->GetPhotoItem()->m_photoId.empty() && !m_dirPath.empty())
-	{
-		path = GetPhotoPath(item->GetPhotoItem()->m_photoId, modeType, sizeType);
-		path += "_temp";
-	}
-	return path;
-}
-
-// 下载完成的临时文件转换成图片文件
-bool LCPhotoManager::TempToPhoto(LCMessageItem* item, const string& tempPath, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+// 下载完成设置文件路径
+bool LCPhotoManager::SetPhotoFilePath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
 {
 	bool result = false;
-	if (!tempPath.empty()
-			&& item->m_msgType == LCMessageItem::MT_Photo && NULL != item->GetPhotoItem())
+	if (item->m_msgType == LCMessageItem::MT_Photo && NULL != item->GetPhotoItem())
 	{
 		LCPhotoItem* photoItem = item->GetPhotoItem();
 		string path = GetPhotoPath(photoItem->m_photoId, modeType, sizeType);
-		if (!path.empty()) {
-			if (RenameFile(tempPath, path))
+		if (IsFileExist(path))
+		{
+			result = true;
+			LCPhotoItem::ProcessStatus status = LCPhotoItem::GetProcessStatus(modeType, sizeType);
+			switch (status)
 			{
-				switch (photoItem->m_statusType)
-				{
-				case DownloadShowFuzzyPhoto:
-					photoItem->m_showFuzzyFilePath = path;
-					break;
-				case DownloadThumbFuzzyPhoto:
-					photoItem->m_thumbFuzzyFilePath = path;
-					break;
-				case DownloadShowSrcPhoto:
-					photoItem->m_showSrcFilePath = path;
-					break;
-				case DownloadThumbSrcPhoto:
-					photoItem->m_thumbSrcFilePath = path;
-					break;
-				case DownloadSrcPhoto:
-					photoItem->m_srcFilePath = path;
-					break;
-				default:
-					break;
-				}
+			case LCPhotoItem::DownloadShowFuzzyPhoto:
+				photoItem->m_showFuzzyFilePath = path;
+				break;
+			case LCPhotoItem::DownloadThumbFuzzyPhoto:
+				photoItem->m_thumbFuzzyFilePath = path;
+				break;
+			case LCPhotoItem::DownloadShowSrcPhoto:
+				photoItem->m_showSrcFilePath = path;
+				break;
+			case LCPhotoItem::DownloadThumbSrcPhoto:
+				photoItem->m_thumbSrcFilePath = path;
+				break;
+			case LCPhotoItem::DownloadSrcPhoto:
+				photoItem->m_srcFilePath = path;
+				break;
+			default:
+				result = false;
+				break;
 			}
 		}
 	}
@@ -182,7 +216,7 @@ void LCPhotoManager::RemoveAllPhotoFile()
 {
 	if (!m_dirPath.empty())
 	{
-		ClearDir(m_dirPath);
+		CleanDir(m_dirPath);
 	}
 }
 
@@ -209,10 +243,10 @@ void LCPhotoManager::CombineMessageItem(LCUserItem* userItem)
 					&& !item->GetPhotoItem()->m_photoId.empty())
 				{
 					if (item->m_sendType == LCMessageItem::SendType_Recv) {
-						womanPhotoList.add(item);
+						womanPhotoList.push_back(item);
 					}
 					else if (item->m_sendType == LCMessageItem::SendType_Send) {
-						manPhotoList.add(item);
+						manPhotoList.push_back(item);
 					}
 				}
 			}
@@ -236,7 +270,7 @@ void LCPhotoManager::CombineMessageItem(LCUserItem* userItem)
 							&& manPhotoItem->m_sendId == womanPhotoItem->m_sendId)
 						{
 							// 男士发出的图片ID与女士发出的图片ID一致，需要合并
-							userItem->m_msgList.erase(manItem);
+							userItem->m_msgList.remove(manItem);
 							womanPhotoItem->m_charge = true;
 						}
 					}
@@ -290,91 +324,6 @@ void LCPhotoManager::ClearAllSendingItems()
 	UnlockSendingMap();
 }
 
-// --------------------------- Uploading/Download Photo（正在上传/下载 ） -------------------------
-// 获取正在上传/下载的RequestId
-long LCPhotoManager::GetRequestIdWithItem(LCMessageItem* item)
-{
-	long requestId = HTTPREQUEST_INVALIDREQUESTID;
-
-	LockRequestMsgMap();
-	RequestMsgMap::iterator iter = m_requestMsgMap.find(item->m_msgId);
-	if (iter != m_requestMsgMap.end())
-	{
-		requestId = (*iter).second;
-	}
-	UnlockRequestMsgMap();
-
-	return requestId;
-}
-
-// 获取并移除正在上传/下载的item
-LCMessageItem* LCPhotoManager::GetAndRemoveRequestItem(long requestId)
-{
-	LCMessageItem* item = NULL;
-
-	LockRequestIdMap();
-	RequestIdMap::iterator iter = m_requestIdMap.find(requestId);
-	if (iter != m_requestIdMap.end())
-	{
-		item = (*iter).second;
-		m_requestIdMap.erase(iter);
-	}
-	UnlockRequestIdMap();
-
-	return item;
-}
-
-// 添加正在上传/下载的item
-bool LCPhotoManager::AddRequestItem(long requestId, LCMessageItem* item)
-{
-	bool result = false;
-
-	LockRequestIdMap();
-	LockRequestMsgMap();
-
-	if (item->m_msgType == LCMessageItem::MT_Photo
-			&& NULL != item->GetPhotoItem()
-			&& requestId != HTTPREQUEST_INVALIDREQUESTID)
-	{
-		if (m_requestIdMap.end() == m_requestIdMap.find(requestId))
-		{
-			m_requestIdMap.insert(RequestIdMap::value_type(requestId, item));
-		}
-
-		if (m_requestMsgMap.end() == m_requestMsgMap.find(item->m_msgId))
-		{
-			m_requestMsgMap.insert(RequestMsgMap::value_type(item->m_msgId, requestId));
-		}
-
-		result = true;
-	}
-	UnlockRequestMsgMap();
-	UnlockRequestIdMap();
-
-	return result;
-}
-
-// 清除所有正在上传/下载的item
-list<long> LCPhotoManager::ClearAllRequestItems()
-{
-	list<long> requestIdList;
-	LockRequestIdMap();
-	LockRequestMsgMap();
-
-	for (RequestMsgMap::iterator iter = m_requestMsgMap.begin();
-			iter != m_requestMsgMap.end();
-			iter++)
-	{
-		requestIdList.push_back((*iter).second);
-	}
-	m_requestMsgMap.clear();
-	m_requestIdMap.clear();
-
-	UnlockRequestIdMap();
-	UnlockRequestMsgMap();
-	return requestIdList;
-}
-
 // 正在发送消息map表加锁
 void LCPhotoManager::LockSendingMap()
 {
@@ -391,35 +340,242 @@ void LCPhotoManager::UnlockSendingMap()
 	}
 }
 
-// 正在上传/下载map表加锁(requestId, LCMessageItem)
-void LCPhotoManager::LockRequestIdMap()
+// --------------------------- Download Photo（正在下载 ） -------------------------
+// 下载图片
+bool LCPhotoManager::DownloadPhoto(
+			LCMessageItem* item
+			, const string& userId
+			, const string& sid
+			, GETPHOTO_PHOTOSIZE_TYPE sizeType
+			, GETPHOTO_PHOTOMODE_TYPE modeType)
 {
-	if (NULL != m_requestIdMapLock) {
-		m_requestIdMapLock->Lock();
+	bool result = false;
+
+	FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() begin!");
+
+	if (NULL != item
+		&& NULL != item->GetUserItem()
+		&& !item->GetUserItem()->m_userId.empty()
+		&& LCMessageItem::MT_Photo == item->m_msgType
+		&& NULL != item->GetPhotoItem()
+		&& !item->GetPhotoItem()->m_photoId.empty()
+		&& !userId.empty()
+		&& !sid.empty())
+	{
+		result = item->GetPhotoItem()->IsProcessStatus(modeType, sizeType);
+		FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() IsProcessStatus result:%d", result);
+		if (!result)
+		{
+			// 还未处理
+			LCPhotoDownloader* downloader = new LCPhotoDownloader;
+			if (NULL != downloader)
+			{
+				result = downloader->Init(m_requestMgr, m_requestController, this);
+				FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() downloader->Init result:%d", result);
+				result = result && downloader->StartGetPhoto(
+										this
+										, item
+										, userId
+										, sid
+										, sizeType
+										, modeType);
+
+				FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() downloader->StartGetPhoto result:%d", result);
+				if (!result) {
+					// 下载启动失败
+					delete downloader;
+				}
+				else {
+					bool insertResult = false;
+					// 下载启动成功
+					m_downloadMap.lock();
+					insertResult = m_downloadMap.insertItem(downloader->GetRequestId(), downloader);
+					m_downloadMap.unlock();
+
+					FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() insertItem requestId:%d, msgId:%d, downloader:%p, insertResult:%d"
+							, downloader->GetRequestId(), item->m_msgId, downloader, insertResult);
+				}
+			}
+		}
+	}
+	else {
+		FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() param error!");
+	}
+
+	FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() end");
+	return result;
+}
+
+// 下载完成的回调(IRequestLiveChatControllerCallback)
+void LCPhotoManager::OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath)
+{
+	FileLog("LiveChatManager", "LCPhotoManager::OnGetPhoto() begin, requestId:%d, success:%d, errnum:%s, errmsg:%s, filePath:%s"
+			, requestId, success, errnum.c_str(), errmsg.c_str(), filePath.c_str());
+
+	LCPhotoDownloader* downloader = NULL;
+	bool isFind = false;
+
+	// 找出对应的downloader
+	m_downloadMap.lock();
+	isFind = m_downloadMap.findWithKey(requestId, downloader);
+	m_downloadMap.unlock();
+
+	// 回调到downloader
+	if (isFind) {
+		downloader->OnGetPhoto(requestId, success, errnum, errmsg, filePath);
+		FileLog("LiveChatManager", "LCPhotoManager::OnGetPhoto() downloader->OnGetPhoto() ok, requestId:%d", requestId);
+	}
+
+	FileLog("LiveChatManager", "LCPhotoManager::OnGetPhoto() end, isFind:%d, requestId:%d, success:%d, errnum:%s, errmsg:%s, filePath:%s"
+			, isFind, requestId, success, errnum.c_str(), errmsg.c_str(), filePath.c_str());
+}
+
+// 清除超过一段时间已下载完成的downloader
+void LCPhotoManager::ClearFinishDownloaderWithTimer()
+{
+	// 清除间隔时间（1秒）
+	static const int stepSecond = 1 * 1000;
+
+	m_finishDownloaderList.lock();
+	for (FinishDownloaderList::iterator iter = m_finishDownloaderList.begin();
+		iter != m_finishDownloaderList.end();
+		iter = m_finishDownloaderList.begin())
+	{
+		if (getCurrentTime() - (*iter).finishTime >= stepSecond)
+		{
+			// 超过限制时间
+			delete (*iter).downloader;
+			m_finishDownloaderList.erase(iter);
+			continue;
+		}
+		else {
+			break;
+		}
+	}
+	m_finishDownloaderList.unlock();
+}
+
+// 清除下载
+void LCPhotoManager::ClearAllDownload()
+{
+	// 获取downloader并清空map
+	list<LCPhotoDownloader*> downloadList;
+	m_downloadMap.lock();
+	downloadList = m_downloadMap.getValueList();
+	m_downloadMap.clear();
+	m_downloadMap.unlock();
+
+	// 停止正在下载的downloader
+	for (list<LCPhotoDownloader*>::const_iterator iter = downloadList.begin();
+		iter != downloadList.end();
+		iter++)
+	{
+		// 停止下载（停止成功会回调到onFail()或onSuccess()，并移到已完成队列）
+		(*iter)->Stop();
+	}
+
+	// 释放已完成队列
+	ClearAllFinishDownloader();
+}
+
+// 清除所有已下载完成的downloader
+void LCPhotoManager::ClearAllFinishDownloader()
+{
+	m_finishDownloaderList.lock();
+	for (FinishDownloaderList::iterator iter = m_finishDownloaderList.begin();
+		iter != m_finishDownloaderList.end();
+		iter++)
+	{
+		delete (*iter).downloader;
+	}
+	m_finishDownloaderList.clear();
+	m_finishDownloaderList.unlock();
+}
+
+void LCPhotoManager::onSuccess(LCPhotoDownloader* downloader, LCMessageItem* item)
+{
+	// downloader添加到释放列表
+	FinishDownloaderItem finishItem;
+	finishItem.downloader = downloader;
+	finishItem.finishTime = getCurrentTime();
+	m_finishDownloaderList.lock();
+	m_finishDownloaderList.push_back(finishItem);
+	m_finishDownloaderList.unlock();
+
+	// 移除downloaderMap
+	m_downloadMap.lock();
+	m_downloadMap.eraseWithValue(downloader);
+	m_downloadMap.unlock();
+
+	// 回调
+	if (NULL != m_callback) {
+		m_callback->OnDownloadPhoto(true, "", "", item);
 	}
 }
 
-// 正在上传/下载map表解锁(requestId, LCMessageItem)
-void LCPhotoManager::UnlockRequestIdMap()
+void LCPhotoManager::onFail(LCPhotoDownloader* downloader, const string& errnum, const string& errmsg, LCMessageItem* item)
 {
-	if (NULL != m_requestIdMapLock) {
-		m_requestIdMapLock->Unlock();
+	// downloader添加到释放列表
+	FinishDownloaderItem finishItem;
+	finishItem.downloader = downloader;
+	finishItem.finishTime = getCurrentTime();
+	m_finishDownloaderList.lock();
+	m_finishDownloaderList.push_back(finishItem);
+	m_finishDownloaderList.unlock();
+
+	// 移除downloaderMap
+	m_downloadMap.lock();
+	m_downloadMap.eraseWithValue(downloader);
+	m_downloadMap.unlock();
+
+	// 回调
+	if (NULL != m_callback) {
+		m_callback->OnDownloadPhoto(false, errnum, errmsg, item);
 	}
 }
 
-// 正在上传/下载map表加锁(msgId, requestId)
-void LCPhotoManager::LockRequestMsgMap()
+// --------------------------- Request Photo（正在请求） -------------------------
+// 添加到正在请求的map表
+bool LCPhotoManager::AddRequestItem(long requestId, LCMessageItem* item)
 {
-	if (NULL != m_requestMsgMapLock) {
-		m_requestMsgMapLock->Lock();
+	bool result = false;
+	if (NULL != item
+		&& LCMessageItem::MT_Photo == item->m_msgType
+		&& NULL != item->GetPhotoItem()
+		&& LCMessageItem::StatusType_Processing == item->m_statusType)
+	{
+		m_requestMap.lock();
+		m_requestMap.insert(RequestMap::value_type(requestId, item));
+		m_requestMap.unlock();
+		result = true;
 	}
+	return result;
 }
 
-// 正在上传/下载map表解锁(msgId, requestId)
-void LCPhotoManager::UnlockRequestMsgMap()
+// 获取并移除正在请求的map表
+LCMessageItem* LCPhotoManager::GetAndRemoveRequestItem(long requestId)
 {
-	if (NULL != m_requestMsgMapLock) {
-		m_requestMsgMapLock->Unlock();
+	LCMessageItem* item = NULL;
+	m_requestMap.lock();
+	RequestMap::iterator iter = m_requestMap.find(requestId);
+	if (m_requestMap.end() != iter) {
+		item = (*iter).second;
 	}
+	m_requestMap.unlock();
+	return item;
 }
 
+// 获取并清除所有正在的请求
+list<long> LCPhotoManager::ClearAllRequestItems()
+{
+	list<long> result;
+	m_requestMap.lock();
+	for (RequestMap::const_iterator iter = m_requestMap.begin();
+		iter != m_requestMap.end();
+		iter++)
+	{
+		result.push_back((*iter).first);
+	}
+	m_requestMap.unlock();
+	return result;
+}

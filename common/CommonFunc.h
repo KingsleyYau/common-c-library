@@ -12,8 +12,10 @@
 #include <string>
 using namespace std;
 
+#ifndef _WIN32
 // 获取数组元素个数
 #define _countof(_Array) (sizeof(_Array) / sizeof(_Array[0]))
+#endif
 
 // 判断文件是否存在
 bool IsFileExist(const string& path);
@@ -37,7 +39,62 @@ bool InitRandom();
 // 获取random数
 int GetRandomValue();
 
-// 获取当前时间（Unix Timestamp）
-long GetCurrentTime();
+#ifdef WIN32
+	// include 头文件
+	#include <windows.h>
+	#include <stdio.h>
+	#include <time.h>
+	
+	// define
+	#define snprintf sprintf_s
+	#define usleep(x) Sleep((x/1000))
+
+	// function
+	inline int gettimeofday(struct timeval *tp, void *tzp)
+	{
+		time_t clock;
+		struct tm tm;
+		SYSTEMTIME wtm;
+
+		GetLocalTime(&wtm);
+		tm.tm_year = wtm.wYear - 1900;
+		tm.tm_mon = wtm.wMonth - 1;
+		tm.tm_mday = wtm.wDay;
+		tm.tm_hour = wtm.wHour;
+		tm.tm_min = wtm.wMinute;
+		tm.tm_sec  = wtm.wSecond;
+		tm. tm_isdst = -1;
+		clock = mktime(&tm);
+		tp->tv_sec = clock;
+		tp->tv_usec = wtm.wMilliseconds * 1000;
+
+		return (0);
+	}
+#else
+	// include 头文件
+	#include <stdio.h>
+	#include <sys/time.h>
+	#include <unistd.h>
+
+	// define
+	#define Sleep(ms)  usleep(ms * 1000)
+
+#endif
+
+// 获取当前时间（Unix Timestamp ms）
+inline long long getCurrentTime()
+{
+	long long result = 0;
+	struct timeval tv;
+	gettimeofday(&tv,NULL);
+	result =  (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+	return result;
+}
+
+inline long long DiffTime(long long start, long long end)
+{
+    return end - start;
+//	return (end > start ? end - start : (unsigned long)-1 - end + start);
+}
 
 #endif /* COMMONFUNCDEFINE_H_ */

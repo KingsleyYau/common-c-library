@@ -23,11 +23,6 @@ bool GetPhoneInfo();
 string GetPhoneInfo(string param);
 
 /*
- * IMEI
- */
-string GetPhoneIMEI();
-
-/*
  * Model
  */
 string GetPhoneModel();
@@ -90,11 +85,6 @@ string GetPhoneBuildDescription();
  */
 int GetProcessPid(string name);
 
-/**
- * 检查是否root
- */
-bool IsRoot();
-
 /*
  * 运行命令
  */
@@ -120,26 +110,14 @@ string SystemComandExecuteWithRootWithResult(string command);
 bool MountSystem();
 
 /*
- * root权限拷贝文件到指定目录下
+ * 拷贝文件到指定目录下
  * @param	destDirPath:	目标目录
  */
 bool RootNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName = "");
 
 /*
- * root权限安装可执行文件到 目标目录
- * @param	destDirPath:	目标目录
- */
-bool RootExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
-
-/*
- * 拷贝文件到指定目录下
- * @param	destDirPath:	目标目录
- */
-bool CopyNonExecutableFile(string sourceFilePath, string destDirPath, string destFileName = "");
-
-/*
  * 安装可执行文件到 目标目录
  * @param	destDirPath:	目标目录
  */
-bool CopyExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
+bool RootExecutableFile(string sourceFilePath, string destDirPath = "/system/bin/", string destFileName = "");
 #endif /* COMMAND_H_ */

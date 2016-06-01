@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include <ILiveChatClientDef.h>
-#include <IAutoLock.h>
+#include <livechat/ILiveChatClientDef.h>
+#include <common/IAutoLock.h>
 #include <string>
 #include <map>
 

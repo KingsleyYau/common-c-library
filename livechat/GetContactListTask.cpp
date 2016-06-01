@@ -10,8 +10,9 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json.h>
-#include <KLog.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 GetContactListTask::GetContactListTask(void)
 {
@@ -82,7 +83,8 @@ bool GetContactListTask::Handle(const TransportProtocol* tp)
 		}
 	}
 
-	FileLog("LiveChatClient", "GetContactListTask::Handle() result:%d, list.size:%d", result, list.size());
+	FileLog("LiveChatClient", "GetContactListTask::Handle() listType:%d, result:%d, errType:%d, list.size:%d"
+			, m_listType, result, m_errType, list.size());
 
 	// 通知listener
 	if (NULL != m_listener) {

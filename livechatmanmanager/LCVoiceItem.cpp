@@ -7,7 +7,8 @@
 
 #include "LCVoiceItem.h"
 #include <common/CommonFunc.h>
-#include "RequestLiveChatDefine.h"
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <common/CheckMemoryLeak.h>
 
 LCVoiceItem::LCVoiceItem()
 {

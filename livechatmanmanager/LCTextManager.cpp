@@ -7,11 +7,15 @@
 
 #include "LCTextManager.h"
 #include "LCMessageItem.h"
-#include <IAutoLock.h>
+#include <common/IAutoLock.h>
+#include <common/CheckMemoryLeak.h>
 
 LCTextManager::LCTextManager()
 {
 	m_sendingMapLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_sendingMapLock) {
+		m_sendingMapLock->Init();
+	}
 }
 
 LCTextManager::~LCTextManager()
@@ -26,7 +30,7 @@ bool LCTextManager::AddSendingItem(LCMessageItem* item)
 
 	LockSendingMap();
 	SendingMap::iterator iter = m_sendingMap.find(item->m_msgId);
-	if (iter != m_sendingMap.end())
+	if (m_sendingMap.end() == iter)
 	{
 		m_sendingMap.insert(SendingMap::value_type(item->m_msgId, item));
 		result = true;
@@ -45,7 +49,7 @@ LCMessageItem* LCTextManager::GetAndRemoveSendingItem(int msgId)
 	SendingMap::iterator iter = m_sendingMap.find(msgId);
 	if (iter != m_sendingMap.end())
 	{
-		item = (*iter);
+		item = (*iter).second;
 		m_sendingMap.erase(iter);
 	}
 	UnlockSendingMap();

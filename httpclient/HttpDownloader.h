@@ -13,7 +13,7 @@
 class HttpDownloader;
 class IHttpDownloaderCallback
 {
-public:
+protected:
 	IHttpDownloaderCallback() {};
 	virtual ~IHttpDownloaderCallback(){};
 
@@ -34,7 +34,7 @@ public:
 
 public:
 	// 开始下载文件
-	bool StartDownload(const string& url, const string& localPath, IHttpDownloaderCallback* callback);
+	bool StartDownload(const string& url, const string& localPath, IHttpDownloaderCallback* callback, const string& httpUser = "", const string& httpPassword = "");
 	// 停止下载文件
 	void Stop();
 	// 是否正在下载

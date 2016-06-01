@@ -7,6 +7,8 @@
  */
 
 #include "HttpRequest.h"
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 class HttpRequestRunnable : public KRunnable {
 public:
@@ -143,17 +145,6 @@ string HttpRequest::GetContentType() const {
 	return mHttpClient.GetContentType();
 }
 void HttpRequest::onReceiveBody(HttpClient* client, const char* buf, int size) {
-	FileLog(
-			"httprequest",
-			"HttpRequest::onReceiveBody( "
-			"this : %p, "
-			"mHttpClient : %p, "
-			"url : %s ",
-			this,
-			&mHttpClient,
-			mHttpClient.GetUrl().c_str()
-			);
-
 	// 如果不缓存, 成功返回数据为0
 	if( !mbCache ) {
 		AddRespondBuffer(buf, size);

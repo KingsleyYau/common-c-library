@@ -27,14 +27,25 @@ public:
 	bool Init();
 	// 释放资源
 	void Release();
+
+	// 获取图片宽度
+	png_uint_32 GetWidth() const;
+	// 获取图片高度
+	png_uint_32 GetHeight() const;
+	// 获取图片数据保存类型
+	int GetNumPass() const;
+	// 获取图片颜色类型
+	int GetColorType() const;
+	// 获取多少bit一个像素
+	int GetBitDepth() const;
+
 	// 设置至结尾
 	void SetEnd();
-	// 获取png信息
-	bool GetPngInfo(png_uint_32& width, png_uint_32& height, int& numPass);
 	// 获取每行png数据所需要的字节数
 	size_t GetRowBytes();
 	// 读取一行png数据
 	bool ReadRowData(png_bytep buffer);
+
 	// 获取png_structp
 	png_structp GetRead();
 	// 获取png_infop
@@ -43,8 +54,19 @@ public:
 	png_infop GetReadEndInfo();
 
 private:
+	// 获取png信息
+	bool GetPngInfo(png_uint_32& width, png_uint_32& height, int& numPass, int& colorType, int& bitDepth);
+
+private:
 	string		m_path;
 	FILE*		m_file;
+
+	png_uint_32	m_width;
+	png_uint_32	m_height;
+	int			m_numPass;
+	int			m_colorType;
+	int			m_bitDepth;
+
 	png_structp	m_readPtr;
 	png_infop	m_readInfoPtr;
 	png_infop	m_readEndInfoPtr;

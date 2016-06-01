@@ -8,10 +8,14 @@
 #include "RequestOtherController.h"
 #include "RequestDefine.h"
 #include "RequestOtherDefine.h"
-#include <../common/CommonFunc.h>
-#include <simulatorchecker/SimulatorProtocolTool.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
-RequestOtherController::RequestOtherController(HttpRequestManager *pHttpRequestManager, const RequestOtherControllerCallback& callback)
+#ifdef _ANDROID
+#include <simulatorchecker/SimulatorProtocolTool.h>
+#endif
+
+RequestOtherController::RequestOtherController(HttpRequestManager *pHttpRequestManager, IRequestOtherControllerCallback* callback)
 {
 	// TODO Auto-generated constructor stub
 	SetHttpRequestManager(pHttpRequestManager);
@@ -55,9 +59,11 @@ void RequestOtherController::onSuccess(long requestId, string url, const char* b
 	else if( url.compare(OTHER_UPLOAD_CRASH_PATH) == 0 ) {
 		UploadCrashLogCallbackHandle(requestId, url, true, buf, size);
 	}
+#ifdef _ANDROID
 	else if ( url.compare(OTHER_INSTALLLOGS_PATH) == 0 ) {
 		InstallLogsCallbackHandle(requestId, url, true, buf, size);
 	}
+#endif
 	FileLog("httprequest", "RequestOtherController::onSuccess() end, url:%s", url.c_str());
 }
 
@@ -89,9 +95,11 @@ void RequestOtherController::onFail(long requestId, string url)
 	else if ( url.compare(OTHER_UPLOAD_CRASH_PATH) == 0 ) {
 		UploadCrashLogCallbackHandle(requestId, url, false, NULL, 0);
 	}
+#ifdef _ANDROID
 	else if ( url.compare(OTHER_INSTALLLOGS_PATH) == 0 ) {
 		InstallLogsCallbackHandle(requestId, url, false, NULL, 0);
 	}
+#endif
 	FileLog("httprequest", "RequestOtherController::onFail() end, url:%s", url.c_str());
 }
 
@@ -137,8 +145,8 @@ void RequestOtherController::EmotionConfigCallbackHandle(long requestId, const s
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherEmotionConfig != NULL ) {
-		m_Callback.onRequestOtherEmotionConfig(requestId, bFlag, errnum, errmsg, item);
+	if( NULL != m_Callback ) {
+		m_Callback->OnEmotionConfig(requestId, bFlag, errnum, errmsg, item);
 	}
 }
 
@@ -226,8 +234,8 @@ void RequestOtherController::GetCountCallbackHandle(long requestId, const string
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherGetCount != NULL ) {
-		m_Callback.onRequestOtherGetCount(requestId, bFlag, errnum, errmsg, item);
+	if( NULL != m_Callback ) {
+		m_Callback->OnGetCount(requestId, bFlag, errnum, errmsg, item);
 	}
 }
 
@@ -372,8 +380,8 @@ void RequestOtherController::PhoneInfoCallbackHandle(long requestId, const strin
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherPhoneInfo != NULL ) {
-		m_Callback.onRequestOtherPhoneInfo(requestId, bFlag, errnum, errmsg);
+	if( NULL != m_Callback ) {
+		m_Callback->OnPhoneInfo(requestId, bFlag, errnum, errmsg);
 	}
 }
 
@@ -422,8 +430,8 @@ void RequestOtherController::IntegralCheckCallbackHandle(long requestId, const s
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherIntegralCheck != NULL ) {
-		m_Callback.onRequestOtherIntegralCheck(requestId, bFlag, errnum, errmsg, item);
+	if( NULL != m_Callback ) {
+		m_Callback->OnIntegralCheck(requestId, bFlag, errnum, errmsg, item);
 	}
 }
 
@@ -474,8 +482,8 @@ void RequestOtherController::VersionCheckCallbackHandle(long requestId, const st
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherVersionCheck != NULL ) {
-		m_Callback.onRequestOtherVersionCheck(requestId, bFlag, errnum, errmsg, item);
+	if( NULL != m_Callback ) {
+		m_Callback->OnVersionCheck(requestId, bFlag, errnum, errmsg, item);
 	}
 }
 
@@ -522,8 +530,8 @@ void RequestOtherController::SynConfigCallbackHandle(long requestId, const strin
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherSynConfig != NULL ) {
-		m_Callback.onRequestOtherSynConfig(requestId, bFlag, errnum, errmsg, item);
+	if( NULL != m_Callback ) {
+		m_Callback->OnSynConfig(requestId, bFlag, errnum, errmsg, item);
 	}
 }
 
@@ -603,8 +611,8 @@ void RequestOtherController::OnlineCountCallbackHandle(long requestId, const str
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherOnlineCount != NULL ) {
-		m_Callback.onRequestOtherOnlineCount(requestId, bFlag, errnum, errmsg, countList);
+	if( NULL != m_Callback ) {
+		m_Callback->OnOnlineCount(requestId, bFlag, errnum, errmsg, countList);
 	}
 }
 
@@ -650,11 +658,12 @@ void RequestOtherController::UploadCrashLogCallbackHandle(long requestId, const 
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherUploadCrashLog != NULL ) {
-		m_Callback.onRequestOtherUploadCrashLog(requestId, bFlag, errnum, errmsg);
+	if( NULL != m_Callback ) {
+		m_Callback->OnUploadCrashLog(requestId, bFlag, errnum, errmsg);
 	}
 }
 
+#ifdef _ANDROID
 long RequestOtherController::InstallLogs(const string& deviceId, long installtime, long submittime, int verCode
 			, const string& model, const string& manufacturer, const string& os, const string& release
 			, const string& sdk, int width, int height, const string& referrer, bool isSimulator
@@ -778,7 +787,8 @@ void RequestOtherController::InstallLogsCallbackHandle(long requestId, const str
 		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
 	}
 
-	if( m_Callback.onRequestOtherInstallLogs != NULL ) {
-		m_Callback.onRequestOtherInstallLogs(requestId, bFlag, errnum, errmsg);
+	if( NULL != m_Callback ) {
+		m_Callback->OnInstallLogs(requestId, bFlag, errnum, errmsg);
 	}
 }
+#endif

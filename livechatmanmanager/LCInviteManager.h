@@ -7,7 +7,8 @@
 
 #pragma once
 
-#include <ILiveChatClientDef.h>
+#include <livechat/ILiveChatClientDef.h>
+#include "LCUserItem.h"
 #include <string>
 using namespace std;
 
@@ -18,6 +19,7 @@ class LCUserManager;
 class LCUserItem;
 class LCMessageItem;
 class IAutoLock;
+class Counter;
 
 class LCInviteManager
 {
@@ -35,14 +37,14 @@ public:
 
 public:
 	// 初始化
-	bool Init(LCUserManager* userMgr, LCBlockManager* blockMgr, LCContactManager* contactMgr);
+	bool Init(LCUserManager* userMgr, LCBlockManager* blockMgr, LCContactManager* contactMgr, ILiveChatClient* liveChatClient);
 	// 判断是否需要处理的邀请消息
 	HandleInviteMsgType IsToHandleInviteMsg(const string& userId, bool charge, TALK_MSG_TYPE type);
 	// 更新用户排序分值
 	void UpdateUserOrderValue(const string& userId, int orderValue);
 	// 处理邀请消息
 	LCMessageItem* HandleInviteMessage(
-			AtomicInteger msgIdIndex
+			Counter& msgIdIndex
 			, const string& toId
 			, const string& fromId
 			, const string& fromName
@@ -71,7 +73,7 @@ private:
 	void UnlockInviteUsersList();
 
 	// 比较函数
-	static bool Sort(const LCUserItem* item1, const LCUserItem* item2);
+	static bool Sort(LCUserItem* item1, LCUserItem* item2);
 
 private:
 	bool				m_isInit;			// 是否已初始化
@@ -82,7 +84,7 @@ private:
 	LCUserList			m_inviteUserList;	// 邀请用户列表
 	IAutoLock*			m_inviteUserListLock;	// 邀请用户列表锁
 
-	long 				m_preHandleTime;	// 上一次处理邀请的时间
+	long long			m_preHandleTime;	// 上一次处理邀请的时间
 	int 				m_handleCount;		// 当前处理次数
 	int 				m_randomHandle;		// 随机处理次数（第几次处理是随机的）
 };

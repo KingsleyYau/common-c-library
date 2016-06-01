@@ -49,7 +49,7 @@ public:
 
 			/* 单选项目  */
 			if( root[PROFILE_GENDER].isString() ) {
-				if( root[PROFILE_GENDER].asString().c_str() == "M" ) {
+				if( root[PROFILE_GENDER].asString() == "M" ) {
 					gender = 0;
 				} else {
 					gender = 1;

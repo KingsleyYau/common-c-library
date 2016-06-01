@@ -314,10 +314,12 @@ void GetMD5String(const char *src, char *des)
 {
     md5_byte_t digest[16];
     md5_state_t ctx;
+	int i = 0;
+
     md5_init(&ctx);
     md5_append(&ctx, (const md5_byte_t*)src, strlen(src));
     md5_finish(&ctx, digest);
-    int i = 0;
+    
     for (i = 0; i < 16; i++){
         sprintf(des + i * 2, "%02x", (unsigned char)digest[i]);
     }

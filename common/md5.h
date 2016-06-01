@@ -19,6 +19,7 @@
 #ifndef md5_INCLUDED
 #define md5_INCLUDED
 
+#
 /*
  * This code has some adaptations for the Ghostscript environment, but it
  * will compile and run correctly in any environment with 8-bit chars and
@@ -27,8 +28,14 @@
  * ARCH_IS_BIG_ENDIAN.
  */
 
+//#ifndef IOS
 typedef unsigned char md5_byte_t; /* 8-bit byte */
 typedef unsigned int md5_word_t; /* 32-bit word */
+//#else
+//#include <zlib.h>
+//typedef Bytef md5_byte_t;
+//typedef unsigned int md5_word_t; /* 32-bit word */
+//#endif
 
 /* Define the state of the MD5 Algorithm. */
 typedef struct md5_state_s {

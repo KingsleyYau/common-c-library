@@ -13,11 +13,19 @@
 
 /* ########################	女士相关 模块  ######################## */
 
-/* 字段 */
+/* 公共字段 */
+#define LIVECHAT_INFO					"info"
 
 /* 5.1.查询是否符合试聊条件 */
 #define LIVECHAT_WOMAN_ID 				"womanid"
 #define LIVECHAT_LC_FREETRIAL 			"lc_freetrial"
+typedef enum {
+	CouponStatus_Used,		// 已聊过(-1)
+	CouponStatus_None,		// 不能使用(0)
+	CouponStatus_Yes,		// 可以使用(1)
+	CouponStatus_Started,	// 已开始使用(2)
+	CouponStatus_Promotion,	// 促销(3)
+} CouponStatus;
 
 /* 5.3.获取虚拟礼物列表 */
 #define LIVECHAT_SESSIONID				"user_sid"
@@ -50,23 +58,22 @@
 #define LIVECHAT_CHARGE_YES			"1"			// 是
 #define LIVECHAT_CHARGE_NO			"0"			// 否
 
-/* 5.5.批量查询聊天记录*/
+// 5.5.批量查询聊天记录
 #define LIVECHAT_INVITEIDS				"inviteids"
 
-/* 5.6.发送私密照片*/
-#define LIVECHAT_PHOTOINFO				"info"
+// 5.6.发送私密照片
 #define LIVECHAT_TARGETID				"targetid"
 #define LIVECHAT_PHOTOID				"photoid"
 #define LIVECHAT_SENDID					"sendId"
 #define LIVECHAT_SENDMODE				"mode"
 #define LIVECHAT_PHOTOFILE				"photofile"
 
-/* 5.8.获取对方私密照片*/
+// 5.8.获取对方私密照片
 #define LIVECHAT_TOFLAG					"toflag"
 #define LIVECHAT_PHOTOSIZE				"size"
 #define LIVECHAT_PHOTOMODE				"mode"
 
-/* 6.11.发送虚拟礼物 */
+// 6.11.发送虚拟礼物
 #define LIVECHAT_SENDGIFT_VG_ID 		"vg_id"
 #define LIVECHAT_SENDGIFT_DEVICE_ID		"device_id"
 #define LIVECHAT_SENDGIFT_CHAT_ID 		"chat_id"
@@ -103,16 +110,24 @@
  */
 #define QUERY_CHAT_RECORD_MUTI_PATH "/member/maninvitemsgbatch"
 
-/* 5.6.发送私密照片*/
+/**
+ * 5.6.发送私密照片
+ */
 #define LC_SENDPHOTO_PATH	"/livechat/setstatus.php?action=man_send_photo"
 
-/* 5.7.付费获取私密照片*/
+/**
+ * 5.7.付费获取私密照片
+ */
 #define LC_PHOTOFEE_PATH	"/livechat/setstatus.php?action=man_get_photoview"
 
-/* 5.8.获取对方私密照片*/
+/**
+ * 5.8.获取对方私密照片
+ */
 #define LC_GETPHOTO_PATH	"/livechat/setstatus.php?action=load_private_photo"
 
-/* 5.9上传语音文件*/
+/** 
+ * 5.9上传语音文件
+ */
 #define LC_UPLOADVOICE_PATH	"/livechat/voice?r=%s"
 #define LC_UPLOADVOICE_SUBPATH	"/livechat/voice?"
 #define LC_UPLOADVOICE_INVITEID		"iv"
@@ -125,11 +140,15 @@
 #define LC_UPLOADVOICE_VOICELENGTH	"l"
 #define LC_UPLOADVOICE_SITEID		"dt"
 
-/* 5.10获取语音文件*/
+/**
+ * 5.10获取语音文件
+ */
 #define LC_PLAYVOICE_PATH	"/livechat/play?r=%s&t=%s&a=wp"
 #define LC_PLAYVOICE_SUBPATH	"/livechat/play?"
 
-/* 6.11.发送虚拟礼物 */
+/**
+ * 6.11.发送虚拟礼物
+ */
 #define LC_SENDGIFT_PATH	"/livechat/setstatus.php?action=virtualgift_credit"
 
 /* 接口路径定义  end */
@@ -163,6 +182,7 @@ typedef enum {
 	LRM_VOICE,
 	LRM_PHOTO,
 	LRM_VIDEO,
+	LRM_MAGIC_ICON,
 } LIVECHAT_RECORD_MSGTYPE;
 
 // 发送私密照片类型
@@ -264,4 +284,141 @@ typedef enum {
  * 返回
  */
 #define	LC_GET_VIDEO_VIDEO_URL		"video_url"
+
+// 客户端类型
+typedef enum {
+	GVCT_WOMAN = 0,	// 女士端
+	GVCT_MAN = 1,	// 男士端
+} GETVIDEO_CLIENT_TYPE;
+
+/* ######################## 6.15.查询小高级表情配置（http post）  ######################## */
+/* 接口路径  */
+#define LC_GET_MAGICICON_CONFIG_PATH 	"/livechat/setstatus.php?action=magicicon_list"
+
+/**
+ * 返回
+ */
+#define	LC_GET_MAGICICON_CONFIG_BASE_PATH		"path"
+#define	LC_GET_MAGICICON_CONFIG_MAXUPDATETIME	"maxupdatetime"
+#define	LC_GET_MAGICICON_CONFIG_DATA		    "data"
+#define	LC_GET_MAGICICON_CONFIG_TYPELIST		"typelist"
+#define	LC_GET_MAGICICON_CONFIG_LIST		    "list"
+#define	LC_GET_MAGICICON_CONFIG_ID		        "id"
+#define	LC_GET_MAGICICON_CONFIG_TITLE		    "title"
+#define	LC_GET_MAGICICON_CONFIG_PRICE		    "price"
+#define	LC_GET_MAGICICON_CONFIG_HOTFLAG		    "hotflag"
+#define	LC_GET_MAGICICON_CONFIG_TYPEID		    "typeid"
+#define	LC_GET_MAGICICON_CONFIG_UPDATETIME		"updatetime"
+
+/* ######################## 6.16.开聊自动买点（http post）  ######################## */
+/* 接口路径  */
+#define LC_CHAT_RECHARGE_PATH 	"/livechat/setstatus.php?action=chat_recharge"
+
+/**
+ * 请求
+ */
+#define	LC_CHAT_RECHARGE_WOMAN_ID	"womanId"
+#define LC_CHAT_RECHARGE_USER_SID   "user_sid"
+#define LC_CHAT_RECHARGE_USER_ID    "user_id"
+
+/**
+ * 返回
+ */
+#define	LC_CHAT_RECHARGE_CREDITS		"credits"
+
+/* ######################## 6.17.查询主题配置（http post）  ######################## */
+/* 接口路径  */
+#define LC_GET_THEME_CONFIG_PATH 	"/livechat/setstatus.php?action=scene_config"
+
+/**
+ * 请求
+ */
+#define LC_GET_THEME_CONFIG_USER_SID   "user_sid"
+#define LC_GET_THEME_CONFIG_USER_ID    "user_id"
+
+/**
+ * 返回
+ */
+#define	LC_GET_THEME_CONFIG_THEME_VERSION		"theme_version"
+#define	LC_GET_THEME_CONFIG_THEME_PATH			"theme_path"
+
+#define	LC_GET_THEME_CONFIG_THEME_TYPELIST		"theme_typelist"
+#define	LC_GET_THEME_CONFIG_THEME_LIST			"list"
+#define	LC_GET_THEME_CONFIG_THEME_TYPEID		"typeid"
+#define	LC_GET_THEME_CONFIG_THEME_TYPENAME		"typename"
+
+#define	LC_GET_THEME_CONFIG_THEME_TAGLIST		"theme_tagslist"
+#define	LC_GET_THEME_CONFIG_THEME_TAGSID		"tagsid"
+#define	LC_GET_THEME_CONFIG_THEME_TAGSNAME		"tagsname"
+#define	LC_GET_THEME_CONFIG_THEME_FORMAN		"theme_forman"
+
+#define	LC_GET_THEME_CONFIG_THEME_ID			"themeid"
+#define	LC_GET_THEME_CONFIG_THEME_PRICE			"price"
+#define	LC_GET_THEME_CONFIG_THEME_ISNEW			"isnew"
+#define	LC_GET_THEME_CONFIG_THEME_ISSALE		"issale"
+#define	LC_GET_THEME_CONFIG_THEME_TITLE			"title"
+#define	LC_GET_THEME_CONFIG_THEME_VALIDSECOND	"validsecond"
+#define	LC_GET_THEME_CONFIG_THEME_ISBASE		"isbase"
+#define	LC_GET_THEME_CONFIG_THEME_DESCRIPT		"discript"
+
+/* ######################## 6.18.获取指定主题（http post）  ######################## */
+/* 接口路径  */
+#define LC_GET_THEME_DETAIL_PATH 	"/livechat/setstatus.php?action=scene_hide_config"
+
+/**
+ * 请求
+ */
+#define LC_GET_THEME_DETAIL_THEMEIDS   "themeids"
+#define LC_GET_THEME_DETAIL_USER_SID   "user_sid"
+#define LC_GET_THEME_DETAIL_USER_ID    "user_id"
+
+/**
+ * 返回
+ */
+
+/* ######################## 6.19.检测功能是否开通（http post）  ######################## */
+
+// 设备类型
+typedef enum {
+	CHAT_TEXT = 1002,
+	CHAT_VIDEO = 1004,
+	CHAT_EMOTION = 1006,
+	CHAT_TRYTIKET = 1008,
+	CHAT_GAME = 1010,
+	CHAT_VOICE = 1012,
+	CHAT_MAGICICON = 1014,
+	CHAT_PRIVATEPHOTO = 1016,
+	CHAT_SHORTVIDEO = 1018,
+} FOUNCTION_TYPE;
+
+// DEVICE_TYPE(设备类型) 转换
+static const int FunctionsArray[] = {
+		CHAT_TEXT,
+		CHAT_VIDEO,
+		CHAT_EMOTION,
+		CHAT_TRYTIKET,
+		CHAT_GAME,
+		CHAT_VOICE,
+		CHAT_MAGICICON,
+		CHAT_PRIVATEPHOTO,
+		CHAT_SHORTVIDEO
+};
+
+/* 接口路径  */
+#define LC_CHECK_FUNCTIONS_PATH 	"/livechat/setstatus.php?action=function_check"
+
+/**
+ * 请求
+ */
+#define	LC_CHECK_FUNCTIONS_FOUNCTIONID	"functionid"
+#define LC_CHECK_FUNCTIONS_DEVICETYPE  "devicetype"
+#define LC_CHECK_FUNCTIONS_VERSIONCODE "versioncode"
+#define LC_CHECK_FUNCTIONS_USER_SID    "user_sid"
+#define LC_CHECK_FUNCTIONS_USERID      "user_id"
+
+/**
+ * 返回
+ */
+#define	LC_CHECK_FUNCTIONS_DATA		"data"
+
 #endif /* REQUESTLIVECHATDEFINE_H_ */

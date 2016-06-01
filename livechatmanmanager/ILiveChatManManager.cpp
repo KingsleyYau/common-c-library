@@ -10,7 +10,8 @@
 
 ILiveChatManManager* ILiveChatManManager::Create()
 {
-	return new LiveChatManManager;
+	ILiveChatManManager* pManager = new LiveChatManManager;
+	return pManager;
 }
 
 void ILiveChatManManager::Release(ILiveChatManManager* obj)

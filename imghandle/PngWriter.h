@@ -37,9 +37,9 @@ public:
 	// 获取结尾的png_infop
 	png_infop GetWriteEndInfo();
 	// 把读取的png信息写入到文件
-	bool setWriteInfoByReadInfo(PngReader& readPng, png_uint_32 imageSize);
+	bool SetWriteInfoByReadInfo(PngReader& readPng, png_uint_32 desWidth, png_uint_32 desHeight);
 	// 把读取结尾的png信息写入到文件
-	bool setWriteEndInfoByReadEndInfo(PngReader& readPng);
+	bool SetWriteEndInfoByReadEndInfo(PngReader& readPng);
 
 private:
 	string		m_path;

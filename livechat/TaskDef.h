@@ -43,6 +43,7 @@ typedef enum {
 	TCMD_UPLOADVER		    = 163,	// 上传客户端版本号
 	TCMD_SENDPHOTO		    = 181,	// 发送图片
 	TCMD_SHOWPHOTO		    = 182,	// 显示图片
+	TCMD_SENDLADYPHOTO		= 180,	// 女士发送图片
 	TCMD_GETRECENTCONTACTLIST	= 85,	// 获取最近联系人列表
 	TCMD_SEARCHONLINEMAN	= 98,	// 搜索在线男士
 	TCMD_REPLYIDENTIFYCODE  = 105,	// 回复验证码
@@ -50,7 +51,19 @@ typedef enum {
 	TCMD_REFRESHINVITETEMPLATE  = 161,	// 刷新邀请模板
 	TCMD_GETFEERECENTCONTACTLIST= 162,	// 获取已扣费最近联系人列表
 	TCMD_GETLADYCHATINFO    = 170,	// 获取女士聊天信息（包括在聊及邀请的男士列表等）
-	TCMD_PLAYVIDEO          = 194,  // 播放视频
+	TCMD_PLAYVIDEO          = 194,  // 播放微视频
+	TCMD_SENDLADYVIDEO		= 196,	// 女士发送微视频
+	TCMD_GETLADYCONDITION	= 214,	// 获取女士择偶条件
+	TCMD_GETLADYCUSTOMTEMPLATE	= 215,  //获取女士自定义模板
+	TCMD_UPLOADLADYAUTOINVITE	= 210,	// 上传弹出女士自动邀请消息
+	TCMD_UPLOADAUTOCHARGE   = 238,	// 上传自动充值状态
+	TCMD_SENDMAGICICON	    = 200,	// 发送小高级表情
+	TCMD_GETPAIDTHEME		= 219,	// 获取指定男/女士已购主题包
+	TCMD_GETALLPAIDTHEME	= 220,	// 获取男/女士所有已购主题包
+	TCMD_UPLOADTHEMELISTVER = 225,	// 上传主题包列表版本号
+	TCMD_MANFEETHEME		= 218,	// 男士购买主题包
+	TCMD_MANAPPLYTHEME		= 223,	// 男士应用主题包
+	TCMD_PLAYTHEMEMOTION	= 227,	// 男/女士播放主题包动画
 	// 服务器主动请求命令
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
@@ -65,9 +78,16 @@ typedef enum {
 	TCMD_RECVEMFNOTICE	    = 53,	// 邮件更新通知
 	TCMD_RECVKICKOFFLINE    = 27,	// 服务器维护及被踢通知
 	TCMD_RECVPHOTO		    = 177,	// 图片信息通知
+	TCMD_RECVSHOWPHOTO		= 179,	// 图片被查看通知
 	TCMD_RECVIDENTIFYCODE   = 104,	// 验证码通知
 	TCMD_RECVLADYVOICECODE  = 157,	// 女士语音编码通知
 	TCMD_RECVVIDEO          = 193,  // 微视频信息通知
+	TCMD_RECVSHOWVIDEO		= 192,	// 微视频被查看通知
+	TCMD_RECVAUTOINVITEMSG	= 209,	// 自动邀请消息通知(仅男士)
+	TCMD_RECVAUTOCHARGE	    = 236,	// 自动充值服务器通知(仅男士)
+	TCMD_RECVMAGICICON	    = 199,	// 小高级表情聊天信息通知
+	TCMD_RECVTHEMEMOTION	= 229,	// 播放主题包动画通知
+	TCMD_RECVTHEMERECOMMEND	= 233,	// 女士推荐男士购买主题包通知(仅男士)
 } TASK_CMD_TYPE;
 
 // 判断是否客户端主动请求的命令
@@ -99,6 +119,7 @@ inline bool IsRequestCmd(int cmd)
 	case TCMD_GETTALKLIST:			// 获取邀请或在聊列表
 	case TCMD_UPLOADVER:			// 上传客户端版本号
 	case TCMD_SENDPHOTO:			// 发送图片
+	case TCMD_SENDLADYPHOTO:		// 女士发送图片
 	case TCMD_SHOWPHOTO:			// 显示图片
 	case TCMD_GETRECENTCONTACTLIST:	// 获取最近联系人列表
 	case TCMD_SEARCHONLINEMAN:		// 搜索在线男士
@@ -108,6 +129,18 @@ inline bool IsRequestCmd(int cmd)
 	case TCMD_GETFEERECENTCONTACTLIST:	// 获取已扣费最近联系人列表
 	case TCMD_GETLADYCHATINFO:		// 获取女士聊天信息（包括在聊及邀请的男士列表等）
 	case TCMD_PLAYVIDEO:			// 播放视频
+	case TCMD_SENDLADYVIDEO:		// 女士发送微视频
+	case TCMD_GETLADYCONDITION:		// 获取女士择偶条件
+	case TCMD_GETLADYCUSTOMTEMPLATE:// 获取女士自定义模板
+	case TCMD_UPLOADLADYAUTOINVITE:	// 上传弹出女士自动邀请消息
+	case TCMD_UPLOADAUTOCHARGE:		// 上传自动充值状态
+	case TCMD_SENDMAGICICON:		// 发送小高级表情
+	case TCMD_GETPAIDTHEME:			// 获取指定男/女士已购主题包
+	case TCMD_GETALLPAIDTHEME:		// 获取男/女士所有已购主题包
+	case TCMD_UPLOADTHEMELISTVER:	// 上传主题包列表版本号
+	case TCMD_MANFEETHEME:			// 男士购买主题包
+	case TCMD_MANAPPLYTHEME:		// 男士应用主题包
+	case TCMD_PLAYTHEMEMOTION:		// 男/女士播放主题包动画
 		result = true;	// 主动请求的命令
 		break;
 	default:

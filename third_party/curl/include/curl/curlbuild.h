@@ -553,17 +553,14 @@
 #  define CURL_PULL_SYS_TYPES_H      1
 #  define CURL_PULL_SYS_SOCKET_H     1
 
+/* The size of `long', as computed by sizeof. */
+#elif defined(_M_X64) || (defined(__x86_64__) && !defined(__ILP32__)) ||      \
+ defined(__aarch64__) || (defined(__mips__) && _MIPS_SIM == _ABI64)
+#define CURL_SIZEOF_LONG 8
+
 #else
 #  error "Unknown non-configure build target!"
    Error Compilation_aborted_Unknown_non_configure_build_target
-#endif
-
-/* The size of `long', as computed by sizeof. */
-#if defined(_M_X64) || (defined(__x86_64__) && !defined(__ILP32__)) ||      \
-   defined(__aarch64__) || (defined(__mips__) && _MIPS_SIM == _ABI64)
-#define CURL_SIZEOF_LONG 8
-#else
-#define CURL_SIZEOF_LONG 4
 #endif
 
 /* CURL_PULL_SYS_TYPES_H is defined above when inclusion of header file  */

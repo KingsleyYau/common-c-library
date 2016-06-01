@@ -7,19 +7,63 @@
 
 #pragma once
 
-#include <map>
+#include "LCMessageItem.h"
+#include "LCVideoItem.h"
+#include <common/dualmap_lock.h>
 #include <string>
+#include "LCUserManager.h"
+#include "LCVideoPhotoDownloader.h"
+#include "LCVideoDownloader.h"
 using namespace std;
 
-class IAutoLock;
+
+class LCVideoManagerCallback;
 class HttpDownloader;
-class LCVideoManager
+class LCVideoManager : private LCVideoPhotoDownloaderCallback
+								, LCVideoDownloaderCallback
 {
 private:
-	typedef map<HttpDownloader*, string>	DownloadVideoMap;		// 正在下载视频map表(HttpDownloader, videoId)（记录下载未成功的视频ID，下载成功则移除）
-	typedef map<string, HttpDownloader*>	VideoDownloadMap;		// 正在下载视频map表(videoId, FileDownloader)
-	typedef map<long, string>				RequestVideoPhotoMap;	// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）
-	typedef map<string, long>				VideoPhotoRequestMap;	// 正在下载视频图片map表(videoId, RequestId)
+	typedef dualmap_lock<string, LCVideoPhotoDownloader*>	DownloadVideoPhotoMap;	// 正在下载视频图片map表(videoId, downloader)
+	typedef dualmap_lock<string, LCVideoDownloader*>		DownloadVideoMap;		// 正在下载视频map表(videoId, downloader)
+	typedef dualmap_lock<LCMessageItem*, long>				VideoFeeMap;			// 正在付费视频map(message, requestId)
+private:
+	// ---- 已下载完成的视频图片downloader（待释放）----
+	typedef struct _tagFinishVideoPhotoDownloaderItem {
+		LCVideoPhotoDownloader*	downloader;
+		long long finishTime;
+
+		_tagFinishVideoPhotoDownloaderItem()
+		{
+			downloader = NULL;
+			finishTime = 0;
+		}
+
+		_tagFinishVideoPhotoDownloaderItem(const _tagFinishVideoPhotoDownloaderItem& item)
+		{
+			downloader = item.downloader;
+			finishTime = item.finishTime;
+		}
+	} FinishVideoPhotoDownloaderItem;
+	typedef list_lock<FinishVideoPhotoDownloaderItem>	FinishVideoPhotoDownloaderList;	// 已下载完成的视频图片downloader（待释放）
+
+	// ---- 已下载完成的视频downloader（待释放） ----
+	typedef struct _tagFinishVideoDownloaderItem {
+		LCVideoDownloader*	downloader;
+		long long finishTime;
+
+		_tagFinishVideoDownloaderItem()
+		{
+			downloader = NULL;
+			finishTime = 0;
+		}
+
+		_tagFinishVideoDownloaderItem(const _tagFinishVideoDownloaderItem& item)
+		{
+			downloader = item.downloader;
+			finishTime = item.finishTime;
+		}
+	} FinishVideoDownloaderItem;
+	typedef list_lock<FinishVideoDownloaderItem>	FinishVideoDownloaderList;	// 已下载完成的视频downloader（待释放）
 
 public:
 	LCVideoManager();
@@ -27,7 +71,13 @@ public:
 
 public:
 	// 初始化
-	bool Init(const string& dirPath);
+	bool Init(LCVideoManagerCallback* callback, LCUserManager* userMgr);
+	// 设置本地缓存目录
+	bool SetDirPath(const string& dirPath);
+	// 设置http接口参数
+	bool SetHttpRequest(HttpRequestManager* requestMgr, RequestLiveChatController* requestController);
+	// 设置http认证帐号
+	void SetAuthorization(const string& httpUser, const string& httpPassword);
 
 	// --------------------------- 获取视频本地缓存路径 -------------------------
 public:
@@ -36,15 +86,24 @@ public:
 							, const string& videoId
 							, const string& inviteId
 							, VIDEO_PHOTO_TYPE type);
+	// 获取视频图片文件路径（仅已存在）
+	string GetVideoPhotoPathWithExist(const string& userId
+							, const string& videoId
+							, const string& inviteId
+							, VIDEO_PHOTO_TYPE type);
 	// 获取视频图片临时文件路径
 	string GetVideoPhotoTempPath(const string& userId
 								, const string& videoId
 								, const string& inviteId
 								, VIDEO_PHOTO_TYPE type);
+
 	// 获取视频本地缓存文件路径(全路径)
 	string GetVideoPath(const string& userId, const string& videoId, const string& inviteId);
+	// 获取视频文件路径(仅已存在)
+	string GetVideoPathWithExist(const string& userId, const string& videoId, const string& inviteId);
 	// 获取视频临时文件路径
 	string GetVideoTempPath(const string& userId, const string& videoId, const string& inviteId);
+
 	// 下载完成的临时文件转换成正式文件
 	bool TempFileToDesFile(const string& tempPath, const string& desPath);
 	// 清除所有视频文件
@@ -52,60 +111,104 @@ public:
 
 	// --------------------------- Video消息处理 -------------------------
 public:
-	// 根据videoId获取消息列表里的所有视频消息
-	LCMessageList GetMessageItem(const string& videoId, LCUserItem* userItem);
 	// 合并视频消息记录（把女士发出及男士已购买的视频记录合并为一条聊天记录）
 	void CombineMessageItem(LCUserItem* userItem);
+private:
+	// 根据videoId获取对应视频的消息列表
+	LCMessageList GetMessageItem(const string& userId, const string& videoId);
 
-	// --------------------------- 正在下载的视频图片对照表 -------------------------
+	// --------------------------- 视频图片 -------------------------
 public:
-	// 获取正在下载的视频图片RequestId
-	long GetRequestIdWithVideoPhotoId(const string& videoId);
-	// 判断视频图片是否在下载
-	bool IsVideoPhotoRequest(const string& videoId);
-	// 获取并移除正在下载视频图片的视频Id
-	string GetAndRemoveRequestVideoPhoto(long requestId);
-	// 添加下载的视频图片
-	bool AddRequestVideoPhoto(long requestId, const string& videoId);
-	// 清除所有下载的视频图片
-	list<long> ClearAllRequestVideoPhoto();
+	// 开始下载视频图片
+	bool DownloadVideoPhoto(const string& userId, const string& sId, const string& womanId, const string& videoId, const string& inviteId, VIDEO_PHOTO_TYPE type);
+	// 判断视频图片是否正在下载
+	bool IsDownloadVideoPhoto(const string& videoId);
+	// 停止下载视频图片
+	bool StopDownloadVideoPhoto(const string& videoId);
+	// 清除超过一段时间已下载完成的视频图片下载器
+	void ClearFinishVideoPhotoDownloaderWithTimer();
+	// 停止并清除所有视频图片下载
+	void ClearAllDownloadVideoPhoto();
 
-	// --------------------------- 正在下载的视频对照表 -------------------------
+	// 接口请求回调
+	void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+private:
+	// 清除所有已下载完成的视频图片下载器
+	void ClearAllFinishVideoPhotoDownloader();
+	
+	// -- LCVideoPhotoDownloaderCallback --
+	virtual void onFinish(LCVideoPhotoDownloader* downloader, bool success, const string& errnum, const string& errmsg);
+
+	// --------------------------- 视频 -------------------------
 public:
+	// 开始下载视频
+	bool DownloadVideo(const string& userId, const string& sid, const string& womanId, const string& videoId, const string& inviteId, const string& videoUrl);
+	// 判断视频是否正在下载
+	bool IsDownloadVideo(const string& videoId);
+	// 停止下载视频
+	bool StopDownloadVideo(const string& videoId);
+	// 清除超过一段时间已下载完成的视频图片下载器
+	void ClearFinishVideoDownloaderWithTimer();
+	// 停止并清除所有视频下载
+	void ClearAllDownloadVideo();
+	
+private:
+	// 清除所有已下载完成的视频下载器
+	void ClearAllFinishVideoDownloader();
+
+	// -- LCVideoDownloaderCallback --
+	virtual void onFinish(LCVideoDownloader* downloader, bool success);
+
+	// --------------------------- 付费 -------------------------
+public:
+	// 添加正在付费视频
+	bool AddPhotoFee(LCMessageItem* item, long requestId);
+	// 判断视频是否正在付费
+	bool IsPhotoFee(LCMessageItem* item);
+	// 移除正在付费视频
+	LCMessageItem* RemovePhotoFee(long requestId);
+	// 清除所有正在付费的视频
+	void ClearAllPhotoFee();
 
 private:
-	// 正在下载视频map表(HttpDownloader, videoId)加锁
-	void LockDownloadVideoMap();
-	// 正在下载视频map表(HttpDownloader, videoId)解锁
-	void UnlockDownloadVideoMap();
+	LCVideoManagerCallback*	m_callback;	// callback
+	LCUserManager*			m_userMgr;	// 用户管理器
 
-	// 正在下载视频map表(videoId, FileDownloader)加锁
-	void LockVideoDownloadMap();
-	// 正在下载视频map表(videoId, FileDownloader)解锁
-	void UnlockVideoDownloadMap();
+	HttpRequestManager*			m_requestMgr;			// http管理器
+	RequestLiveChatController*	m_requestController;	// http处理器
 
-	// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）加锁
-	void LockRequestVideoPhotoMap();
-	// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）解锁
-	void UnlockRequestVideoPhotoMap();
+	string	m_httpUser;			// http认证帐号
+	string	m_httpPassword;		// http认证密码
 
-	// 正在下载视频图片map表(videoId, RequestId)加锁
-	void LockVideoPhotoRequestMap();
-	// 正在下载视频图片map表(videoId, RequestId)解锁
-	void UnlockVideoPhotoRequestMap();
+	string	m_dirPath;					// 本地缓存目录路径
 
-private:
-	string	m_dirPath;		// 本地缓存目录路径
+	DownloadVideoPhotoMap		m_downloadVideoPhotoMap;		// 正在下载视频图片map表
+	FinishVideoPhotoDownloaderList	m_finishVideoPhotoDownloaderList;	// 待释放的视频图片下载器列表
 
-	DownloadVideoMap		m_downloadVideoMap;			// 正在下载视频map表(HttpDownloader, videoId)（记录下载未成功的视频ID，下载成功则移除）
-	IAutoLock*				m_downloadVideoMapLock;		// 正在下载视频map表锁(HttpDownloader, videoId)
+	DownloadVideoMap			m_downloadVideoMap;				// 正在下载视频map表
+	FinishVideoDownloaderList	m_finishVideoDownloaderList;	// 待释放的视频下载器列表
 
-	VideoDownloadMap		m_videoDownloadMap;			// 正在下载视频map表(videoId, FileDownloader)
-	IAutoLock*				m_videoDownloadMapLock;		// 正在下载视频map表锁(videoId, FileDownloader)
+	VideoFeeMap		m_videoFeeMap;		// 正在付费视频map表
+};
 
-	RequestVideoPhotoMap	m_requestVideoPhotoMap;		// 正在下载视频图片map表(RequestId, videoId)（记录下载未成功的视频ID，下载成功则移除）
-	IAutoLock*				m_requestVideoPhotoMapLock;	// 正在下载视频图片map表锁(RequestId, videoId)
+class LCVideoManagerCallback
+{
+public:
+	LCVideoManagerCallback() {};
+	virtual ~LCVideoManagerCallback() {};
 
-	VideoPhotoRequestMap	m_videoPhotoRequestMap;		// 正在下载视频图片map表(videoId, RequestId)
-	IAutoLock*				m_videoPhotoRequestMapLock;	// 正在下载视频图片map表锁(videoId, RequestId)
+public:
+	// 视频图片下载完成回调
+	virtual void OnDownloadVideoPhoto(
+					bool success
+					, const string& errnum
+					, const string& errmsg
+					, const string& womanId
+					, const string& inviteId
+					, const string& videoId
+					, VIDEO_PHOTO_TYPE type
+					, const string& filePath
+					, const LCMessageList& msgList) = 0;
+	// 视频下载完成回调
+	virtual void OnDownloadVideo(bool success, const string& userId, const string& videoId, const string& inviteId, const string& filePath, const LCMessageList& msgList) = 0;
 };

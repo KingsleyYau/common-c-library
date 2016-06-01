@@ -7,7 +7,10 @@
 
 #include "LCVideoItem.h"
 #include <common/CommonFunc.h>
-#include "RequestLiveChatDefine.h"
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include <common/CheckMemoryLeak.h>
+
+using namespace lcmm;
 
 LCVideoItem::LCVideoItem()
 {
@@ -15,15 +18,7 @@ LCVideoItem::LCVideoItem()
 	m_videoDesc = "";
 	m_sendId = "";
 	m_videoUrl = "";
-	m_thumbPhotoFilePath = "";
-	m_bigPhotoFilePath = "";
-	m_videoFilePath = "";
 	m_charge = false;
-	m_isVideoFeeding = false;
-	m_isThumbPhotoDownloading = false;
-	m_isBigPhotoDownloading = false;
-	m_isVideoDownloading = false;
-	m_videoDownloadProgress = 0;
 }
 
 LCVideoItem::~LCVideoItem()
@@ -31,71 +26,56 @@ LCVideoItem::~LCVideoItem()
 
 }
 
+// 初始化
 bool LCVideoItem::Init(
 		const string& videoId
 		, const string& sendId
 		, const string& videoDesc
-		, const string& bigPhotoFilePath
-		, const string& thumbPhotoFilePath
 		, const string& videoUrl
-		, const string& videoFilePath
 		, bool charge)
 {
-	m_videoId = videoId;
-	m_sendId = sendId;
-	m_videoDesc = videoDesc;
-	m_charge = charge;
-	m_videoUrl = videoUrl;
+	bool result = false;
 
-	if ( IsFileExist(bigPhotoFilePath) )
+	if (!videoId.empty())
 	{
-		m_bigPhotoFilePath = bigPhotoFilePath;
+		m_videoId = videoId;
+		m_sendId = sendId;
+		m_videoDesc = videoDesc;
+		m_charge = charge;
+		m_videoUrl = videoUrl;
+
+		result = true;
 	}
 
-	if ( IsFileExist(thumbPhotoFilePath) )
-	{
-		m_thumbPhotoFilePath = thumbPhotoFilePath;
-	}
-
-	if ( IsFileExist(videoFilePath) )
-	{
-		m_videoFilePath = videoFilePath;
-	}
-
-	return true;
+	return result;
 }
 
-// 更新视频图片下载标志
-void LCVideoItem::UpdatePhotoDownloadSign(VIDEO_PHOTO_TYPE type, bool isDownloading)
+// 添加视频付费状态
+void LCVideoItem::AddProcessStatusFee()
 {
-	switch (type)
-	{
-	case VPT_BIG: {
-		m_isBigPhotoDownloading = isDownloading;
-	}break;
-	case VPT_DEFAULT: {
-		m_isThumbPhotoDownloading = isDownloading;
-	}break;
+	m_statusList.lock();
+	if (!m_statusList.has(VideoFee)) {
+		m_statusList.push_back(VideoFee);
 	}
+	m_statusList.unlock();
 }
 
-// 更新视频图片路径
-void LCVideoItem::UpdatePhotoPathWithType(const string& filePath, VIDEO_PHOTO_TYPE type)
+// 删除视频付费状态
+void LCVideoItem::RemoveProcessStatusFee()
 {
-	if ( !filePath.empty() )
-	{
-		if ( IsFileExist(filePath) )
-		{
-			switch (type)
-			{
-			case VPT_BIG: {
-				m_bigPhotoFilePath = filePath;
-			}break;
-			case VPT_DEFAULT: {
-				m_thumbPhotoFilePath = filePath;
-			}break;
-			}
-		}
+	m_statusList.lock();
+	if (!m_statusList.has(VideoFee)) {
+		m_statusList.erase(VideoFee);
 	}
+	m_statusList.unlock();
 }
-
+	
+// 判断视频是否付费状态
+bool LCVideoItem::IsFee()
+{
+	bool result = false;
+	m_statusList.lock();
+	result = m_statusList.has(VideoFee);
+	m_statusList.unlock();
+	return result;
+}

@@ -16,4 +16,10 @@
 // LiveChatUserStatus
 #define LIVECHAT_USERSTATUS_CLASS	"com/qpidnetwork/livechat/jni/LiveChatUserStatus"
 
+// LiveChatLadyCondition
+#define LIVECHAT_LADYCONDITION_CLASS	"com/qpidnetwork/livechat/jni/LiveChatLadyCondition"
+
+// LiveChatPaidThemeInfo
+#define LIVECHAT_PAID_THEME_INFO       "com/qpidnetwork/livechat/jni/LCPaidThemeInfo"
+
 #endif /* LIVECHATJNICALLBACKITEMDEF_H_ */

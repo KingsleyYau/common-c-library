@@ -8,8 +8,9 @@
 
 #include "HttpEntiy.h"
 
-#include <curl/curl.h>
+#include <curl/include/curl/curl.h>
 #include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 HttpEntiy::HttpEntiy() {
 	// TODO Auto-generated constructor stub

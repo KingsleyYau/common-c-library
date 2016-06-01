@@ -46,15 +46,15 @@ typedef struct _tagTransportProtocol {
 } TransportProtocol;
 
 typedef struct _tagNoHeadTransportProtocol {
-	unsigned int length;		// 长度
-	unsigned char data[1];		// 数据段
+	unsigned int data;		// 数据段
 
 	unsigned int GetAllDataLength() const {
-		return sizeof(length) + length;
+		return sizeof(data);
 	}
 } NoHeadTransportProtocol;
 
 typedef enum {
+	UNPACKET_ERROR = -2,	// 严重错误，需要重新连接
 	UNPACKET_FAIL = -1,		// 解包失败
 	UNPACKET_SUCCESS = 0,	// 解包成功
 	UNPACKET_MOREDATA,		// 数据不足，需要接收更多数据
@@ -75,7 +75,7 @@ public:
 	// 组包
 	virtual bool Packet(ITask* task, void* data, unsigned int dataSize, unsigned int& dataLen) = 0;
 	// 解包
-	virtual UNPACKET_RESULT_TYPE Unpacket(void* data, unsigned int dataLen, TransportProtocol** ppTp, unsigned int& useLen) = 0;
+	virtual UNPACKET_RESULT_TYPE Unpacket(void* data, unsigned int dataLen, unsigned int maxLen, TransportProtocol** ppTp, unsigned int& useLen) = 0;
 
 };
 

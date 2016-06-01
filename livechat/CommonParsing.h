@@ -8,7 +8,11 @@
 #pragma once
 
 #include "ILiveChatClientDef.h"
-#include <AmfParser.h>
+#include <amf/AmfParser.h>
 #include <string>
 
+// 解析用户信息
 bool ParsingUserInfoItem(amf_object_handle handle, UserInfoItem& item);
+
+// 解析主题包
+bool ParsingThemeInfoItem(amf_object_handle handle, ThemeInfoItem& item);

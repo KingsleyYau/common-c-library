@@ -6,7 +6,8 @@
  */
 
 #include "TaskMapManager.h"
-#include "IAutoLock.h"
+#include <common/IAutoLock.h>
+#include <common/CheckMemoryLeak.h>
 
 TaskMapManager::TaskMapManager(void)
 {
@@ -16,6 +17,7 @@ TaskMapManager::TaskMapManager(void)
 
 TaskMapManager::~TaskMapManager(void)
 {
+	Uninit();
 }
 
 bool TaskMapManager::Init()
@@ -29,6 +31,13 @@ bool TaskMapManager::Init()
 	return m_bInit;
 }
 
+void TaskMapManager::Uninit()
+{
+	IAutoLock::ReleaseAutoLock(m_lock);
+	m_lock = NULL;
+
+	m_bInit = false;
+}
 
 bool TaskMapManager::Insert(ITask* task)
 {

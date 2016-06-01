@@ -6,7 +6,8 @@
  */
 
 #include "EndTalkTask.h"
-#include <json/json.h>
+#include <json/json/json.h>
+#include <common/CheckMemoryLeak.h>
 
 EndTalkTask::EndTalkTask(void)
 {

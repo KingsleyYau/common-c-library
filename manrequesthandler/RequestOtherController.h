@@ -11,31 +11,27 @@
 #include "RequestBaseController.h"
 #include "item/Other.h"
 
-typedef void (*OnRequestOtherEmotionConfig)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item);
-typedef void (*OnRequestOtherGetCount)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item);
-typedef void (*OnRequestOtherPhoneInfo)(long requestId, bool success, const string& errnum, const string& errmsg);
-typedef void (*OnRequestOtherIntegralCheck)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherIntegralCheckItem& item);
-typedef void (*OnRequestOtherVersionCheck)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherVersionCheckItem& item);
-typedef void (*OnRequestOtherSynConfig)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherSynConfigItem& item);
-typedef void (*OnRequestOtherOnlineCount)(long requestId, bool success, const string& errnum, const string& errmsg, const OtherOnlineCountList& countList);
-typedef void (*OnRequestOtherUploadCrashLog)(long requestId, bool success, const string& errnum, const string& errmsg);
-typedef void (*OnRequestOtherInstallLogs)(long requestId, bool success, const string& errnum, const string& errmsg);
-typedef struct _tagRequestOtherControllerCallback {
-	OnRequestOtherEmotionConfig onRequestOtherEmotionConfig;
-	OnRequestOtherGetCount onRequestOtherGetCount;
-	OnRequestOtherPhoneInfo onRequestOtherPhoneInfo;
-	OnRequestOtherIntegralCheck onRequestOtherIntegralCheck;
-	OnRequestOtherVersionCheck onRequestOtherVersionCheck;
-	OnRequestOtherSynConfig onRequestOtherSynConfig;
-	OnRequestOtherOnlineCount onRequestOtherOnlineCount;
-	OnRequestOtherUploadCrashLog onRequestOtherUploadCrashLog;
-	OnRequestOtherInstallLogs onRequestOtherInstallLogs;
-} RequestOtherControllerCallback;
+class IRequestOtherControllerCallback
+{
+public:
+	IRequestOtherControllerCallback() {}
+	virtual ~IRequestOtherControllerCallback() {}
+public:
+	virtual void OnEmotionConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item) {};
+	virtual void OnGetCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item) {};
+	virtual void OnPhoneInfo(long requestId, bool success, const string& errnum, const string& errmsg) {};
+	virtual void OnIntegralCheck(long requestId, bool success, const string& errnum, const string& errmsg, const OtherIntegralCheckItem& item) {};
+	virtual void OnVersionCheck(long requestId, bool success, const string& errnum, const string& errmsg, const OtherVersionCheckItem& item) {};
+	virtual void OnSynConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherSynConfigItem& item) {};
+	virtual void OnOnlineCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherOnlineCountList& countList) {};
+	virtual void OnUploadCrashLog(long requestId, bool success, const string& errnum, const string& errmsg) {};
+	virtual void OnInstallLogs(long requestId, bool success, const string& errnum, const string& errmsg) {};
+};
 
 
 class RequestOtherController : public RequestBaseController, public IHttpRequestManagerCallback {
 public:
-	RequestOtherController(HttpRequestManager* pHttpRequestManager, const RequestOtherControllerCallback& callback);
+	RequestOtherController(HttpRequestManager* pHttpRequestManager, IRequestOtherControllerCallback* callback);
 	virtual ~RequestOtherController();
 
 public:
@@ -51,9 +47,11 @@ public:
 	long SynConfig();
 	long OnlineCount(int site);
 	long UploadCrashLog(const string& deviceId, const string& file);
+#ifdef _ANDROID
 	long InstallLogs(const string& deviceId, long installtime, long submittime, int verCode
 			, const string& model, const string& manufacturer, const string& os, const string& release
 			, const string& sdk, int width, int height, const string& referrer, bool isSimulator, const string& checkInfo);
+#endif
 
 private:
 	void EmotionConfigCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
@@ -64,13 +62,15 @@ private:
 	void SynConfigCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
 	void OnlineCountCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
 	void UploadCrashLogCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
+#ifdef _ANDROID
 	void InstallLogsCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
+#endif
 protected:
 	void onSuccess(long requestId, string path, const char* buf, int size);
 	void onFail(long requestId, string path);
 
 private:
-	RequestOtherControllerCallback m_Callback;
+	IRequestOtherControllerCallback* m_Callback;
 };
 
 #endif /* REQUESTOTHERCONTROLLER_H_ */

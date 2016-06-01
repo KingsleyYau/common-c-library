@@ -9,7 +9,8 @@
 #include "ITaskManager.h"
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
-#include <json/json.h>
+#include <json/json/json.h>
+#include <common/CheckMemoryLeak.h>
 
 GetLadyVoiceCodeTask::GetLadyVoiceCodeTask(void)
 {

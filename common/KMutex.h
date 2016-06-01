@@ -9,8 +9,8 @@
 #ifndef _INC_KMutex_
 #define _INC_KMutex_
 
+#ifndef _WIN32
 #include <pthread.h>
-using namespace std;
 
 #include "KLog.h"
 
@@ -43,4 +43,49 @@ private:
 	pthread_mutex_t m_Mutex;
 	pthread_mutexattr_t m_Mutexattr;
 };
+
+#else
+
+#include "IAutoLock.h"
+
+class KMutex
+{
+public:
+	KMutex(){
+		initlock();
+	}
+	~KMutex(){
+		destroylock();
+	}
+	int trylock(){
+		return m_lock->TryLock() ? 0 : -1;
+	}
+	int lock(){
+		return m_lock->Lock() ? 0 : -1;
+	}
+	int unlock(){
+		return m_lock->Unlock() ? 0 : -1;
+	}
+protected:
+	int initlock(){
+		bool result = false;
+		m_lock = IAutoLock::CreateAutoLock();
+		if (NULL != m_lock) {
+			result = m_lock->Init();
+		}
+		return result ? 0 : -1;
+	}
+	int destroylock(){
+		bool result = false;
+		if (NULL != m_lock) {
+			delete m_lock;
+			result = true;
+		}
+		return result ? 0 : -1;
+	}
+private:
+	IAutoLock*	m_lock;
+};
+
+#endif
 #endif

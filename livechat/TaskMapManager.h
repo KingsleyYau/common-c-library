@@ -29,6 +29,9 @@ public:
 	void Clear(TaskList& list);
 
 private:
+	void Uninit();
+
+private:
 	TaskMap		m_map;
 	IAutoLock*	m_lock;
 	bool		m_bInit;

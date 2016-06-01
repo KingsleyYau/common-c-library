@@ -13,7 +13,7 @@
 KUdpSocket::KUdpSocket() {
 	// TODO Auto-generated constructor stub
 	m_iPort = -1;
-	mbBlocking = false;
+	m_bBlocking = false;
 }
 
 KUdpSocket::~KUdpSocket() {
@@ -21,32 +21,32 @@ KUdpSocket::~KUdpSocket() {
 }
 int KUdpSocket::Bind(unsigned int iPort, string ip, bool bBlocking) {
 	int iRet = -1;
-	if((mSocket = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/)) < 0){
+	if((m_Socket = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/)) < 0){
 		// create socket error;
 		ELog("Jni.KUdpSocket.Bind", "create socket error");
 	    return false;
 	}
 
 	int iBuffer;
-	iRet = getsockopt(mSocket, SOL_SOCKET, SO_RCVBUF, &iBuffer, NULL);
+	iRet = getsockopt(m_Socket, SOL_SOCKET, SO_RCVBUF, &iBuffer, NULL);
 	if(iRet != 0) {
 		DLog("Jni.KUdpSocket.Bind", "当前接收缓冲区大小:%d", iBuffer);
 	}
 
-	iRet = getsockopt(mSocket, SOL_SOCKET, SO_SNDBUF, &iBuffer, NULL);
+	iRet = getsockopt(m_Socket, SOL_SOCKET, SO_SNDBUF, &iBuffer, NULL);
 	if(iRet != 0) {
 		DLog("Jni.KUdpSocket.Bind", "当前发送缓冲区大小:%d", iBuffer);
 	}
 
-	mbBlocking = bBlocking;
-	if(mbBlocking) {
+	m_bBlocking = bBlocking;
+	if(m_bBlocking) {
 		// set to blocking
 		int iFlag = 1;
-		if ((iFlag = fcntl(mSocket, F_GETFL, 0)) == -1) {
+		if ((iFlag = fcntl(m_Socket, F_GETFL, 0)) == -1) {
 			ELog("Jni.KUdpSocket.Bind", "fcntl F_GETFL O_NONBLOCK socket error");
 			return iRet;
 		}
-		if (fcntl(mSocket, F_SETFL, iFlag & ~O_NONBLOCK) == -1) {
+		if (fcntl(m_Socket, F_SETFL, iFlag & ~O_NONBLOCK) == -1) {
 			ELog("Jni.KUdpSocket.Bind", "fcntl F_SETFL iFlag & ~O_NONBLOCK socket error");
 			return iRet;
 		}
@@ -55,11 +55,11 @@ int KUdpSocket::Bind(unsigned int iPort, string ip, bool bBlocking) {
 	else {
 		// set to nonblocking
 		int iFlag = 1;
-		if ((iFlag = fcntl(mSocket, F_GETFL, 0)) == -1) {
+		if ((iFlag = fcntl(m_Socket, F_GETFL, 0)) == -1) {
 			ELog("Jni.KUdpSocket.RecvData", "fcntl F_GETFL O_NONBLOCK socket error");
 			return iRet;
 		}
-		if (fcntl(mSocket, F_SETFL, iFlag | O_NONBLOCK) == -1) {
+		if (fcntl(m_Socket, F_SETFL, iFlag | O_NONBLOCK) == -1) {
 			ELog("Jni.KUdpSocket.RecvData", "fcntl F_SETFL iFlag | O_NONBLOCK socket error");
 			return iRet;
 		}
@@ -77,7 +77,7 @@ int KUdpSocket::Bind(unsigned int iPort, string ip, bool bBlocking) {
 	}
 
 	localAddr.sin_port = htons(iPort);
-	if(bind(mSocket, (struct sockaddr *)&localAddr, sizeof(localAddr)) < 0) {
+	if(bind(m_Socket, (struct sockaddr *)&localAddr, sizeof(localAddr)) < 0) {
 		// bind socket error
 		ELog("Jni.KUdpSocket.Bind", "bind socket error");
 		return false;
@@ -103,8 +103,8 @@ int KUdpSocket::SendData(string ip, unsigned int iPort, char* pBuffer, unsigned 
 	DLog("jni.KUdpSocket::SendData", "准备向(%s:%d)发送数据，Hex编码后:\n%s(%d)", ip.c_str(), iPort, log.c_str(), uiSendLen);
 
 	socket_type sendSocket;
-	if(mSocket > 0) {
-		sendSocket = mSocket;
+	if(m_Socket > 0) {
+		sendSocket = m_Socket;
 	}
 	else {
 		if((sendSocket = socket(AF_INET, SOCK_DGRAM, 0/*IPPROTO_UDP*/)) < 0){
@@ -118,7 +118,7 @@ int KUdpSocket::SendData(string ip, unsigned int iPort, char* pBuffer, unsigned 
 	DLog("jni.KUdpSocket::SendData", "成功发送字节数:(%d)", iRet);
 
 //	int iLeft;
-//	iRet = ioctl(mSocket, SIOCOUTQ, &iLeft);
+//	iRet = ioctl(m_Socket, SIOCOUTQ, &iLeft);
 //	if(iRet == JNI_OK) {
 //		showLog("Jni.KUdpSocket.SendData", "缓冲区剩余包:%d", iLeft);
 //	}
@@ -130,7 +130,7 @@ int KUdpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, unsigned int uiT
 	int iOrgLen = uiRecvLen;
 	fd_set rset;
 
-	if(-1 == mSocket) {
+	if(-1 == m_Socket) {
 		return iRet;
 	}
 
@@ -144,10 +144,10 @@ int KUdpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, unsigned int uiT
 		}
 	}
 
-	if(mbBlocking) {
+	if(m_bBlocking) {
 		// blocking recv
 		bzero(pBuffer, sizeof(pBuffer));
-		iRet = recvfrom(mSocket, pBuffer, uiRecvLen, 0, (struct sockaddr *)&sendAddr , &iSendAddrLen);
+		iRet = recvfrom(m_Socket, pBuffer, uiRecvLen, 0, (struct sockaddr *)&sendAddr , &iSendAddrLen);
 		memcpy((void *)remoteAddr, &sendAddr, iSendAddrLen);
 
 		string ip = KSocket::IpToString(sendAddr.sin_addr.s_addr);
@@ -162,12 +162,12 @@ int KUdpSocket::RecvData(char* pBuffer, unsigned int uiRecvLen, unsigned int uiT
 		tout.tv_usec = (uiTimeout % 1000) * 1000;
 
 		FD_ZERO(&rset);
-		FD_SET(mSocket, &rset);
-		iRetS = select(mSocket + 1, &rset, NULL, NULL, &tout);
+		FD_SET(m_Socket, &rset);
+		iRetS = select(m_Socket + 1, &rset, NULL, NULL, &tout);
 
 		if(iRetS > 0) {
 			bzero(pBuffer, sizeof(pBuffer));
-			iRet = recvfrom(mSocket, pBuffer, uiRecvLen, 0, (struct sockaddr *)&sendAddr , &iSendAddrLen);
+			iRet = recvfrom(m_Socket, pBuffer, uiRecvLen, 0, (struct sockaddr *)&sendAddr , &iSendAddrLen);
 			memcpy((void *)remoteAddr, &sendAddr, iSendAddrLen);
 
 			string ip = KSocket::IpToString(sendAddr.sin_addr.s_addr);

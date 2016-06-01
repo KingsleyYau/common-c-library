@@ -8,19 +8,46 @@
 #pragma once
 
 #include <string>
-#include <list>
+#include <common/list_lock.h>
 #include <map>
+#include <common/dualmap_lock.h>
+#include <manrequesthandler/RequestLiveChatDefine.h>
+#include "LCPhotoDownloader.h"
 using namespace std;
 
+class HttpRequestManager;
+class RequestLiveChatController;
+class LCPhotoManagerCallback;
 class LCMessageItem;
+class LCUserItem;
 class IAutoLock;
 class LCPhotoItem;
-class LCPhotoManager
+class LCPhotoManager : public LCPhotoDownloaderCallback
 {
 private:
-	typedef map<int, LCMessageItem*>	SendingMap;		// 正在发送消息map表(msgId, LCMessageItem)
-	typedef map<long, LCMessageItem*>	RequestIdMap;	// 正在上传/下载map表(requestId, LCMessageItem)
-	typedef map<int, long>				RequestMsgMap;	// 正在上传/下载map表(msgId, requestId)
+	typedef map<int, LCMessageItem*>		SendingMap;		// 正在发送消息map表(msgId, LCMessageItem)
+	typedef map_lock<long, LCMessageItem*>	RequestMap;		// 正在请求map表(requestId, LCMessageItem)
+	typedef dualmap_lock<long, LCPhotoDownloader*>	DownloadMap;	// 正在下载map表(requestId, downloader)
+
+private:
+	// 已下载完成的downloader（待释放）
+	typedef struct _tagFinishDownloaderItem {
+		LCPhotoDownloader*	downloader;
+		long long finishTime;
+
+		_tagFinishDownloaderItem()
+		{
+			downloader = NULL;
+			finishTime = 0;
+		}
+
+		_tagFinishDownloaderItem(const _tagFinishDownloaderItem& item)
+		{
+			downloader = item.downloader;
+			finishTime = item.finishTime;
+		}
+	} FinishDownloaderItem;
+	typedef list_lock<FinishDownloaderItem>	FinishDownloaderList;	// 已下载完成的downloader（待释放）
 
 public:
 	LCPhotoManager();
@@ -28,15 +55,17 @@ public:
 
 public:
 	// 初始化
-	bool Init(const string& dirPath);
+	bool Init(LCPhotoManagerCallback* callback);
+	// 设置本地缓存目录
+	bool SetDirPath(const string& dirPath);
+	// 设置http接口参数
+	bool SetHttpRequest(HttpRequestManager* requestMgr, RequestLiveChatController* requestController);
 	// 获取图片本地缓存文件路径
 	string GetPhotoPath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
 	// 获取图片本地缓存文件路径(全路径)
 	string GetPhotoPath(const string& photoId, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
-	// 获取图片临时文件路径
-	string GetTempPhotoPath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
-	// 下载完成的临时文件转换成图片文件
-	bool TempToPhoto(LCMessageItem* item, const string& tempPath, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+	// 下载完成设置文件路径
+	bool SetPhotoFilePath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);
 	// 复制文件至缓冲目录(用于发送图片消息)
 	bool CopyPhotoFileToDir(LCPhotoItem* item, const string& srcFilePath);
 	// 删除朦胧图片
@@ -55,15 +84,35 @@ public:
 	// 清除所有待发送表map表的item
 	void ClearAllSendingItems();
 
-	// --------------------------- Uploading/Download Photo（正在上传/下载 ） -------------------------
+	// --------------------------- Download Photo（正在下载 ） -------------------------
 public:
-	// 获取正在上传/下载的RequestId
-	long GetRequestIdWithItem(LCMessageItem* item);
-	// 获取并移除正在上传/下载的item
-	LCMessageItem* GetAndRemoveRequestItem(long requestId);
-	// 添加正在上传/下载的item
+	// 开始下载
+	bool DownloadPhoto(
+			LCMessageItem* item
+			, const string& userId
+			, const string& sid
+			, GETPHOTO_PHOTOSIZE_TYPE sizeType
+			, GETPHOTO_PHOTOMODE_TYPE modeType);
+	// 下载完成的回调(IRequestLiveChatControllerCallback)
+	void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+	// 清除超过一段时间已下载完成的downloader
+	void ClearFinishDownloaderWithTimer();
+	// 清除下载
+	void ClearAllDownload();
+private:
+	// 清除所有已下载完成的downloader
+	void ClearAllFinishDownloader();
+	// LCPhotoDownloaderCallback
+	virtual void onSuccess(LCPhotoDownloader* downloader, LCMessageItem* item);
+	virtual void onFail(LCPhotoDownloader* downloader, const string& errnum, const string& errmsg, LCMessageItem* item);
+
+	// --------------------------- Request Photo（正在请求） -------------------------
+public:
+	// 添加到正在请求的map表
 	bool AddRequestItem(long requestId, LCMessageItem* item);
-	// 清除所有正在上传/下载的item
+	// 获取并移除正在请求的map表
+	LCMessageItem* GetAndRemoveRequestItem(long requestId);
+	// 获取并清除所有正在的请求
 	list<long> ClearAllRequestItems();
 
 private:
@@ -73,22 +122,26 @@ private:
 	void LockSendingMap();
 	// 正在发送消息map表解锁
 	void UnlockSendingMap();
-	// 正在上传/下载map表加锁(requestId, LCMessageItem)
-	void LockRequestIdMap();
-	// 正在上传/下载map表解锁(requestId, LCMessageItem)
-	void UnlockRequestIdMap();
-	// 正在上传/下载map表加锁(msgId, requestId)
-	void LockRequestMsgMap();
-	// 正在上传/下载map表解锁(msgId, requestId)
-	void UnlockRequestMsgMap();
 
 public:
+	LCPhotoManagerCallback*		m_callback;				// callback
+	HttpRequestManager*			m_requestMgr;			// http request管理器
+	RequestLiveChatController*	m_requestController;	// LiveChat的http request控制器
 	SendingMap		m_sendingMap;			// 正在发送消息map表
 	IAutoLock*		m_sendingMapLock;		// 正在发送消息map表锁
-	RequestIdMap	m_requestIdMap;			// 正在上传/下载map表(requestId, LCMessageItem)
-	IAutoLock*		m_requestIdMapLock;		// 正在上传/下载map表锁(requestId, LCMessageItem)
-	RequestMsgMap	m_requestMsgMap;		// 正在上传/下载map表(msgId, requestId)
-	IAutoLock*		m_requestMsgMapLock;	// 正在上传/下载map表锁(msgId, requestId)
+	RequestMap		m_requestMap;			// 正在请求map表
+
+	DownloadMap		m_downloadMap;			// 正在下载map表
+	FinishDownloaderList	m_finishDownloaderList;	// 已完成下载列表（待释放）
 
 	string			m_dirPath;				// 本地缓存目录路径
+};
+
+class LCPhotoManagerCallback
+{
+public:
+	LCPhotoManagerCallback() {};
+	virtual ~LCPhotoManagerCallback() {}
+public:
+	virtual void OnDownloadPhoto(bool success, const string& errnum, const string& errmsg, LCMessageItem* item) = 0;
 };

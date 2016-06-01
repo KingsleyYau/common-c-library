@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <string.h>
-#include "Arithmetic.h"
+#include <common/Arithmetic.h>
 
 SimulatorProtocolTool::SimulatorProtocolTool()
 {

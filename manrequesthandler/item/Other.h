@@ -503,12 +503,18 @@ public:
 			apkVerName = "";
 			apkForceUpdate = false;
 			facebook_enable = false;
+			chatscene_enable = true;
 			apkFileVerify = "";
 			apkVerURL = "";
 			chatVoiceHostUrl = "";
 			addCreditsUrl = "";
 			addCredits2Url = "";
 			ipcountry = GetOtherCountryCode();
+            iOSVerCode = 0;
+            iOSVerName = "";
+            iOSForceUpdate = 0;
+            iOSStoreUrl = "";
+            
 		}
 		virtual ~PublicItem() {}
 	public:
@@ -529,6 +535,9 @@ public:
 				}
 				if (data[OTHER_SYNCONFIG_FACEBOOK_ENABLE].isIntegral()) {
 					facebook_enable = data[OTHER_SYNCONFIG_FACEBOOK_ENABLE].asInt() == 1 ? true : false;
+				}
+				if (data[OTHER_SYNCONFIG_CHATSCENE_ENABLE].isIntegral()) {
+					chatscene_enable = data[OTHER_SYNCONFIG_CHATSCENE_ENABLE].asInt() == 1 ? true : false;
 				}
 				if (data[OTHER_SYNCONFIG_APKVERIFY].isString()) {
 					apkFileVerify = data[OTHER_SYNCONFIG_APKVERIFY].asString();
@@ -554,7 +563,21 @@ public:
 					ipcountry = GetCountryCode(strCountry);
 				}
 
-				result = true;
+                // iOS
+                if (data[OTHER_SYNCONFIG_IOSVERCODE].isIntegral()) {
+                    iOSVerCode = data[OTHER_SYNCONFIG_IOSVERCODE].asInt();
+                }
+                if (data[OTHER_SYNCONFIG_IOSVERNAME].isString()) {
+                    iOSVerName = data[OTHER_SYNCONFIG_IOSVERNAME].asString();
+                }
+                if (data[OTHER_SYNCONFIG_IOSFORCEUPDATE].isIntegral()) {
+                    iOSForceUpdate = data[OTHER_SYNCONFIG_IOSFORCEUPDATE].asInt() == 1 ? true : false;
+                }
+                if (data[OTHER_SYNCONFIG_IOSSTOREURL].isString()) {
+                    iOSStoreUrl = data[OTHER_SYNCONFIG_IOSSTOREURL].asString();
+                }
+                
+                result = true;
 			}
 			return result;
 		}
@@ -564,6 +587,7 @@ public:
 		string	apkVerName;		// Android客户端版本名称
 		bool	apkForceUpdate;	// 是否强制升级
 		bool    facebook_enable; //是否开通facebook登录
+		bool    chatscene_enable; //聊天主题开关
 		string	apkFileVerify;	// 安装文件检验码
 		string	apkVerURL;		// 安装包下载URL
 		string	apkStoreURL;	// Store URL
@@ -571,6 +595,11 @@ public:
 		string	addCreditsUrl;	// 选择点数充值页面URL
 		string	addCredits2Url;	// 指定点数充值页面URL
 		int  ipcountry; //当前IP对应的国家代码
+        
+        int		iOSVerCode;		// iOS客户端内部版本号
+        string	iOSVerName;		// iOS客户端版本名称
+        bool	iOSForceUpdate;	// iOS是否强制升级
+        string	iOSStoreUrl;	// appstore地址
 	};
 
 public:

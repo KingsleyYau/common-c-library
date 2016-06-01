@@ -8,16 +8,19 @@
 #include "LCInviteManager.h"
 #include "LCBlockManager.h"
 #include "LCContactManager.h"
+#include "LCUserManager.h"
 #include "LCUserItem.h"
 #include "LCMessageItem.h"
-#include "CommonFunc.h"
-#include "ILiveChatClient.h"
-#include <IAutoLock.h>
+#include <livechat/ILiveChatClient.h>
+#include <common/IAutoLock.h>
+#include <livechat/Counter.h>
+#include <common/CommonFunc.h>
+#include <common/CheckMemoryLeak.h>
 
 using namespace std;
 
-static long g_handleTimeInterval = 25 * 1000;	// 处理邀请时间间隔(25s)
-static int g_maxNoRandomCount = 10;				// 最大非随机处理数（最多多少次就要有一次随机）
+static long long g_handleTimeInterval = 25 * 1000;	// 处理邀请时间间隔(25s)
+static int g_maxNoRandomCount = 10;					// 最大非随机处理数（最多多少次就要有一次随机）
 
 LCInviteManager::LCInviteManager()
 {
@@ -26,6 +29,9 @@ LCInviteManager::LCInviteManager()
 	m_blockMgr = NULL;
 	m_contactMgr = NULL;
 	m_inviteUserListLock = IAutoLock::CreateAutoLock();
+	if (NULL != m_inviteUserListLock) {
+		m_inviteUserListLock->Init();
+	}
 
 	m_preHandleTime = 0;
 	m_handleCount = 0;
@@ -140,8 +146,8 @@ LCUserItem* LCInviteManager::GetAndRemoveUserWithPos(int pos)
 	if (m_inviteUserList.size() > pos && pos >= 0)
 	{
 		// 找元素
-		LCUserList::iterator userIter = m_inivteUserList.begin();
-		for (int j = 0;	j < i; userIter++, j++);
+		LCUserList::iterator userIter = m_inviteUserList.begin();
+		for (int j = 0;	j < pos; userIter++, j++);
 		userItem = (*userIter);
 
 		// 移除
@@ -160,7 +166,7 @@ void LCInviteManager::RemoveOverTimeInvite()
 		bool removeFlag = true;
 
 		// 找第i个元素
-		LCUserList::iterator userIter = m_inivteUserList.begin();
+		LCUserList::iterator userIter = m_inviteUserList.begin();
 		for (int j = 0;	j < i; userIter++, j++);
 
 		if (m_inviteUserList.end() != userIter && NULL != (*userIter))
@@ -170,7 +176,7 @@ void LCInviteManager::RemoveOverTimeInvite()
 			{
 				LCMessageList::iterator msgIter = userItem->m_msgList.begin();
 				LCMessageItem* item = (*msgIter);
-				long currentTime = GetCurrentTime();
+				long long currentTime = getCurrentTime();
 				if (item->m_createTime + g_handleTimeInterval >= currentTime) {
 					removeFlag = false;
 				}
@@ -203,20 +209,20 @@ bool LCInviteManager::InsertInviteUser(LCUserItem* item)
 // 对邀请列表排序
 void LCInviteManager::SortInviteList()
 {
-	m_inviteUserList.sort(LCInviteManager::Sort());
+	m_inviteUserList.sort(LCInviteManager::Sort);
 }
 
 // 处理邀请消息
 LCMessageItem* LCInviteManager::HandleInviteMessage(
-									AtomicInteger& msgIdIndex
+									Counter& msgIdIndex
 									, const string& toId
 									, const string& fromId
 									, const string& fromName
 									, const string& inviteId
 									, bool charge
 									, int ticket
-									, TalkMsgType msgType
-									, String message)
+									, TALK_MSG_TYPE msgType
+									, const string& message)
 {
 	LCMessageItem* item = NULL;
 
@@ -236,7 +242,7 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 		userItem->m_statusType = USTATUS_ONLINE;
 		// 生成MessageItem
 		item = new LCMessageItem;
-		item->Init(msgIdIndex.getAndIncrement()
+		item->Init(msgIdIndex.GetAndIncrement()
 				, LCMessageItem::SendType_Recv
 				, fromId
 				, toId
@@ -260,18 +266,18 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 	// 从列表中获取
 	if (!m_inviteUserList.empty()
 		&& (m_preHandleTime == 0
-			|| m_preHandleTime + g_handleTimeInterval <= GetCurrentTime()))
+			|| m_preHandleTime + g_handleTimeInterval <= getCurrentTime()))
 	{
 		// 生成随机处理次数
 		if (m_handleCount == 0) {
-			m_randomHandle = GetRandmoValue() % g_maxNoRandomCount;
+			m_randomHandle = GetRandomValue() % g_maxNoRandomCount;
 		}
 
 		// 从列表获取邀请用户
 		LCUserItem* inviteUserItem = NULL;
 		if (m_handleCount == m_randomHandle) {
 			// 随机从列表抽出邀请
-			int index = GetRandmoValue() % m_inviteUserList.size();
+			int index = GetRandomValue() % m_inviteUserList.size();
 			inviteUserItem = GetAndRemoveUserWithPos(index);
 		}
 		else {
@@ -300,7 +306,7 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 
 			// 抛出最后一条消息给外面显示
 			if (!userItem->m_msgList.empty()) {
-				LCMessageList::iter = (userItem->m_msgList.end()--);
+				LCMessageList::iterator iter = (userItem->m_msgList.end()--);
 				item = (*iter);
 			}
 		}
@@ -308,7 +314,7 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 		// 更新处理次数
 		m_handleCount = (m_handleCount + 1) % g_maxNoRandomCount;
 		// 更新处理时间
-		m_preHandleTime = GetCurrentTime();
+		m_preHandleTime = getCurrentTime();
 	}
 	else {
 		item = NULL;
@@ -325,14 +331,14 @@ void LCInviteManager::UpdateUserOrderValue(const string& userId, int orderValue)
 	LockInviteUsersList();
 	LCUserItem* item = GetUserNotCreate(userId);
 	if (NULL != item) {
-		item->order = orderValue;
+		item->m_order = orderValue;
 		SortInviteList();
 	}
 	UnlockInviteUsersList();
 }
 
 // 比较函数
-bool LCInviteManager::Sort(const LCUserItem* item1, const LCUserItem* item2)
+bool LCInviteManager::Sort(LCUserItem* item1, LCUserItem* item2)
 {
 	// true在前面，false在后面
 	bool result = false;
@@ -340,6 +346,7 @@ bool LCInviteManager::Sort(const LCUserItem* item1, const LCUserItem* item2)
 	if (item1->m_order == item2->m_order)
 	{
 		item1->LockMsgList();
+		item2->LockMsgList();
 		if (!item1->m_msgList.empty() && !item2->m_msgList.empty())
 		{
 			// 消息早收到的优先
@@ -356,6 +363,7 @@ bool LCInviteManager::Sort(const LCUserItem* item1, const LCUserItem* item2)
 			// 有消息的优先（不应该出现的情况）
 			result = !item1->m_msgList.empty();
 		}
+		item2->UnlockMsgList();
 		item1->UnlockMsgList();
 	}
 	else

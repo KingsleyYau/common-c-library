@@ -10,8 +10,9 @@
 #include "ILiveChatClient.h"
 #include "AmfPublicParse.h"
 #include "CommonParsing.h"
-#include <json/json.h>
-#include <KLog.h>
+#include <json/json/json.h>
+#include <common/KLog.h>
+#include <common/CheckMemoryLeak.h>
 
 #define USERID_DELIMITED	","		// 用户ID分隔符
 

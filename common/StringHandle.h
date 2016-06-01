@@ -2,8 +2,6 @@
  * File         : StringHandle.h
  * Date         : 2012-07-02
  * Author       : Kingsley Yau
- * Copyright    : City Hotspot Co., Ltd.
- * Description  : DrPalm StringHandle include
  */
 
 #ifndef _INC_STRINGHANDLE_
@@ -14,40 +12,32 @@
 #include "Arithmetic.h"
 #include <list>
 using namespace std;
+
 class StringHandle {
 public:
-	static string replace(const string& str, const string& src, const string& dest) {
-	    string ret;
+	static list<string> split(string str, string pattern)
+	{
+	    list<string> result;
+		size_t begin = 0;
+		size_t found = 0;
+		do {
+			found = str.find(pattern, begin);
+			if (string::npos != found) {
+				string sub = str.substr(begin, found - begin);
+				result.push_back(sub);
 
-	    string::size_type pos_begin = 0;
-	    string::size_type pos = str.find(src);
-	    while( pos != string::npos ) {
-	        ret.append(str.data() + pos_begin, pos - pos_begin);
-	        ret += dest;
-	        pos_begin = pos + src.length();
-	        pos = str.find(src, pos_begin);
-	    }
-	    if( pos_begin < str.length() ) {
-	        ret.append(str.begin() + pos_begin, str.end());
-	    }
-	    return ret;
-	}
+				begin = found + pattern.length();
+			}
+			else {
+				string end = str.substr(begin, found);
+				if (!end.empty()) {
+					result.push_back(end);
+				}
+				break;
+			}
+		} while (true);
 
-	static std::list<std::string> split(std::string str, std::string pattern) {
-	    std::string::size_type pos;
-	    std::list<std::string> result;
-	    str += pattern;
-	    int size = str.size();
-
-	    for(int i = 0; i < size; i++) {
-	        pos = str.find(pattern, i);
-	        if( pos < size ) {
-	            std::string s = str.substr(i, pos - i);
-	            result.push_back(s);
-	            i = pos + pattern.size() - 1;
-	        }
-	    }
-	    return result;
+		return result;
 	}
 
 	static inline char* strIstr(const char *haystack, const char *needle) {
@@ -82,7 +72,7 @@ public:
 			pRep = new char[256];
 
 		}
-		bzero(pRep, iLen);
+		memset(pRep, 0, iLen);
 
 		if ((pC_Begin = strIstr(pData, pBegin)) > 0) {
 

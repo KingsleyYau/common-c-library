@@ -23,6 +23,7 @@ public:
 	EMFSendMsgErrorItem()
 	{
 		money = "";
+		memberType = 0;
 	}
 	virtual ~EMFSendMsgErrorItem() {}
 
@@ -34,6 +35,10 @@ public:
 			money = data[EMF_SENDMSG_MONEY].asString();
 		}
 
+		if (data[EMF_MEMBER_TYPE].isInt()) {
+			memberType = data[EMF_MEMBER_TYPE].asInt();
+		}
+
 		if (!money.empty()) {
 			result = true;
 		}
@@ -42,6 +47,7 @@ public:
 
 public:
 	string	money;	// 余额
+	int memberType; //会员月费类型
 };
 
 

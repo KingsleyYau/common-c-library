@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <HttpDownloader.h>
+#include <httpclient/HttpDownloader.h>
 #include "LCEmotionItem.h"
 
 class LCEmotionDownloaderCallback;
@@ -31,7 +31,9 @@ public:
 				, const string& filePath
 				, EmotionFileType fileType
 				, LCEmotionItem* item
-				, LCEmotionDownloaderCallback* callback);
+				, LCEmotionDownloaderCallback* callback
+				, const string& httpUser = ""
+				, const string& httpPassword = "");
 	// 停止下载
 	void Stop();
 
@@ -57,6 +59,6 @@ public:
 	LCEmotionDownloaderCallback() {};
 	virtual ~LCEmotionDownloaderCallback() {};
 public:
-	virtual void onSuccess(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item) = 0;
-	virtual void onFail(LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item) = 0;
+	virtual void onSuccess(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item) = 0;
+	virtual void onFail(LCEmotionDownloader* downloader, LCEmotionDownloader::EmotionFileType fileType, LCEmotionItem* item) = 0;
 };
