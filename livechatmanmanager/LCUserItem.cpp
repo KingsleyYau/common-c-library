@@ -71,6 +71,17 @@ void LCUserItem::UnlockSendMsgList()
 	}
 }
 
+// 根据UserInfo更新信息
+void LCUserItem::UpdateWithUserInfo(const UserInfoItem& item)
+{
+    m_userName = item.userName;
+    m_imageUrl = item.imgUrl;
+    m_sexType = item.sexType;
+    m_clientType = item.clientType;
+    m_statusType = item.status;
+    m_order = item.orderValue;
+}
+
 // 获取聊天记录列表（已按时间排序）
 LCMessageList LCUserItem::GetMsgList()
 {
@@ -135,7 +146,8 @@ void LCUserItem::ClearFinishedMsgList()
 			iter != m_msgList.end();
 			iter++)
 	{
-		if ((*iter)->m_statusType == LCMessageItem::StatusType_Finish)
+		if ((*iter)->m_statusType == LCMessageItem::StatusType_Finish
+			&& !(*iter)->IsSubItemProcssign())
 		{
 			tempList.push_back(*iter);
 		}

@@ -176,21 +176,6 @@ static const int UserTypeArray[] = {
 USER_TYPE IntToUserType(int value);
 int UserTypeToInt(USER_TYPE type);
 
-// DEVICE_TYPE(设备类型) 转换
-static const int DeviceTypeArray[] = {
-	DEVICE_TYPE_UNKNOW,			// 未知
-	DEVICE_TYPE_WEB,			// Web
-	DEVICE_TYPE_WAP,			// WAP
-	DEVICE_TYPE_WAP_ANDROID,	// WAP Android
-	DEVICE_TYPE_WAP_IPHONE,		// WAP iPhone
-	DEVICE_TYPE_APP_ANDROID,	// App Android
-	DEVICE_TYPE_APP_IPHONE,		// App iPhone
-	DEVICE_TYPE_APP_IPAD,		// App iPad
-	DEVICE_TYPE_APP_PC,			// App PC
-};
-TDEVICE_TYPE IntToDeviceType(int value);
-int DeviceTypeToInt(TDEVICE_TYPE type);
-
 // AUTO_CHARGE_TYPE(自动充值类型) 转换
 static const int AutoChargeArray[] = {
 	AUTO_CHARGE_START,	// 开始自动充值

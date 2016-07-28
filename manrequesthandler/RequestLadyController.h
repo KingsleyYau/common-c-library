@@ -36,6 +36,7 @@ typedef void (*OnRecentContact)(long requestId, bool success, const string& errn
 typedef void (*OnRemoveContactList)(long requestId, bool success, string errnum, string errmsg);
 typedef void (*OnSignList)(long requestId, bool success, const string& errnum, const string& errmsg, const list<LadySignListItem>& list);
 typedef void (*OnUploadSign)(long requestId, bool success, const string& errnum, const string& errmsg);
+typedef void (*OnReportLady)(long requestId, bool success, const string& errnum, const string& errmsg);
 typedef struct RequestLadyControllerCallback {
 	OnQueryLadyMatch onQueryLadyMatch;
 	OnSaveLadyMatch onSaveLadyMatch;
@@ -48,6 +49,7 @@ typedef struct RequestLadyControllerCallback {
 	OnRemoveContactList onRemoveContactList;
 	OnSignList onSignList;
 	OnUploadSign onUploadSign;
+    OnReportLady onReportLady;
 } RequestLadyControllerCallback;
 
 
@@ -85,10 +87,12 @@ public:
      * @param country			国家(长度等于0：默认)
      * @param orderBy			排序规则(-1：默认，0：最新加入，1：年龄升序，2：年龄降序)
      * @param deviceId			设备唯一标识
+     * @param gender            性别(用于iOS假服务器)
      * @return					请求唯一标识
      */
 	long QueryLadyList(int pageIndex, int pageSize, int searchType, const string& womanId,
-			int isOnline, int ageRangeFrom, int ageRangeTo, const string& country, int orderBy, const string& deviceId);
+			int isOnline, int ageRangeFrom, int ageRangeTo, const string& country, int orderBy,
+            const string& deviceId, LadyGenderType genderType = LADY_GENDER_DEFAULT);
 
     /**
      * 4.4.查询女士详细信息
@@ -144,6 +148,13 @@ public:
 	 * @return					请求唯一标识
 	 */
     long UploadSigned(const string& womanId, const list<string> signIds);
+    
+    /**
+     *  举报女士
+     *  @param womanId          女士ID
+     *  @return                 请求唯一标识
+     */
+    long ReportLady(const string& womanId);
 
 protected:
 	void onSuccess(long requestId, string path, const char* buf, int size);

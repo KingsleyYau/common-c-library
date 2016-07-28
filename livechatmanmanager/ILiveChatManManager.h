@@ -126,9 +126,9 @@ public:
 					, double minBalance
 					, ILiveChatManManagerListener* listener) = 0;
 	// 登录
-	virtual bool Login(const string& userId, const string& sid, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg) = 0;
+	virtual bool Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg) = 0;
 	// 注销
-	virtual bool Logout() = 0;
+	virtual bool Logout(bool isResetParam) = 0;
 	// 是否已经登录
 	virtual bool IsLogin() = 0;
 

@@ -109,7 +109,7 @@ bool HttpRequestManager::StopRequest(long requestId, bool bWait) {
 	return bFlag;
 }
 
-void HttpRequestManager::StopAllRequest() {
+void HttpRequestManager::StopAllRequest(bool bWait, bool isCleanCallback) {
 	FileLog("httprequest", "HttpRequestManager::StopAllRequest()");
 
 	HttpRequest *request = NULL;
@@ -118,7 +118,11 @@ void HttpRequestManager::StopAllRequest() {
 		request = itr->second;
 
 		if( request != NULL ) {
-			request->StopRequest();
+            if (isCleanCallback) {
+                request->SetCallback(NULL);
+            }
+            
+			request->StopRequest(bWait);
 		}
 	}
 	mKMutex.unlock();

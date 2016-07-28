@@ -270,12 +270,14 @@ void RequestEMFController::InboxMsgCallbackHandle(long requestId, const string& 
 	EMFInboxMsgItem item;
 	string errnum = "";
 	string errmsg = "";
+	int memberType = 0;
 	bool bFlag = false;
 
 	if (requestRet) {
 		// request success
 		Json::Value dataJson;
-		if( HandleResult(buf, size, errnum, errmsg, &dataJson) ) {
+		Json::Value errDataJson;
+		if( HandleResult(buf, size, errnum, errmsg, &dataJson, &errDataJson) ) {
 			// success
 			if(dataJson.isObject()) {
 				bFlag = item.Parsing(dataJson);
@@ -290,6 +292,12 @@ void RequestEMFController::InboxMsgCallbackHandle(long requestId, const string& 
 							"(url:%s, size:%d, buf:%s)",
 							url.c_str(), size, buf);
 			}
+		}else{
+			if (errDataJson.isObject()) {
+				if(errDataJson[COMMON_ERRDATA_TYPE].isInt()){
+					memberType = errDataJson[COMMON_ERRDATA_TYPE].asInt();
+				}
+			}
 		}
 	}
 	else {
@@ -299,7 +307,7 @@ void RequestEMFController::InboxMsgCallbackHandle(long requestId, const string& 
 	}
 
 	if( m_Callback.onRequestEMFInboxMsg != NULL ) {
-		m_Callback.onRequestEMFInboxMsg(requestId, bFlag, errnum, errmsg, item);
+		m_Callback.onRequestEMFInboxMsg(requestId, bFlag, errnum, errmsg, memberType, item);
 	}
 }
 
@@ -509,7 +517,7 @@ void RequestEMFController::MsgTotalCallbackHandle(long requestId, const string& 
 }
 
 // ----------------------- SendMsg -----------------------
-long RequestEMFController::SendMsg(const string& womanid, const string& body, bool useIntegral, int replyType, string mtab, const SendMsgGifts& gifts, const SendMsgAttachs& attachs)
+long RequestEMFController::SendMsg(const string& womanid, const string& body, bool useIntegral, int replyType, string mtab, const SendMsgGifts& gifts, const SendMsgAttachs& attachs, bool isLovecall)
 {
 	char temp[16];
 	HttpEntiy entiy;
@@ -554,10 +562,16 @@ long RequestEMFController::SendMsg(const string& womanid, const string& body, bo
 	attachInfo = jsonWriter.write(attachInfoJson);
 	entiy.AddContent(EMF_REQUEST_ATTACHINFO, attachInfo.c_str());
 
+	//Lovecall
+	if(isLovecall){
+		string lovecallStr = "invite";
+		entiy.AddContent(EMF_REQUEST_LOVECALL_FLAG, lovecallStr.c_str());
+	}
+
 	string url = EMF_SENDMSG_PATH;
 	FileLog("httprequest", "RequestEMFController::SendMsg"
-			"( url:%s, womanid:%s, useIntegral:%d, attachInfo:%s, body:%s)",
-			url.c_str(), womanid.c_str(), useIntegral, attachInfo.c_str(), body.c_str());
+			"( url:%s, womanid:%s, useIntegral:%d, attachInfo:%s, body:%s, isLovecall:%d,)",
+			url.c_str(), womanid.c_str(), useIntegral, attachInfo.c_str(), body.c_str(), isLovecall);
 
 	return StartRequest(url, entiy, this);
 }
@@ -1166,7 +1180,7 @@ void RequestEMFController::InboxPhotoFeeCallbackHandle(long requestId, const str
 	}
 }
 // ----------------------- PrivatePhotoView -----------------------
-long RequestEMFController::PrivatePhotoView(const string& womanid, const string& photoid, const string& sendid, const string& messageid, const string& filePath, int type)
+long RequestEMFController::PrivatePhotoView(const string& womanid, const string& photoid, const string& sendid, const string& messageid, const string& filePath, int type, int mode)
 {
 	HttpEntiy entiy;
 
@@ -1191,7 +1205,13 @@ long RequestEMFController::PrivatePhotoView(const string& womanid, const string&
 	}
 
 	// model
-	entiy.AddContent(EMF_INBOXPHOTOFEE_MODE, "1");
+	if(mode >=0 && mode<=1){
+        char temp[4];
+        sprintf(temp, "%d", mode);
+		entiy.AddContent(EMF_INBOXPHOTOFEE_MODE, temp);
+	}else{
+		entiy.AddContent(EMF_INBOXPHOTOFEE_MODE, "1");
+	}
 
 	string url = EMF_PRIVATEPHOTOVIEW_PATH;
 

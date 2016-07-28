@@ -28,9 +28,11 @@ void RequestLoveCallController::onSuccess(long requestId, string url, const char
 	/* parse base result */
 	string errnum = "";
 	string errmsg = "";
+	int memberType = 0;
 	Json::Value data;
+	Json::Value errDataJson;
 
-	bool bFlag = HandleResult(buf, size, errnum, errmsg, &data);
+	bool bFlag = HandleResult(buf, size, errnum, errmsg, &data, &errDataJson);
 
 	/* resopned parse ok, callback success */
 	if( url.compare(LOVECALL_QUERY_LIST_PATH) == 0 ) {
@@ -59,8 +61,15 @@ void RequestLoveCallController::onSuccess(long requestId, string url, const char
 		}
 	} else if( url.compare(LOVECALL_CONFIRM_PATH) == 0 ) {
 		/* 11.2.确定Love Call接口 */
+		if(!bFlag){
+			if (errDataJson.isObject()) {
+				if(errDataJson[COMMON_ERRDATA_TYPE].isInt()){
+					memberType = errDataJson[COMMON_ERRDATA_TYPE].asInt();
+				}
+			}
+		}
 		if( mRequestLoveCallControllerCallback.onConfirmLoveCall != NULL ) {
-			mRequestLoveCallControllerCallback.onConfirmLoveCall(requestId, bFlag, errnum, errmsg);
+			mRequestLoveCallControllerCallback.onConfirmLoveCall(requestId, bFlag, errnum, errmsg, memberType);
 		}
 	} else if ( url.compare(LOVECALL_QUERY_REQUESTCOUNT_PATH) == 0 ) {
 		if ( mRequestLoveCallControllerCallback.onQueryLoveCallRequestCount != NULL ) {
@@ -85,7 +94,7 @@ void RequestLoveCallController::onFail(long requestId, string url) {
 	} else if( url.compare(LOVECALL_CONFIRM_PATH) == 0 ) {
 		/* 11.2.确定Love Call接口 */
 		if( mRequestLoveCallControllerCallback.onConfirmLoveCall != NULL ) {
-			mRequestLoveCallControllerCallback.onConfirmLoveCall(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
+			mRequestLoveCallControllerCallback.onConfirmLoveCall(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC, 0);
 		}
 	} else if ( url.compare(LOVECALL_QUERY_REQUESTCOUNT_PATH) == 0 ) {
 		if ( mRequestLoveCallControllerCallback.onQueryLoveCallRequestCount != NULL ) {

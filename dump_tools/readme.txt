@@ -1,13 +1,13 @@
-1. °Ñ±¾Ä¿Â¼copyµ½linux
-¡¡¡¡Èç£º/root/dump_tools
-2. °ÑobjÄ¿Â¼copyµ½±¾Ä¿Â¼ÏÂ
-¡¡¡¡Èç£º/root/dump_tools/obj
-3. Ö´ĞĞcreate_symbols.sh
-¡¡¡¡Èç£º# ./create_symbols.sh
-4. copy dumpÎÄ¼şµ½±¾Ä¿Â¼ÏÂ
-¡¡¡¡Èç£º/root/dump_tools/xxxxxxxx.dmp
-5. Ö´ĞĞminidump_stackwalk£¨µ¥¸ö£©
-¡¡¡¡Èç£º# ./minidump_stackwalk ./xxxxxxxx.dmp ./symbols/ > xxxxxxxx.txt
-5. Ö´ĞĞdump_stack£¨¶à¸ö£©
-    Èç£º# ./dump_stack.sh
-6. ²é¿´xxxxxxxx.txt£¬¼´¿ÉÅĞ¶ÏcrashÎ»ÖÃ
+ï»¿1. æŠŠæœ¬ç›®å½•copyåˆ°linux
+ã€€ã€€å¦‚ï¼š/root/dump_tools
+2. æŠŠobjç›®å½•copyåˆ°æœ¬ç›®å½•ä¸‹
+ã€€ã€€å¦‚ï¼š/root/dump_tools/obj
+3. æ‰§è¡Œcreate_symbols.sh
+ã€€ã€€å¦‚ï¼š# ./create_symbols.sh
+4. copy dumpæ–‡ä»¶åˆ°æœ¬ç›®å½•ä¸‹
+ã€€ã€€å¦‚ï¼š/root/dump_tools/xxxxxxxx.dmp
+5. æ‰§è¡Œminidump_stackwalkï¼ˆå•ä¸ªï¼‰
+ã€€ã€€å¦‚ï¼š# ./minidump_stackwalk ./xxxxxxxx.dmp ./symbols/ > xxxxxxxx.txt
+5. æ‰§è¡Œdump_stackï¼ˆå¤šä¸ªï¼‰
+    å¦‚ï¼š# ./dump_stack.sh
+6. æŸ¥çœ‹xxxxxxxx.txtï¼Œå³å¯åˆ¤æ–­crashä½ç½®

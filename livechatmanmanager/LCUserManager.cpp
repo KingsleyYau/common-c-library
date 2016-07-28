@@ -184,6 +184,27 @@ LCUserList LCUserManager::GetChatingUsers()
 	return userList;
 }
 
+// 获取男士主动邀请的用户item
+LCUserList LCUserManager::GetManInviteUsers()
+{
+    LCUserList userList;
+    
+    LockUserMap();
+    for (LCUserMap::iterator iter = m_userMap.begin();
+         iter != m_userMap.end();
+         iter++)
+    {
+        LCUserItem* userItem = (*iter).second;
+        if (userItem->m_chatType == LCUserItem::LC_CHATTYPE_MANINVITE)
+        {
+            userList.push_back(userItem);
+        }
+    }
+    UnlockUserMap();
+    
+    return userList;
+}
+
 // 获取有待发消息的用户列表
 LCUserList LCUserManager::GetToSendUsers()
 {

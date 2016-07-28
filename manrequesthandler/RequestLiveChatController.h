@@ -19,6 +19,7 @@ using namespace std;
 
 #include "RequestLiveChatDefine.h"
 #include "RequestOtherDefine.h"
+#include <ProtocolCommon/DeviceTypeDef.h>
 
 #include "item/Coupon.h"
 #include "item/Gift.h"
@@ -252,7 +253,7 @@ public:
 	 */
 	long CheckFunctions(
 			string functions,
-			int deviceType,
+			TDEVICE_TYPE deviceType,
 			string versionCode,
 			string user_sid,
 			string user_id);

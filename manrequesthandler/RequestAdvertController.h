@@ -14,10 +14,12 @@
 typedef void (*OnRequestAdMainAdvert)(long requestId, bool success, const string& errnum, const string& errmsg, const AdMainAdvertItem& item);
 typedef void (*OnRequestAdWomanListAdvert)(long requestId, bool success, const string& errnum, const string& errmsg, const AdWomanListAdvertItem& item);
 typedef void (*OnRequestAdPushAdvert)(long requestId, bool success, const string& errnum, const string& errmsg, const AdPushAdvertList& pushList);
+typedef void (*OnRequestAppPromotionAdvert)(long requestId, bool success, const string& errnum, const string& errmsg, const string& adOverview);
 typedef struct _tagRequestAdvertControllerCallback {
 	OnRequestAdMainAdvert onRequestAdMainAdvert;
 	OnRequestAdWomanListAdvert onRequestAdWomanListAdvert;
 	OnRequestAdPushAdvert onRequestAdPushAdvert;
+	OnRequestAppPromotionAdvert onRequestAppPromotionAdvert;
 } RequestAdvertControllerCallback;
 
 
@@ -30,11 +32,13 @@ public:
 	long MainAdvert(const string& deviceId, const string& advertId, int showTimes, int clickTimes);
 	long WomanListAdvert(const string& deviceId, const string& advertId, int showTimes, int clickTimes);
 	long PushAdvert(const string& deviceId, const string& pushId);
+	long AppPromotionAdvert(const string& deviceId);
 
 private:
 	void MainAdvertCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
 	void WomanListAdvertCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
 	void PushAdvertCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
+	void AppPromotionCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size);
 
 // IHttpRequestManagerCallback interface
 protected:

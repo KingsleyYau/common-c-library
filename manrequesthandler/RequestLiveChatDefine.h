@@ -20,11 +20,11 @@
 #define LIVECHAT_WOMAN_ID 				"womanid"
 #define LIVECHAT_LC_FREETRIAL 			"lc_freetrial"
 typedef enum {
-	CouponStatus_Used,		// 已聊过(-1)
-	CouponStatus_None,		// 不能使用(0)
-	CouponStatus_Yes,		// 可以使用(1)
-	CouponStatus_Started,	// 已开始使用(2)
-	CouponStatus_Promotion,	// 促销(3)
+	CouponStatus_Used       = -1,	// 已聊过(-1)
+	CouponStatus_None       = 0,	// 不能使用(0)
+	CouponStatus_Yes        = 1,	// 可以使用(1)
+	CouponStatus_Started    = 2,	// 已开始使用(2)
+	CouponStatus_Promotion  = 3,	// 促销(3)
 } CouponStatus;
 
 /* 5.3.获取虚拟礼物列表 */

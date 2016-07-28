@@ -33,4 +33,5 @@ public:
 	string	m_fileType;
 	string	m_checkCode;
 	bool	m_charge;
+	bool	m_processing;
 };

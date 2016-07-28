@@ -60,6 +60,8 @@ public:
 	void RemoveFeeStatus();
 	// 判断是否正在付费状态
 	bool IsFee();
+	// 判断是否正在处理中
+	bool IsProcessing();
 
 public:
 	static ProcessStatus GetProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);

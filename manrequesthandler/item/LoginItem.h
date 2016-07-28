@@ -123,6 +123,18 @@ public:
 			if ( root[AUTHORIZATION_RECHARGECREDIT].isInt() ) {
 				rechargeCredit = root[AUTHORIZATION_RECHARGECREDIT].asInt();
 			}
+
+			if ( root[AUTHORIZATION_GAACTIVITY].isString() ) {
+				gaActivity = root[AUTHORIZATION_GAACTIVITY].asString();
+			}
+
+			if ( root[AUTHORIZATION_ADOVERVIEW].isString() ) {
+				adOverview = root[AUTHORIZATION_ADOVERVIEW].asString();
+			}
+
+			if ( root[AUTHORIZATION_ADTIMESTAMP].isInt() ) {
+				adTimestamp = root[AUTHORIZATION_ADTIMESTAMP].asInt();
+			}
 		}
 	}
 
@@ -152,6 +164,9 @@ public:
 		bpemf = false;
 
 		rechargeCredit = 0;
+		gaActivity = "";
+		adOverview = "";
+		adTimestamp = 0;
 	}
 	virtual ~LoginItem() {
 
@@ -181,6 +196,9 @@ public:
 	 * @param admirer			意向信风控标识（true：有风控，false：无）
 	 * @param bpemf				EMF风控标识（true：有风控，false：无）
 	 * @param rechargeCredit	自动买点配置（0：无权限，大于0：每次买点的数量）
+	 * @param gaActivity		活动统计GA值
+	 * @param adOverview        主界面弹窗参数
+	 * @param adTimestamp       广告更新有效时间间隔
 	 */
 
 	string manid;
@@ -205,6 +223,9 @@ public:
 	bool bpemf;
 	bool videoreceived;
 	int rechargeCredit;
+	string gaActivity;
+	string adOverview;
+	int adTimestamp;
 };
 
 #endif /* LOGINITEM_H_ */

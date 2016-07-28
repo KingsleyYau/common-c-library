@@ -393,7 +393,11 @@ bool CTransportDataHandler::ConnectProc()
 		m_socketHandler = ISocketHandler::CreateSocketHandler(ISocketHandler::TCP_SOCKET);
 		m_socketLock->Unlock();
 		if (NULL != m_socketHandler){
-			result = m_socketHandler->Create();
+#ifdef IOS
+            result = m_socketHandler->Create(true);
+#else
+            result = m_socketHandler->Create(false);
+#endif
 			result = result && m_socketHandler->Connect((*iter), m_svrPort, 0) == SOCKET_RESULT_SUCCESS;
 		}
 		FileLog("LiveChatClient", "CTransportDataHandler::ConnectProc() ip:%s end", (*iter).c_str());
@@ -478,7 +482,12 @@ void CTransportDataHandler::DisconnectProc()
 
 	m_socketLock->Lock();
 	if (NULL != m_socketHandler) {
-		m_socketHandler->Shutdown();
+        if (ISocketHandler::CONNECTION_STATUS_CONNECTING == m_socketHandler->GetConnectionStatus()) {
+            m_socketHandler->Close();
+        }
+        else {
+            m_socketHandler->Shutdown();
+        }
 	}
 	m_socketLock->Unlock();
 

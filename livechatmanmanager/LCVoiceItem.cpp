@@ -18,6 +18,7 @@ LCVoiceItem::LCVoiceItem()
 	m_fileType = "";
 	m_checkCode = "";
 	m_charge = false;
+	m_processing = false;
 }
 
 LCVoiceItem::~LCVoiceItem()
@@ -39,6 +40,7 @@ bool LCVoiceItem::Init(
 	m_fileType = fileType;
 	m_checkCode = checkCode;
 	m_charge = charge;
+	m_processing = false;
 
 	if ( IsFileExist(filePath) )
 	{

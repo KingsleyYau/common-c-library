@@ -45,6 +45,8 @@ public:
 	static list<string> GetMacAddressList();
 	static list<string> GetIPAddress();
 	static list<string> GetBroadAddress();
+    
+    static string Ipv42Ipv6(string ipv4);
 };
 
 #endif /* IPADDRESS_H_ */

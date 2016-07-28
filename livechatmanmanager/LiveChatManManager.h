@@ -57,7 +57,7 @@ public:
 		REQUEST_TASK_Unknow,						// 未知请求类型
 		REQUEST_TASK_GetEmotionConfig,				// 获取高级表情配置
 		REQUEST_TASK_AutoRelogin,					// 执行自动重登录流程
-		REQUEST_TASK_GetInChatUsersHistoryMessage,	// 获取在聊用户的聊天历史记录
+		REQUEST_TASK_GetUsersHistoryMessage,        // 获取用户的聊天历史记录
 		REQUEST_TASK_CheckCouponWithToSendUser,		// 有待发消息的用户调用检测试聊券流程
 		REQUEST_TASK_SendMessageList,				// 发送指定用户的待发消息
 		REQUEST_TASK_SendMessageListNoMoneyFail,	// 处理指定用户的待发消息发送不成功(余额不足)
@@ -119,9 +119,9 @@ public:
 					, double minBalance
 					, ILiveChatManManagerListener* listener);
 	// 登录
-	virtual bool Login(const string& userId, const string& sid, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg);
+	virtual bool Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg);
 	// 注销
-	virtual bool Logout();
+	virtual bool Logout(bool isResetParam);
 	// 是否已经登录
 	virtual bool IsLogin();
 
@@ -228,6 +228,8 @@ private:
 	void AutoRelogin();
 	// 设置用户在线状态，若用户在线状态改变则callback通知listener
 	void SetUserOnlineStatus(LCUserItem* userItem, USER_STATUS_TYPE statusType);
+    // 根据错误类型设置用户在线状态，若用户在线状态改变则callback通知listener
+    void SetUserOnlineStatusWithLccErrType(LCUserItem* userItem, LCC_ERR_TYPE errType);
 	// 是否处理发送操作
 	bool IsHandleSendOpt();
 	// 是否立即发送消息给用户
@@ -409,11 +411,13 @@ private:
 
 	string		m_userId;			// 用户Id
 	string		m_sId;				// sId
+    CLIENT_TYPE   m_clientType;   // 设备类型
 	list<string>	m_cookies;		// cookies
 	string		m_deviceId;			// 设备唯一标识
 	bool		m_riskControl;		// 风控标志（true:需要风控）
 	bool		m_isRecvVideoMsg;	// 是否接收视频消息
 	bool		m_isLogin;			// 是否已经登录
+    bool        m_isResetParam;     // 是否重置参数
 	bool		m_isAutoLogin;		// 是否尝试自动重登录（如断线后自动尝试重）
 	long		m_getUsersHistoryMsgRequestId;	// 获取多个用户历史聊天记录的requestId
 	Counter		m_msgIdBuilder;		// 消息ID生成器

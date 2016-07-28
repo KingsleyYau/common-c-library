@@ -40,6 +40,8 @@ public:
 	LCUserList GetInviteUsers();
 	// 获取在聊的用户item（包括付费和试聊券）
 	LCUserList GetChatingUsers();
+    // 获取男士主动邀请的用户item
+    LCUserList GetManInviteUsers();
 	// 获取有待发消息的用户列表
 	LCUserList GetToSendUsers();
 

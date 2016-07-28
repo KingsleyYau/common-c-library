@@ -13,7 +13,7 @@
 #include "item/EMFError.h"
 
 typedef void (*OnRequestEMFInboxList)(long requestId, bool success, const string& errnum, const string& errmsg, int pageIndex, int pageSize, int dataCount, const EMFInboxList& inboxList);
-typedef void (*OnRequestEMFInboxMsg)(long requestId, bool success, const string& errnum, const string& errmsg, const EMFInboxMsgItem& item);
+typedef void (*OnRequestEMFInboxMsg)(long requestId, bool success, const string& errnum, const string& errmsg, int memberType, const EMFInboxMsgItem& item);
 typedef void (*OnRequestEMFOutboxList)(long requestId, bool success, const string& errnum, const string& errmsg, int pageIndex, int pageSize, int dataCount, const EMFOutboxList& outboxList);
 typedef void (*OnRequestEMFOutboxMsg)(long requestId, bool success, const string& errnum, const string& errmsg, const EMFOutboxMsgItem& item);
 typedef void (*OnRequestEMFMsgTotal)(long requestId, bool success, const string& errnum, const string& errmsg, const EMFMsgTotalItem& item);
@@ -63,7 +63,7 @@ public:
 	long OutboxList(int pageIndex, int pageSize, int progressType, const string& womanid);
 	long OutboxMsg(const string& messageid);
 	long MsgTotal(int sortType);
-	long SendMsg(const string& womanid, const string& body, bool useIntegral, int replyType, string mtab, const SendMsgGifts& gifts, const SendMsgAttachs& attachs);
+	long SendMsg(const string& womanid, const string& body, bool useIntegral, int replyType, string mtab, const SendMsgGifts& gifts, const SendMsgAttachs& attachs, bool isLovecall);
 	long UploadImage(const string& messageid, const EMFFileNameList& fileList);
 	long UploadAttach(const string& filePath, int attachType);
 	long DeleteMsg(const string& messageid, int mailType);
@@ -73,7 +73,7 @@ public:
 	long Block(const string& womanid, int blockreason);
 	long Unblock(const EMFWomanidList& womanidList);
 	long InboxPhotoFee(const string& womanid, const string& photoId, const string& sendid, const string& messageid);
-	long PrivatePhotoView(const string& womanid, const string& photoid, const string& sendid, const string& messageid, const string& filePath, int type);
+	long PrivatePhotoView(const string& womanid, const string& photoid, const string& sendid, const string& messageid, const string& filePath, int type, int mode);
 	/**
 	 * 7.17.获取微视频thumb图片（http post）（New）
 	 * @param womanid		女士ID

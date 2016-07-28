@@ -69,6 +69,9 @@
 #define AUTHORIZATION_BPEMF				"bpemf"
 
 #define AUTHORIZATION_RECHARGECREDIT	"recharge_credit"
+#define AUTHORIZATION_GAACTIVITY		"ga_activity"
+#define AUTHORIZATION_ADOVERVIEW		"ad_overview"
+#define AUTHORIZATION_ADTIMESTAMP		"ad_timestamp"
 
 /* 找回密码 */
 #define AUTHORIZATION_SENDMAIL			"sendmail"

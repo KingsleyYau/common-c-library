@@ -40,7 +40,7 @@
 #include <errno.h>
 
 #include "KLog.h"
-
+#include "StringHandle.h"
 
 
 #define BUFFERSIZE    4000
@@ -124,16 +124,16 @@ list<IpAddressNetworkInfo> IPAddress::GetNetworkInfoList() {
 //					}
 				}
 
-				DLog("jni.IPAddress::GetNetworkInfoList", "#################################");
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.name:%s", info.name.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.ip:%s", info.ip.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.netmask:%s", info.netmask.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.broad:%s", info.broad.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.dst:%s", info.dst.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.mac:%s", info.mac.c_str());
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.bUp:%d", info.bUp);
-				DLog("jni.IPAddress::GetNetworkInfoList", "info.bPPP:%d", info.bPPP);
-				DLog("jni.IPAddress::GetNetworkInfoList", "#################################");
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList(################ intrface %d #################)", intrface);
+				FileLog("IPAddress:", "IPAddress::GetNetworkInfoList( info.name : %s )", info.name.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.ip : %s )", info.ip.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.netmask : %s )", info.netmask.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.broad : %s )", info.broad.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.dst : %s )", info.dst.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.mac : %s )", info.mac.c_str());
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.bUp : %d )", info.bUp);
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList( info.bPPP : %d )", info.bPPP);
+				FileLog("IPAddress", "IPAddress::GetNetworkInfoList(################ intrface %d #################)", intrface);
 
 				valueList.push_back(info);
 			}
@@ -246,3 +246,21 @@ list<string> IPAddress::GetBroadAddress() {
 	return valueList;
 }
 
+string IPAddress::Ipv42Ipv6(string ipv4) {
+    string result = "";
+    list<string> ips = StringHandle::split(ipv4, ".");
+    if( ips.size() == 4 ) {
+        int i = 0;
+        char temp[4];
+        for(list<string>::const_iterator itr = ips.begin(); itr != ips.end(); itr++, i++) {
+            int value = atoi(itr->c_str());
+            sprintf(temp, "%x", value);
+            result += temp;
+            if( i == 1 ) {
+                result += ":";
+            }
+        }
+        
+    }
+    return result;
+}

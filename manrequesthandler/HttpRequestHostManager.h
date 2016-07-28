@@ -18,6 +18,7 @@ typedef enum SiteType {
 	AppSite,
 	WebSite,
 	ChatVoiceSite,
+    FakeSite,
 } SiteType;
 
 class HttpRequestHostManager {
@@ -32,11 +33,14 @@ public:
 	string GetAppSite();
 	void SetChatVoiceSite(string chatVoiceSite);
 	string GetChatVoiceSite();
-
+    void SetFakeSite(string fakeSite);
+    string GetFakeSite();
+    
 private:
 	string mWebSite;
 	string mAppSite;
 	string mChatVoiceSite;
+    string mFakeSite;
 };
 
 #endif /* HTTPREQUESTHOSTMANAGER_H_ */

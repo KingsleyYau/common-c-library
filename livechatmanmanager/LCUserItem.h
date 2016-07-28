@@ -31,6 +31,9 @@ public:
 	virtual ~LCUserItem();
 
 public:
+    // 根据UserInfo更新信息
+    void UpdateWithUserInfo(const UserInfoItem& item);
+    
 	// 获取聊天记录列表（已按时间排序）
 	LCMessageList GetMsgList();
 	// 排序插入聊天记录
@@ -77,6 +80,7 @@ public:
 public:
 	string			m_userId;			// 用户ID
 	string			m_userName;			// 用户名
+    string          m_imageUrl;         // 头像URL
 	USER_SEX_TYPE	m_sexType;			// 用户性别
 	CLIENT_TYPE		m_clientType;		// 客户端类型
 	USER_STATUS_TYPE	m_statusType;	// 在线状态

@@ -69,6 +69,7 @@ bool LCMessageItem::Init(
 		m_toId = toId;
 		m_inviteId = inviteId;
 		m_statusType = statusType;
+		m_procResult.SetSuccess();
 
 		m_createTime = GetCreateTime();
 		result = true;
@@ -135,7 +136,7 @@ bool LCMessageItem::InitWithRecord(
 		if (!record.textMsg.empty())
 		{
 			LCTextItem* textItem = new LCTextItem;
-			textItem->Init(record.textMsg);
+			textItem->Init(record.textMsg, record.toflag != LRT_RECV);
 			SetTextItem(textItem);
 			result = true;
 		}
@@ -144,7 +145,7 @@ bool LCMessageItem::InitWithRecord(
 		if (!record.inviteMsg.empty())
 		{
 			LCTextItem* textItem = new LCTextItem;
-			textItem->Init(record.inviteMsg);
+			textItem->Init(record.inviteMsg, record.toflag != LRT_RECV);
 			SetTextItem(textItem);
 			result = true;
 		}
@@ -357,6 +358,36 @@ LCCustomItem* LCMessageItem::GetCustomItem() const
 	return m_customItem;	
 }
 
+// 判断子消息item（如：语音、图片、视频等）是否正在处理
+bool LCMessageItem::IsSubItemProcssign() const
+{
+	bool result = false;
+	switch (m_msgType)
+	{
+		case MT_Voice:
+			{
+				LCVoiceItem* voiceItem = GetVoiceItem();
+				result = voiceItem->m_processing;
+			}
+			break;
+		case MT_Photo:
+			{
+				LCPhotoItem* photoItem = GetPhotoItem();
+				result = photoItem->IsProcessing();
+			}
+			break;
+		case MT_Video:
+			{
+				lcmm::LCVideoItem* videoItem = GetVideoItem();
+				result = videoItem->IsFee();
+			}
+			break;
+        default:
+            break;
+	}
+	return result;
+}
+
 // 设置用户item
 void LCMessageItem::SetUserItem(LCUserItem* theUserItem)
 {
@@ -425,3 +456,23 @@ bool LCMessageItem::Sort(const LCMessageItem* item1, const LCMessageItem* item2)
 
 	return result;
 }
+
+// 判断是否聊天消息
+bool LCMessageItem::IsChatMessage()
+{
+    bool result = false;
+    switch (m_msgType) {
+        case MT_Text:
+        case MT_Photo:
+        case MT_Video:
+        case MT_Voice:
+        case MT_Emotion:
+            result = true;
+            break;
+            
+        default:
+            break;
+    }
+    return result;
+}
+

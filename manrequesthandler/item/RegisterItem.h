@@ -69,6 +69,18 @@ public:
 				string strValue = root[AUTHORIZATION_VIDEORECEIVED].asString();
 				videoreceived = (atoi(strValue.c_str()) == 0)?"false":"true";
 			}
+
+			if ( root[AUTHORIZATION_GAACTIVITY].isString() ) {
+				gaActivity = root[AUTHORIZATION_GAACTIVITY].asString();
+			}
+
+			if ( root[AUTHORIZATION_ADOVERVIEW].isString() ) {
+				adOverview = root[AUTHORIZATION_ADOVERVIEW].asString();
+			}
+
+			if ( root[AUTHORIZATION_ADTIMESTAMP].isInt() ) {
+				adTimestamp = root[AUTHORIZATION_ADTIMESTAMP].asInt();
+			}
 		}
 	}
 	RegisterItem() {
@@ -88,6 +100,9 @@ public:
 		photosend = true;
 		photoreceived = true;
 		videoreceived = true;
+		gaActivity = "";
+		adOverview = "";
+		adTimestamp = 0;
 	}
 	virtual ~RegisterItem() {
 
@@ -110,6 +125,9 @@ public:
 	 * @param photosend			私密照片发送权限
 	 * @param photoreceived		私密照片接收权限
 	 * @param videoreceived		微视频接收权限（true：允许，false：不能）
+	 * @param gaActivity		活动统计GA值
+	 * @param adOverview        主界面弹窗参数
+	 * @param adTimestamp       广告更新有效时间间隔
 	 */
 	bool login;
 	string manid;
@@ -126,6 +144,9 @@ public:
 	bool photosend;
 	bool photoreceived;
 	bool videoreceived;
+	string gaActivity;
+	string adOverview;
+	int adTimestamp;
 };
 
 #endif /* REGISTERITEM_H_ */

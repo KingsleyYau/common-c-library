@@ -122,7 +122,7 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
 			if (m_photoMgr->SetPhotoFilePath(m_item, m_modeType, m_sizeType))
 			{
 				// 设置文件路径成功
-				m_item->m_statusType = LCMessageItem::StatusType_Finish;
+				m_item->m_procResult.SetSuccess();
 				m_callback->onSuccess(this, m_item);
 
 				FileLog("LiveChatManager", "LCPhotoDownloader::OnGetPhoto() SetPhotoFilePath ok");
@@ -130,16 +130,16 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
 			else
 			{
 				// 设置文件路径失败
-				m_item->m_statusType = LCMessageItem::StatusType_Fail;
-				m_callback->onFail(this, errnum, errmsg, m_item);
+				m_item->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
+				m_callback->onFail(this, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
 
 				FileLog("LiveChatManager", "LCPhotoDownloader::OnGetPhoto() SetPhotoFilePath fail");
 			}
 		}
 		else {
 			// 获取图片失败
-			m_item->m_statusType = LCMessageItem::StatusType_Fail;
-			m_callback->onFail(this, errnum, errmsg, m_item);
+			m_item->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
+			m_callback->onFail(this, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
 		}
 	}
 }

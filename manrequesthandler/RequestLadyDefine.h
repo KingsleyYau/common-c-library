@@ -37,6 +37,7 @@
 #define LADY_PHOTO_URL 			"photoURL"
 #define LADY_PHOTO_BIG_URL 		"photoBigURL"
 #define LADY_ONLINE_STATUS		"online_status"
+#define LADY_GENDER             "gender"        // 用于假服务器
 
 /* 4.4.查询女士详细信息 */
 #define LADY_ZODIAC				"zodiac"
@@ -142,6 +143,11 @@
  */
 #define QUERY_UPLOADSIGN_PATH "/member/uploadsign"
 
+/**
+ * 举报女士
+ */
+#define REPORT_LADY_PATH "/member/report_lady"
+
 /* 接口路径定义  end */
 
 // 女士列表在线状态
@@ -153,5 +159,17 @@ typedef enum {
 	LADY_OSTATUS_END = LADY_OFFLINE,	// 枚举结束
 	LADY_OSTATUS_DEFAULT = LADY_OFFLINE	// 默认值
 } LadyOnlineStatus;
+
+// 性别类型定义(LADY_GENDER)
+static const char* LadyGenderProtocol[] = {
+    "",     // 不限
+    "M",    // 男
+    "F",    // 女
+};
+typedef enum {
+    LADY_GENDER_DEFAULT,    // 不限
+    LADY_GENDER_MALE,       // 男
+    LADY_GENDER_FEMALE,     // 女
+} LadyGenderType;
 
 #endif /* REQUESTLADYDEFINE_H_ */

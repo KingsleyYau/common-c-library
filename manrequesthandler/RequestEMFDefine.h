@@ -35,6 +35,7 @@ using namespace std;
 #define EMF_REQUEST_ATTACHS		"attachs"
 #define EMF_REQUEST_REPLYTYPE	"replytype"
 #define EMF_REQUEST_MTA			"mta"
+#define EMF_REQUEST_LOVECALL_FLAG 	"mail"
 
 #define EMF_REQUEST_ATTACH_ID	"id"
 

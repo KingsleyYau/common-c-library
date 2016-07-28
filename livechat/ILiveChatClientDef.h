@@ -10,6 +10,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <ProtocolCommon/DeviceTypeDef.h>
 
 using namespace std;
 
@@ -96,6 +97,39 @@ typedef enum {
 // int 转换 CLIENT_TYPE
 inline CLIENT_TYPE GetClientType(int value) {
 	return CLIENT_BEGIN <= value && value < CLIENT_END ? (CLIENT_TYPE)value : CLIENT_UNKNOW;
+}
+// CLIENT_TYPE 转换 TDEVICE_TYPE
+inline TDEVICE_TYPE GetDeviceTypeWithClientType(CLIENT_TYPE clientType) {
+    TDEVICE_TYPE deviceType = DEVICE_TYPE_UNKNOW;
+    switch (clientType) {
+    case CLIENT_PC:
+        deviceType = DEVICE_TYPE_APP_PC;
+        break;
+    case CLIENT_PC_JAVA:
+        deviceType = DEVICE_TYPE_WAP;
+        break;
+    case CLIENT_PC_APP:
+        deviceType = DEVICE_TYPE_WAP_ANDROID;
+        break;
+    case CLIENT_PC_PAD:
+        deviceType = DEVICE_TYPE_APP_IPAD;
+        break;
+    case CLIENT_ANDROID:
+        deviceType = DEVICE_TYPE_APP_ANDROID;
+        break;
+    case CLIENT_IPHONE:
+        deviceType = DEVICE_TYPE_APP_IPHONE;
+        break;
+    case CLIENT_IPAD:
+        deviceType = DEVICE_TYPE_APP_IPAD;
+        break;
+    case CLIENT_WEB:
+        deviceType = DEVICE_TYPE_WEB;
+        break;
+    default:
+        break;
+    }
+    return deviceType;
 }
 
 // 用户在线状态
@@ -278,19 +312,6 @@ typedef enum {
 inline USER_TYPE GetUserType(int value) {
 	return UT_BEGIN <= value && value < UT_END ? (USER_TYPE)value : UT_UNKNOW;
 }
-
-// 设备类型
-typedef enum {
-	DEVICE_TYPE_WEB = 10,			// Web
-	DEVICE_TYPE_WAP = 20,			// WAP
-	DEVICE_TYPE_WAP_ANDROID = 21,	// WAP Android
-	DEVICE_TYPE_WAP_IPHONE = 22,	// WAP iPhone
-	DEVICE_TYPE_APP_ANDROID = 30,	// App Android
-	DEVICE_TYPE_APP_IPHONE = 31,	// App iPhone
-	DEVICE_TYPE_APP_IPAD = 32,		// App iPad
-	DEVICE_TYPE_APP_PC = 33,		// App PC
-	DEVICE_TYPE_UNKNOW,				// 未知
-} TDEVICE_TYPE;
 
 // 邀请/在聊user列表item
 typedef struct _tagUserInfoItem {

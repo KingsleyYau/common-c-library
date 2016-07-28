@@ -8,7 +8,7 @@
 
 #include "RequestLiveChatController.h"
 #include <common/CheckMemoryLeak.h>
-#include <livechat/JniIntToType.h>
+#include <ProtocolCommon/DeviceTypeDef.h>
 
 RequestLiveChatController::RequestLiveChatController(HttpRequestManager *phttprequestManager, IRequestLiveChatControllerCallback* callback/* CallbackManager* pCallbackManager*/) {
 	// TODO Auto-generated constructor stub
@@ -1746,7 +1746,7 @@ long RequestLiveChatController::GetThemeDetail(
  */
 long RequestLiveChatController::CheckFunctions(
 		string functionIds,
-		int deviceType,
+		TDEVICE_TYPE deviceType,
 		string versionCode,
 		string user_sid,
 		string user_id)
@@ -1757,8 +1757,7 @@ long RequestLiveChatController::CheckFunctions(
 
 	entiy.AddContent(LC_CHECK_FUNCTIONS_FOUNCTIONID, functionIds.c_str());
 
-	TDEVICE_TYPE type = IntToDeviceType(deviceType);
-	sprintf(temp, "%d", type);
+	sprintf(temp, "%d", deviceType);
 	entiy.AddContent(LC_CHECK_FUNCTIONS_DEVICETYPE, temp);
 
 	if( versionCode.length() > 0 ) {
@@ -1785,7 +1784,7 @@ long RequestLiveChatController::CheckFunctions(
 			")",
 			url.c_str(),
 			functionIds.c_str(),
-			type,
+			deviceType,
 			versionCode.c_str(),
 			user_sid.c_str(),
 			user_id.c_str()

@@ -7,7 +7,7 @@
  */
 
 #include "LadyDetail.h"
-
+#include "../RequestEnumDefine.h"
 #include <common/StringHandle.h>
 
 void LadyDetail::Parse(Json::Value root) {
@@ -22,6 +22,7 @@ void LadyDetail::Parse(Json::Value root) {
 
 		if( root[LADY_COUNTRY].isString() ) {
 			country = root[LADY_COUNTRY].asString();
+            countryIndex = GetCountryCode(country);
 		}
 
 		if( root[LADY_PROVINCE].isString() ) {
@@ -140,6 +141,7 @@ LadyDetail::LadyDetail() {
 	womanid = "";
 	firstname = "";
 	country = "";
+    countryIndex = GetOtherCountryCode();
 	province = "";
 	birthday = "";
 	age = 0;

@@ -21,7 +21,7 @@ using namespace std;
 #include <json/json/json.h>
 
 typedef void (*OnQueryLoveCallList)(long requestId, bool success, list<LoveCall> itemList, int totalCount, string errnum, string errmsg);
-typedef void (*OnConfirmLoveCall)(long requestId, bool success, string errnum, string errmsg);
+typedef void (*OnConfirmLoveCall)(long requestId, bool success, string errnum, string errmsg, int memberType);
 typedef void (*OnQueryLoveCallRequestCount)(long requestId, bool success, string errnum, string errmsg, int num);
 
 typedef struct RequestLoveCallControllerCallback {

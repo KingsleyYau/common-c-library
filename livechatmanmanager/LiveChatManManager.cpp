@@ -51,10 +51,12 @@ LiveChatManManager::LiveChatManManager()
 
 	m_userId = "";
 	m_sId = "";
+    m_clientType = CLIENT_UNKNOW;
 	m_deviceId = "";
 	m_riskControl = false;
 	m_isRecvVideoMsg = true;
 	m_isLogin = false;
+    m_isResetParam = false;
 	m_isAutoLogin = false;
 	m_getUsersHistoryMsgRequestId = HTTPREQUEST_INVALIDREQUESTID;
 	m_msgIdBuilder.Init(s_msgIdBegin);
@@ -204,6 +206,8 @@ bool LiveChatManManager::Init(list<string> ipList
 		FileLog("LiveChatManager", "Init() m_photoMgr->Init() result:%d", result);
 		result = result && m_videoMgr->Init(this, m_userMgr);
 		FileLog("LiveChatManager", "Init() m_videoMgr->Init() result:%d", result);
+        result = result && m_inviteMgr->Init(m_userMgr, m_blockMgr, m_contactMgr, m_client);
+        FileLog("LiveChatManager", "Init() Mm_inviteMgr->Init() result:%d", result);
 		result = result && m_client->Init(ipList, port, this);
 		FileLog("LiveChatManager", "Init() client->Init() result:%d", result);
 		if (result) {
@@ -274,80 +278,87 @@ bool LiveChatManManager::Init(list<string> ipList
 // 重置参数（用于非自动登录时重置参数）
 void LiveChatManManager::ResetParamWithNotAutoLogin()
 {
-	// 停止请求队列处理线程
-	StopRequestThread();
-	// 清空请求队列
-	CleanRequestTask();
+    if (m_isResetParam) {
+        // 停止请求队列处理线程
+        StopRequestThread();
+        // 清空请求队列
+        CleanRequestTask();
+        
+        // 停止所有请求中的操作
+        if (NULL != m_httpRequestManager) {
+            m_httpRequestManager->StopAllRequest(true);
+        }
 
-	m_userId = "";
-	m_sId = "";
-	m_deviceId = "";
-	m_riskControl = false;
-	m_isRecvVideoMsg = true;
-	m_msgIdBuilder.Init(s_msgIdBegin);
+        m_userId = "";
+        m_sId = "";
+        m_deviceId = "";
+        m_riskControl = false;
+        m_isRecvVideoMsg = true;
+        m_msgIdBuilder.Init(s_msgIdBegin);
 
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion begin");
-	// 停止获取高级表情配置请求
-	if (HTTPREQUEST_INVALIDREQUESTID != m_emotionMgr->m_emotionConfigReqId) {
-//			RequestJni.StopRequest(m_emotionMgr->m_emotionConfigReqId);
-		m_emotionMgr->m_emotionConfigReqId = HTTPREQUEST_INVALIDREQUESTID;
-	}
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion StopAllDownloadImage");
-	m_emotionMgr->StopAllDownloadImage();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion removeAllSendingItems");
-	m_emotionMgr->RemoveAllSendingItems();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion ClearAllDownloader");
-	m_emotionMgr->ClearAllDownloader();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion begin");
+        // 停止获取高级表情配置请求
+        if (HTTPREQUEST_INVALIDREQUESTID != m_emotionMgr->m_emotionConfigReqId) {
+    //			RequestJni.StopRequest(m_emotionMgr->m_emotionConfigReqId);
+            m_emotionMgr->m_emotionConfigReqId = HTTPREQUEST_INVALIDREQUESTID;
+        }
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion StopAllDownloadImage");
+        m_emotionMgr->StopAllDownloadImage();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion removeAllSendingItems");
+        m_emotionMgr->RemoveAllSendingItems();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion ClearAllDownloader");
+        m_emotionMgr->ClearAllDownloader();
 
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo begin");
-	// 停止所有图片请求
-	m_photoMgr->ClearAllRequestItems();
-//		ArrayList<Long> photoRequestIds = m_photoMgr->clearAllRequestItems();
-//		if (NULL != photoRequestIds) {
-//			for (Iterator<Long> iter = photoRequestIds.iterator(); iter.hasNext(); ) {
-//				long requestId = iter.next();
-//				RequestJni.StopRequest(requestId);
-//			}
-//		}
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo clearAllSendingItems");
-	m_photoMgr->ClearAllSendingItems();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearAllDownload");
-	m_photoMgr->ClearAllDownload();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo begin");
+        // 停止所有图片请求
+        m_photoMgr->ClearAllRequestItems();
+    //		ArrayList<Long> photoRequestIds = m_photoMgr->clearAllRequestItems();
+    //		if (NULL != photoRequestIds) {
+    //			for (Iterator<Long> iter = photoRequestIds.iterator(); iter.hasNext(); ) {
+    //				long requestId = iter.next();
+    //				RequestJni.StopRequest(requestId);
+    //			}
+    //		}
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo clearAllSendingItems");
+        m_photoMgr->ClearAllSendingItems();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearAllDownload");
+        m_photoMgr->ClearAllDownload();
 
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear voice begin");
-	// 停止所有语音请求
-	m_voiceMgr->ClearAllRequestItem();
-//		ArrayList<Long> voiceRequestIds = m_voiceMgr->clearAllRequestItem();
-//		if (NULL != voiceRequestIds) {
-//			for (Iterator<Long> iter = voiceRequestIds.iterator(); iter.hasNext(); ) {
-//				long requestId = iter.next();
-//				RequestJni.StopRequest(requestId);
-//			}
-//		}
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear voice clearAllSendingItems");
-	m_voiceMgr->ClearAllSendingItems();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear voice begin");
+        // 停止所有语音请求
+        m_voiceMgr->ClearAllRequestItem();
+    //		ArrayList<Long> voiceRequestIds = m_voiceMgr->clearAllRequestItem();
+    //		if (NULL != voiceRequestIds) {
+    //			for (Iterator<Long> iter = voiceRequestIds.iterator(); iter.hasNext(); ) {
+    //				long requestId = iter.next();
+    //				RequestJni.StopRequest(requestId);
+    //			}
+    //		}
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear voice clearAllSendingItems");
+        m_voiceMgr->ClearAllSendingItems();
 
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video begin");
-	// 停止所有视频请求
-	m_videoMgr->ClearAllDownloadVideoPhoto();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video ClearAllDownloadVideoPhoto");
-	m_videoMgr->ClearAllDownloadVideo();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video ClearAllDownloadVideo");
-	m_videoMgr->ClearAllPhotoFee();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video begin");
+        // 停止所有视频请求
+        m_videoMgr->ClearAllDownloadVideoPhoto();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video ClearAllDownloadVideoPhoto");
+        m_videoMgr->ClearAllDownloadVideo();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear video ClearAllDownloadVideo");
+        m_videoMgr->ClearAllPhotoFee();
 
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear other begin");
-	m_textMgr->RemoveAllSendingItems();
-	FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear other removeAllUserItem");
-	m_userMgr->RemoveAllUserItem();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear other begin");
+        m_textMgr->RemoveAllSendingItems();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear other removeAllUserItem");
+        m_userMgr->RemoveAllUserItem();
 
-	// 检测试聊券http request
-	m_checkCouponOptMap.lock();
-	m_checkCouponOptMap.clear();
-	m_checkCouponOptMap.unlock();
+        // 检测试聊券http request
+        m_checkCouponOptMap.lock();
+        m_checkCouponOptMap.clear();
+        m_checkCouponOptMap.unlock();
 
-	// 清除HttpClient的cookies
-	HttpClient::CleanCookies();
-	m_cookies.clear();
+        // 清除HttpClient的cookies
+        HttpClient::CleanCookies();
+        m_cookies.clear();
+    }
 }
 
 // 重置参数（用于自动登录时重置参数）
@@ -357,7 +368,7 @@ void LiveChatManManager::ResetParamWithAutoLogin()
 }
 
 // 登录
-bool LiveChatManManager::Login(const string& userId, const string& sid, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg)
+bool LiveChatManManager::Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg)
 {
 	string strCookies("");
 	if (!cookies.empty()) {
@@ -372,8 +383,8 @@ bool LiveChatManManager::Login(const string& userId, const string& sid, const li
 		}
 	}
 
-	FileLog("LiveChatManager", "Login() begin, userId:%s, sid:%s, deviceId:%s, m_isLogin:%d, cookies:%s"
-			, userId.c_str(), sid.c_str(), deviceId.c_str(), m_isLogin, strCookies.c_str());
+	FileLog("LiveChatManager", "Login() begin, userId:%s, sid:%s, clientType:%d, deviceId:%s, m_isLogin:%d, cookies:%s"
+			, userId.c_str(), sid.c_str(), clientType, deviceId.c_str(), m_isLogin, strCookies.c_str());
 
 	bool result = false;
 	if (m_isLogin) {
@@ -386,7 +397,7 @@ bool LiveChatManManager::Login(const string& userId, const string& sid, const li
 		}
 
 		// LiveChat登录
-		result = m_client->Login(userId, sid, deviceId, CLIENT_ANDROID, USER_SEX_MALE);
+		result = m_client->Login(userId, sid, deviceId, clientType, USER_SEX_MALE);
 		if (result && !m_isAutoLogin)
 		{
 			// 启动请求队列处理线程
@@ -395,6 +406,7 @@ bool LiveChatManManager::Login(const string& userId, const string& sid, const li
 			m_isAutoLogin = true;
 			m_userId = userId;
 			m_sId = sid;
+            m_clientType = clientType;
 			m_deviceId = deviceId;
 			m_isRecvVideoMsg = isRecvVideoMsg;
 			m_cookies = cookies;
@@ -427,15 +439,19 @@ bool LiveChatManManager::Login(const string& userId, const string& sid, const li
 }
 
 // 注销
-bool LiveChatManManager::Logout()
+bool LiveChatManManager::Logout(bool isResetParam)
 {
 	FileLog("LiveChatManager", "Logout() begin");
+    
+    // 设置是否重置参数
+    m_isResetParam = isResetParam;
 
-	// 设置不自动重登录
+    // 设置不自动重登录
 	m_isAutoLogin = false;
+    
 	bool result =  m_client->Logout();
 
-	FileLog("LiveChatManager", "Logout() end, result:%b", result);
+	FileLog("LiveChatManager", "Logout() end, isResetParam:%b, result:%b", isResetParam, result);
 
 	return result;
 }
@@ -459,6 +475,16 @@ void LiveChatManManager::SetUserOnlineStatus(LCUserItem* userItem, USER_STATUS_T
 	}
 }
 
+// 根据错误类型设置用户在线状态，若用户在线状态改变则callback通知listener
+void LiveChatManManager::SetUserOnlineStatusWithLccErrType(LCUserItem* userItem, LCC_ERR_TYPE errType)
+{
+    if (LCC_ERR_SUCCESS == errType) {
+        SetUserOnlineStatus(userItem, USTATUS_ONLINE);
+    }
+    else if (LCC_ERR_SIDEOFFLINE == errType) {
+        SetUserOnlineStatus(userItem, USTATUS_OFFLINE_OR_HIDDEN);
+    }
+}
 
 // 是否自动重登录
 bool LiveChatManManager::IsAutoRelogin(LCC_ERR_TYPE err)
@@ -491,7 +517,7 @@ void LiveChatManManager::AutoRelogin()
 		&& !m_sId.empty()
 		&& !m_deviceId.empty())
 	{
-		Login(m_userId, m_sId, m_cookies, m_deviceId, m_isRecvVideoMsg);
+		Login(m_userId, m_sId, m_clientType, m_cookies, m_deviceId, m_isRecvVideoMsg);
 	}
 
 	FileLog("LiveChatManager", "AutoRelogin() end");
@@ -565,19 +591,31 @@ bool LiveChatManManager::IsSendMessageNow(LCUserItem* userItem)
 // 获取用户状态(多个)
 bool LiveChatManManager::GetUserStatus(const list<string>& userIds)
 {
-	return m_client->GetUserStatus(userIds);
+    bool result = false;
+    if (IsLogin()) {
+        result = m_client->GetUserStatus(userIds);
+    }
+    return result;
 }
 
 // 获取用户信息
 bool LiveChatManManager::GetUserInfo(const string& userId)
 {
-    return m_client->GetUserInfo(userId);
+    bool result = false;
+    if (IsLogin()) {
+        result = m_client->GetUserInfo(userId);
+    }
+    return result;
 }
 
 // 获取多个用户信息
 bool LiveChatManManager::GetUsersInfo(const list<string>& userList)
 {
-    return m_client->GetUsersInfo(userList);
+    bool result = false;
+    if (IsLogin()) {
+        result = m_client->GetUsersInfo(userList) >= 0;
+    }
+    return result;
 }
 
 // 获取邀请的用户列表（使用前需要先完成GetTalkList()调用）
@@ -612,7 +650,15 @@ LCMessageItem* LiveChatManManager::GetLastMessage(const string& userId)
     if (NULL != userItem) {
         LCMessageList msgList = userItem->GetMsgList();
         if (!msgList.empty()) {
-            msgItem = (*(--msgList.end()));
+            for (LCMessageList::const_reverse_iterator iter = msgList.rbegin();
+                 iter != msgList.rend();
+                 iter++)
+            {
+                if ((*iter)->IsChatMessage()) {
+                    msgItem = (*iter);
+                    break;
+                }
+            }
         }
     }
     return msgItem;
@@ -926,6 +972,7 @@ void LiveChatManManager::SendMessageListFailProc(LCUserItem* userItem, LCC_ERR_T
 			iter++)
 		{
 			(*iter)->m_statusType = LCMessageItem::StatusType_Fail;
+			(*iter)->m_procResult.SetResult(errType, "", "");
 		}
 		m_listener->OnSendMessageListFail(errType, userItem->m_sendMsgList);
 		userItem->UnlockSendMsgList();
@@ -991,7 +1038,7 @@ LCMessageItem* LiveChatManManager::SendTextMessage(const string& userId, const s
 				, LCMessageItem::StatusType_Processing);
 		// 生成TextItem
 		LCTextItem* textItem = new LCTextItem();
-		textItem->Init(message);
+		textItem->Init(message, true);
 		// 把TextItem加到MessageItem
 		item->SetTextItem(textItem);
 		// 添加到历史记录
@@ -1033,9 +1080,10 @@ void LiveChatManManager::SendTextMessageProc(LCMessageItem* item)
 	else
 	{
 		item->m_statusType = LCMessageItem::StatusType_Fail;
+		item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
 		if (NULL != m_listener)
 		{
-			m_listener->OnSendTextMessage(LCC_ERR_FAIL, "", item);
+			m_listener->OnSendTextMessage(item->m_procResult.m_errType, item->m_procResult.m_errMsg, item);
 		}
 	}
 }
@@ -1185,7 +1233,8 @@ void LiveChatManManager::SendEmotionProc(LCMessageItem* item)
 	}
 	else {
 		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendEmotion(LCC_ERR_FAIL, "", item);
+		item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+		m_listener->OnSendEmotion(item->m_procResult.m_errType, item->m_procResult.m_errMsg, item);
 	}
 }
 
@@ -1348,7 +1397,8 @@ void LiveChatManManager::SendPhotoProc(LCMessageItem* item)
 	}
 	else {
 		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendPhoto(LCC_ERR_FAIL, "", "", item);
+		item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+		m_listener->OnSendPhoto(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 }
 
@@ -1382,8 +1432,8 @@ bool LiveChatManManager::PhotoFee(LCMessageItem* item)
 		|| item->m_inviteId.empty()
 		|| item->GetPhotoItem()->m_photoId.empty())
 	{
-		FileLog("LiveChatManager", "PhotoFee() param error, msgType:%d, fromId:%s, inviteId%s, photoId:%s, statusType:%d"
-				, item->m_msgType, item->m_fromId.c_str(), item->m_inviteId.c_str(), item->GetPhotoItem()->m_photoId.c_str(), item->m_statusType);
+		FileLog("LiveChatManager", "PhotoFee() param error, msgType:%d, fromId:%s, inviteId%s, photoId:%s"
+				, item->m_msgType, item->m_fromId.c_str(), item->m_inviteId.c_str(), item->GetPhotoItem()->m_photoId.c_str());
 		return false;
 	}
 
@@ -1399,7 +1449,6 @@ bool LiveChatManManager::PhotoFee(LCMessageItem* item)
 		if (requestId != HTTPREQUEST_INVALIDREQUESTID)
 		{
 			// 请求成功
-			item->m_statusType = LCMessageItem::StatusType_Processing;
 			LCPhotoItem* photoItem = item->GetPhotoItem();
 			photoItem->AddFeeStatus();
 
@@ -1409,8 +1458,8 @@ bool LiveChatManManager::PhotoFee(LCMessageItem* item)
 			}
 		}
 		else {
-			item->m_statusType = LCMessageItem::StatusType_Fail;
-			m_listener->OnPhotoFee(false, "request fail", "", item);
+			item->m_procResult.SetResult(LCC_ERR_FAIL, "request fail", "");
+			m_listener->OnPhotoFee(false, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 		}
 	}
 
@@ -1447,8 +1496,8 @@ bool LiveChatManManager::GetPhoto(LCMessageItem* item, GETPHOTO_PHOTOSIZE_TYPE s
 		|| item->m_fromId.empty()
 		|| item->GetPhotoItem()->m_photoId.empty())
 	{
-		FileLog("LiveChatManager", "GetPhoto() param error, msgType:%d, fromId:%s, photoId:%s, statusType:%d"
-				, item->m_msgType, item->m_fromId.c_str(), item->GetPhotoItem()->m_photoId.c_str(), item->m_statusType);
+		FileLog("LiveChatManager", "GetPhoto() param error, msgType:%d, fromId:%s, photoId:%s"
+				, item->m_msgType, item->m_fromId.c_str(), item->GetPhotoItem()->m_photoId.c_str());
 		return false;
 	}
 
@@ -1558,7 +1607,8 @@ void LiveChatManManager::SendVoiceProc(LCMessageItem* item)
 	}
 	else {
 		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendVoice(LCC_ERR_FAIL, "", "", item);
+		item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+		m_listener->OnSendVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 }
 
@@ -1585,8 +1635,8 @@ bool LiveChatManManager::GetVoice(const string& userId, int msgId)
 	long requestId = m_requestController->PlayVoice(voiceItem->m_voiceId, (OTHER_SITE_TYPE)m_siteType, voiceItem->m_filePath);
 	if (requestId != HTTPREQUEST_INVALIDREQUESTID) {
 		// 添加至请求map
-		item->m_statusType = LCMessageItem::StatusType_Processing;
 		m_voiceMgr->AddRequestItem(requestId, item);
+		voiceItem->m_processing = true;
 		result = true;
 
 		FileLog("LiveChatManager", "GetVoice() requestId:%d", requestId);
@@ -1594,8 +1644,8 @@ bool LiveChatManManager::GetVoice(const string& userId, int msgId)
 	else {
 		FileLog("LiveChatManager", "GetVoice() RequestOperator.getInstance().PlayVoice fail, voiceId:%s, siteType:%d, filePath:%s"
 				, voiceItem->m_voiceId.c_str(), m_siteType, voiceItem->m_filePath.c_str());
-		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnGetVoice(LCC_ERR_FAIL, "", "", item);
+		item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+		m_listener->OnGetVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 		result = false;
 	}
 	return result;
@@ -1822,27 +1872,31 @@ void LiveChatManManager::OnLogin(LCC_ERR_TYPE err, const string& errmsg)
 
 void LiveChatManManager::OnLogout(LCC_ERR_TYPE err, const string& errmsg)
 {
-	FileLog("LiveChatManager", "OnLogout() err:%d, errmsg:%s", err, errmsg.c_str());
+    if (m_isLogin)
+    {
+        // 已经登录
+        FileLog("LiveChatManager", "OnLogout() err:%d, errmsg:%s", err, errmsg.c_str());
 
-	// 重置登录参数
-	m_isLogin = false;
+        // 重置登录参数
+        m_isLogin = false;
 
-	// callback
-	bool isAutoLogin = IsAutoRelogin(err);
-	if (NULL != m_listener) {
-		m_listener->OnLogout(err, errmsg, m_isAutoLogin);
-	}
+        // callback
+        bool isAutoLogin = IsAutoRelogin(err);
+        if (NULL != m_listener) {
+            m_listener->OnLogout(err, errmsg, m_isAutoLogin);
+        }
 
-	if (isAutoLogin) {
-		// 重置参数
-		ResetParamWithAutoLogin();
-		// 自动重登录
-		InsertReloginTask();
-	}
-	else {
-		// 重置数据
-		ResetParamWithNotAutoLogin();
-	}
+        if (isAutoLogin) {
+            // 重置自动登录数据
+            ResetParamWithAutoLogin();
+            // 自动重登录
+            InsertReloginTask();
+        }
+        else {
+            // 重置所有数据
+            ResetParamWithNotAutoLogin();
+        }
+    }
 }
 
 void LiveChatManManager::OnSetStatus(LCC_ERR_TYPE err, const string& errmsg)
@@ -1897,7 +1951,12 @@ void LiveChatManManager::OnSendTextMessage(const string& inUserId, const string&
 {
 	LCMessageItem* item = m_textMgr->GetAndRemoveSendingItem(inTicket);
 	if (NULL != item) {
+        // 修改在线状态
+        SetUserOnlineStatusWithLccErrType(item->GetUserItem(), err);
+        
+        // 处理消息
 		item->m_statusType = (LCC_ERR_SUCCESS==err ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail);
+		item->m_procResult.SetResult(err, "", errmsg);
 		if (NULL != m_listener) {
 			m_listener->OnSendTextMessage(err, errmsg, item);
 		}
@@ -1918,7 +1977,12 @@ void LiveChatManManager::OnSendEmotion(const string& inUserId, const string& inE
 {
 	LCMessageItem* item = m_emotionMgr->GetAndRemoveSendingItem(inTicket);
 	if (NULL != item) {
+        // 修改在线状态
+        SetUserOnlineStatusWithLccErrType(item->GetUserItem(), err);
+        
+        // 处理消息
 		item->m_statusType = (err==LCC_ERR_SUCCESS ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail);
+		item->m_procResult.SetResult(err, "", errmsg);
 		m_listener->OnSendEmotion(err, errmsg, item);
 	}
 	else {
@@ -1965,7 +2029,8 @@ void LiveChatManManager::OnGetVoiceCode(const string& inUserId, int ticket, LCC_
 			}
 			else {
 				item->m_statusType = LCMessageItem::StatusType_Fail;
-				m_listener->OnSendVoice(LCC_ERR_FAIL, "", "", item);
+				item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+				m_listener->OnSendVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 			}
 		}
 		else {
@@ -1974,7 +2039,8 @@ void LiveChatManManager::OnGetVoiceCode(const string& inUserId, int ticket, LCC_
 	}
 	else {
 		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendVoice(err, "", errmsg, item);
+		item->m_procResult.SetResult(err, "", errmsg);
+		m_listener->OnSendVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 
 	// 生成警告消息
@@ -1994,6 +2060,9 @@ void LiveChatManManager::OnSendVoice(const string& inUserId, const string& inVoi
 		m_listener->OnSendVoice(LCC_ERR_FAIL, "", "", item);
 		return;
 	}
+    
+    // 修改在线状态
+    SetUserOnlineStatusWithLccErrType(item->GetUserItem(), err);
 
 	// 发送成功
 	if (err == LCC_ERR_SUCCESS) {
@@ -2002,7 +2071,8 @@ void LiveChatManManager::OnSendVoice(const string& inUserId, const string& inVoi
 
 	// 回调
 	item->m_statusType = (LCC_ERR_SUCCESS==err ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail);
-	m_listener->OnSendVoice(err, "", "", item);
+	item->m_procResult.SetResult(err, "", errmsg);
+	m_listener->OnSendVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 
 	// 生成警告消息
 	if (err != LCC_ERR_SUCCESS) {
@@ -2140,7 +2210,7 @@ void LiveChatManManager::OnGetTalkList(int inListType, LCC_ERR_TYPE err, const s
 				userItem->m_userName = (*iter).userName;
 				userItem->m_sexType = USER_SEX_FEMALE;
 				SetUserOnlineStatus(userItem, USTATUS_ONLINE);
-				userItem->m_chatType = LCUserItem::LC_CHATTYPE_IN_CHAT_CHARGE;
+				userItem->m_chatType = LCUserItem::LC_CHATTYPE_MANINVITE;
 				userItem->m_clientType = (*iter).clientType;
 				userItem->m_order = (*iter).orderValue;
 			}
@@ -2173,14 +2243,14 @@ void LiveChatManManager::OnGetTalkList(int inListType, LCC_ERR_TYPE err, const s
 				userItem->m_userName = (*iter).userName;
 				userItem->m_sexType = USER_SEX_FEMALE;
 				SetUserOnlineStatus(userItem, USTATUS_ONLINE);
-				userItem->m_chatType = LCUserItem::LC_CHATTYPE_IN_CHAT_CHARGE;
+				userItem->m_chatType = LCUserItem::LC_CHATTYPE_INVITE;
 				userItem->m_clientType = (*iter).clientType;
 				userItem->m_order = (*iter).orderValue;
 			}
 		}
 
-		// 获取在聊用户的聊天历史记录
-		InsertRequestTask(REQUEST_TASK_GetInChatUsersHistoryMessage);
+		// 获取用户的聊天历史记录
+		InsertRequestTask(REQUEST_TASK_GetUsersHistoryMessage);
 	}
 
 	m_listener->OnGetTalkList(err, errmsg);
@@ -2190,8 +2260,13 @@ void LiveChatManManager::OnSendPhoto(LCC_ERR_TYPE err, const string& errmsg, int
 {
 	LCMessageItem* item = m_photoMgr->GetAndRemoveSendingItem(ticket);
 	if (NULL != item) {
+        // 修改在线状态
+        SetUserOnlineStatusWithLccErrType(item->GetUserItem(), err);
+        
+        // 处理消息
 		item->m_statusType = (err==LCC_ERR_SUCCESS ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail);
-		m_listener->OnSendPhoto(err, "", errmsg, item);
+		item->m_procResult.SetResult(err, "", errmsg);
+		m_listener->OnSendPhoto(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 	else {
 		FileLog("LiveChatManager", "OnSendPhoto() get sending item fail, ticket:%d", ticket);
@@ -2214,8 +2289,16 @@ void LiveChatManManager::OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err,
 {
 	if (err == LCC_ERR_SUCCESS)
 	{
-		// 更新用户排序分值
-		m_inviteMgr->UpdateUserOrderValue(userInfo.userId, userInfo.orderValue);
+        // 若用户已经存在，则更新用户信息
+        if (m_userMgr->IsUserExists(userInfo.userId)) {
+            LCUserItem* userItem = m_userMgr->GetUserItem(userInfo.userId);
+            if (NULL != userItem) {
+                userItem->UpdateWithUserInfo(userInfo);
+            }
+        }
+        
+        // 更新用户排序分值
+        m_inviteMgr->UpdateUserOrderValue(userInfo.userId, userInfo.orderValue);
 	}
     
     if (NULL != m_listener)
@@ -2226,6 +2309,27 @@ void LiveChatManManager::OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err,
 
 void LiveChatManManager::OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList)
 {
+    if (err == LCC_ERR_SUCCESS)
+    {
+        for (UserInfoList::const_iterator iter = userList.begin();
+             iter != userList.end();
+             iter++)
+        {
+            const UserInfoItem& userInfo = (*iter);
+            
+            // 若用户已经存在，则更新用户信息
+            if (m_userMgr->IsUserExists(userInfo.userId)) {
+                LCUserItem* userItem = m_userMgr->GetUserItem(userInfo.userId);
+                if (NULL != userItem) {
+                    userItem->UpdateWithUserInfo(userInfo);
+                }
+            }
+            
+            // 更新用户排序分值
+            m_inviteMgr->UpdateUserOrderValue(userInfo.userId, userInfo.orderValue);
+        }
+    }
+    
     if (NULL != m_listener) {
         m_listener->OnGetUsersInfo(err, errmsg, userList);
     }
@@ -2387,7 +2491,7 @@ void LiveChatManManager::OnRecvMessage(const string& toId, const string& fromId,
 				, LCMessageItem::StatusType_Finish);
 		// 生成TextItem
 		LCTextItem* textItem = new LCTextItem();
-		textItem->Init(message);
+		textItem->Init(message, false);
 		// 把TextItem添加到MessageItem
 		item->SetTextItem(textItem);
 		// 添加到用户聊天记录中
@@ -2423,7 +2527,6 @@ void LiveChatManManager::OnRecvEmotion(const string& toId, const string& fromId,
 	userItem->m_inviteId = inviteId;
 	userItem->m_userName = fromName;
 	userItem->SetChatTypeWithTalkMsgType(charge, msgType);
-//		useritem->m_statusType = USTATUS_ONLINE;
 	SetUserOnlineStatus(userItem, USTATUS_ONLINE);
 
 	// 生成MessageItem
@@ -2502,7 +2605,6 @@ void LiveChatManManager::OnRecvWarning(const string& toId, const string& fromId,
 	userItem->m_inviteId = inviteId;
 	userItem->SetChatTypeWithTalkMsgType(charge, msgType);
 	userItem->m_userName = fromName;
-//		useritem->m_statusType = USTATUS_ONLINE;
 	SetUserOnlineStatus(userItem, USTATUS_ONLINE);
 
 	// 生成MessageItem
@@ -2941,13 +3043,15 @@ void LiveChatManManager::OnSendPhoto(long requestId, bool success, const string&
 		else {
 			// LiveChatClient发送不成功
 			msgItem->m_statusType = LCMessageItem::StatusType_Fail;
-			m_listener->OnSendPhoto(LCC_ERR_FAIL, "", "", msgItem);
+			msgItem->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+			m_listener->OnSendPhoto(msgItem->m_procResult.m_errType, msgItem->m_procResult.m_errNum, msgItem->m_procResult.m_errMsg, msgItem);
 		}
 	}
 	else {
 		// 上传文件不成功
 		msgItem->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendPhoto(LCC_ERR_FAIL, errnum, errmsg, msgItem);
+		msgItem->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
+		m_listener->OnSendPhoto(msgItem->m_procResult.m_errType, msgItem->m_procResult.m_errNum, msgItem->m_procResult.m_errMsg, msgItem);
 	}
 }
 
@@ -2965,7 +3069,7 @@ void LiveChatManManager::OnPhotoFee(long requestId, bool success, const string& 
 		return;
 	}
 
-	item->m_statusType = success ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail;
+	item->m_procResult.SetResult(success ? LCC_ERR_SUCCESS : LCC_ERR_FAIL, errnum, errmsg);
 	photoItem->m_charge = success;
 	photoItem->RemoveFeeStatus();
 
@@ -3010,11 +3114,8 @@ void LiveChatManManager::OnUploadVoice(long requestId, bool success, const strin
 	}
 	else {
 		item->m_statusType = LCMessageItem::StatusType_Fail;
-		m_listener->OnSendVoice(LCC_ERR_FAIL, errnum, errmsg, item);
-
-		if (errnum == "ERROR00003") {
-
-		}
+		item->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
+		m_listener->OnSendVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 }
 
@@ -3022,9 +3123,13 @@ void LiveChatManManager::OnPlayVoice(long requestId, bool success, const string&
 {
 	LCMessageItem* item = m_voiceMgr->GetAndRemoveRquestItem(requestId);
 	if (NULL != item) {
-		item->m_statusType = success ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail;
-		LCC_ERR_TYPE errType = success ? LCC_ERR_SUCCESS : LCC_ERR_FAIL;
-		m_listener->OnGetVoice(errType, errnum, errmsg, item);
+		item->m_procResult.SetResult(success ? LCC_ERR_SUCCESS : LCC_ERR_FAIL, errnum, errmsg);
+
+		// 处理完成
+		if (NULL != item->GetVoiceItem()) {
+			item->GetVoiceItem()->m_processing = false;
+		}
+		m_listener->OnGetVoice(item->m_procResult.m_errType, item->m_procResult.m_errNum, item->m_procResult.m_errMsg, item);
 	}
 
 	FileLog("LiveChatManager", "OnPlayVoice() end, requestId:%d, isSuccess:%d, errnum:%s, errmsg:%s, filePath:%s"
@@ -3152,10 +3257,12 @@ void LiveChatManManager::RequestThreadProc()
 					// 执行自动重登录流程
 					AutoRelogin();
 					break;
-				case REQUEST_TASK_GetInChatUsersHistoryMessage:
-					// 获取在聊用户的聊天历史记录
+				case REQUEST_TASK_GetUsersHistoryMessage:
+					// 获取聊天历史记录
 					{
 						list<string> userIds;
+                        
+                        // 获取在聊用户ID
 						LCUserList userList = m_userMgr->GetChatingUsers();
 						for (LCUserList::const_iterator iter = userList.begin();
 							iter != userList.end();
@@ -3163,6 +3270,15 @@ void LiveChatManManager::RequestThreadProc()
 						{
 							userIds.push_back((*iter)->m_userId);
 						}
+                        
+                        // 获取男士主动邀请用户ID
+                        userList = m_userMgr->GetManInviteUsers();
+                        for (LCUserList::const_iterator iter = userList.begin();
+                             iter != userList.end();
+                             iter++)
+                        {
+                            userIds.push_back((*iter)->m_userId);
+                        }
 
 						if (!userIds.empty()) {
 							GetUsersHistoryMessage(userIds);

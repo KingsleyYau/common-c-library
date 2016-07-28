@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../;../third_party;./zip/include"
+				AdditionalIncludeDirectories="../;../third_party;../third_party/curl/include;./zip/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
 				StringPooling="false"
 				MinimalRebuild="true"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../;../third_party;./zip/include"
+				AdditionalIncludeDirectories="../;../third_party;../third_party/curl/include;./zip/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CHECK_MOMORY_LEAK"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

@@ -143,7 +143,12 @@ void RequestLadyController::onSuccess(long requestId, string url, const char* bu
 		if( mRequestLadyControllerCallback.onUploadSign != NULL ) {
 			mRequestLadyControllerCallback.onUploadSign(requestId, bFlag, errnum, errmsg);
 		}
-	}
+    } else if ( url.compare(REPORT_LADY_PATH) == 0 ) {
+        /* 举报女士 */
+        if ( mRequestLadyControllerCallback.onReportLady != NULL ) {
+            mRequestLadyControllerCallback.onReportLady(requestId, bFlag, errnum, errmsg);
+        }
+    }
 
 	FileLog("httprequest", "RequestLadyController::onSuccess() url: %s, end", url.c_str());
 }
@@ -206,7 +211,12 @@ void RequestLadyController::onFail(long requestId, string url) {
 		if( mRequestLadyControllerCallback.onUploadSign != NULL ) {
 			mRequestLadyControllerCallback.onUploadSign(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
 		}
-	}
+    } else if ( url.compare(REPORT_LADY_PATH) == 0 ) {
+        /* 举报女士 */
+        if ( mRequestLadyControllerCallback.onReportLady != NULL ) {
+            mRequestLadyControllerCallback.onReportLady(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
+        }
+    }
 
 	FileLog("httprequest", "RequestLadyController::onFail() url: %s, end", url.c_str());
 }
@@ -290,7 +300,8 @@ long RequestLadyController::SaveLadyMatch(int ageRangeFrom, int ageRangeTo, int 
  * @return					请求唯一标识
  */
 long RequestLadyController::QueryLadyList(int pageIndex, int pageSize, int searchType, const string& womanId,
-		int isOnline, int ageRangeFrom, int ageRangeTo, const string& country, int orderBy, const string& deviceId) {
+		int isOnline, int ageRangeFrom, int ageRangeTo, const string& country, int orderBy, const string& deviceId,
+        LadyGenderType genderType) {
 	char temp[16];
 
 	HttpEntiy entiy;
@@ -335,6 +346,11 @@ long RequestLadyController::QueryLadyList(int pageIndex, int pageSize, int searc
 	if ( deviceId.length() > 0 ) {
 		entiy.AddContent(LADY_DEVICEID, deviceId.c_str());
 	}
+    
+    // 用于iOS假服务器
+    if (genderType != LADY_GENDER_DEFAULT) {
+        entiy.AddContent(LADY_GENDER, LadyGenderProtocol[genderType]);
+    }
 
 	string url = QUERY_LADY_LIST_PATH;
 	FileLog("httprequest", "RequestLadyController::QueryLadyList( "
@@ -349,6 +365,7 @@ long RequestLadyController::QueryLadyList(int pageIndex, int pageSize, int searc
 			"country : %s "
 			"orderBy : %d "
 			"deviceId : %s "
+            "genderType : %d"
 			")",
 			url.c_str(),
 			pageIndex,
@@ -360,7 +377,8 @@ long RequestLadyController::QueryLadyList(int pageIndex, int pageSize, int searc
 			ageRangeTo,
 			country.c_str(),
 			orderBy,
-			deviceId.c_str());
+			deviceId.c_str(),
+            genderType);
 
 	return StartRequest(url, entiy, this);
 }
@@ -571,4 +589,29 @@ long RequestLadyController::UploadSigned(const string& womanId, const list<strin
 			);
 
 	return StartRequest(url, entiy, this);
+}
+
+/**
+ *  举报女士
+ *  @param womanId          女士ID
+ *  @return                 请求唯一标识
+ */
+long RequestLadyController::ReportLady(const string& womanId)
+{
+    HttpEntiy entiy;
+    
+    if( !womanId.empty() ) {
+        entiy.AddContent(LADY_WOMAN_ID, womanId);
+    }
+    
+    string url = REPORT_LADY_PATH;
+    FileLog("httprequest", "RequestLadyController::ReportLady( "
+            "url : %s, "
+            "womanId : %s"
+            ")",
+            url.c_str(),
+            womanId.c_str()
+            );
+    
+    return StartRequest(url, entiy, this);
 }

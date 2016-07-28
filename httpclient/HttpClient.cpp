@@ -23,6 +23,11 @@
 //#define COOKIES_FILE "/sdcard/qpidnetwork/cookie"
 #define DEVICE_ANDROID_TYPE "device_type: 30"
 #define DEVICE_IPHONE_TYPE "device_type: 31"
+#ifdef IOS  /* IOS */
+#define DEVICE_TYPE DEVICE_IPHONE_TYPE
+#else
+#define DEVICE_TYPE DEVICE_ANDROID_TYPE
+#endif
 #define USER_AGENT	"Mozil1a/4.0 (compatible; MS1E 7.0; Windows NT 6.1; WOW64; )"
 
 #define DWONLOAD_TIMEOUT 30
@@ -360,6 +365,11 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 	curl_easy_setopt(mpCURL, CURLOPT_URL, mUrl.c_str());
 	curl_easy_setopt(mpCURL, CURLOPT_SHARE, sh);
 
+    // 支持重定向
+    curl_easy_setopt(mpCURL, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(mpCURL, CURLOPT_POSTREDIR, CURL_REDIR_POST_ALL);
+    curl_easy_setopt(mpCURL, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_ALL);
+    
 	// 处理http body函数
 	curl_easy_setopt(mpCURL, CURLOPT_WRITEFUNCTION, CurlHandle);
 	curl_easy_setopt(mpCURL, CURLOPT_WRITEDATA, this);
@@ -411,11 +421,15 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 	}
 
 	// 处理https
-	if( mUrl.find("https") != string::npos ) {
+    // 不检查服务器证书
+    curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYHOST, 0);
+
+    if( mUrl.find("https") != string::npos ) {
 		FileLog("httpclient", "HttpClient::Request( try to connect with ssl )");
-		// 不检查服务器证书
-		curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYHOST, 0);
+//		// 不检查服务器证书
+//		curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYPEER, 0L);
+//		curl_easy_setopt(mpCURL, CURLOPT_SSL_VERIFYHOST, 0);
 		// 不设置客户端证书和私钥
 //		curl_easy_setopt(mpCURL, CURLOPT_SSLCERTTYPE, "PEM");
 //		curl_easy_setopt(mpCURL , CURLOPT_SSL_CTX_FUNCTION, Curl_SSL_Handle);
@@ -440,7 +454,7 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 			FileLog("httpclient", "HttpClient::Request( Add header : [%s] )", header.c_str());
 		}
 		// add by Samson 2015-04-23, add "device_type" to http header
-		pList = curl_slist_append(pList, DEVICE_ANDROID_TYPE);
+		pList = curl_slist_append(pList, DEVICE_TYPE);
 
 		/* Contents */
 		for( HttpMap::const_iterator itr = entiy->mContentMap.begin(); itr != entiy->mContentMap.end(); itr++ ) {
@@ -479,6 +493,16 @@ bool HttpClient::Request(const HttpEntiy* entiy) {
 	curl_easy_getinfo(mpCURL, CURLINFO_TOTAL_TIME, &totalTime);
 	FileLog("httpclient", "HttpClient::Request( totalTime : %f second )", totalTime);
 
+    char *urlp = NULL;
+    curl_easy_getinfo(mpCURL, CURLINFO_REDIRECT_URL, &urlp);
+    long count;
+    curl_easy_getinfo(mpCURL, CURLINFO_REDIRECT_COUNT, &count);
+    FileLog("httpclient", "HttpClient::Request( redirect url : %s, count : %ld )", urlp, count);
+    
+    long http_code;
+    curl_easy_getinfo(mpCURL, CURLINFO_HTTP_CODE, &http_code);
+    FileLog("httpclient", "HttpClient::Request( http_code : %ld )", http_code);
+    
 	if( mpCURL != NULL ) {
 		curl_easy_cleanup(mpCURL);
 		mpCURL = NULL;

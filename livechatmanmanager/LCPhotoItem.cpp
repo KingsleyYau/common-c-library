@@ -170,3 +170,13 @@ bool LCPhotoItem::IsFee()
 
 	return result;
 }
+
+// 判断是否正在处理中
+bool LCPhotoItem::IsProcessing()
+{
+	bool result = false;
+	m_statusList.lock();
+	result = !m_statusList.empty();
+	m_statusList.unlock();
+	return result;
+}

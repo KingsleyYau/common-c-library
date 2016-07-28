@@ -16,6 +16,7 @@ using namespace std;
 #include <json/json/json.h>
 
 #include "../RequestLadyDefine.h"
+#include "../RequestEnumDefine.h"
 
 class Lady {
 public:
@@ -43,6 +44,7 @@ public:
 
 			if( root[LADY_COUNTRY].isString() ) {
 				country = root[LADY_COUNTRY].asString();
+                countryIndex = GetCountryCode(country);
 			}
 
 			if( root[LADY_PROVINCE].isString() ) {
@@ -61,12 +63,14 @@ public:
 		}
 	}
 
-	Lady() {		age = 0;
+	Lady() {
+		age = 0;
 		womanid = "";
 		firstname = "";
 		weight = "";
 		height = "";
 		country = "";
+        countryIndex = GetOtherCountryCode();
 		province = "";
 		photoURL = "";
 		onlineStatus = LADY_OSTATUS_DEFAULT;
@@ -93,6 +97,7 @@ public:
 	string weight;
 	string height;
 	string country;
+    int countryIndex;
 	string province;
 	string photoURL;
 	LadyOnlineStatus onlineStatus;

@@ -238,25 +238,6 @@ int UserTypeToInt(USER_TYPE type)
 	return value;
 }
 
-// DEVICE_TYPE(设备类型) 转换
-TDEVICE_TYPE IntToDeviceType(int value)
-{
-	return (TDEVICE_TYPE)(value < _countof(DeviceTypeArray) ? DeviceTypeArray[value] : DeviceTypeArray[0]);
-}
-int DeviceTypeToInt(TDEVICE_TYPE type)
-{
-	int value = 0;
-	int i = 0;
-	for (i = 0; i < _countof(DeviceTypeArray); i++)
-	{
-		if (type == DeviceTypeArray[i]) {
-			value = i;
-			break;
-		}
-	}
-	return value;
-}
-
 // AUTO_CHARGE_TYPE(自动充值类型) 转换
 TAUTO_CHARGE_TYPE IntToAutoChargeType(int value)
 {

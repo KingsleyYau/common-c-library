@@ -10,7 +10,7 @@
 #define HttpClient_H_
 
 #include "HttpEntiy.h"
-#include <curl/include/curl/curl.h>
+#include <curl/curl.h>
 #include <list>
 
 class HttpClient;

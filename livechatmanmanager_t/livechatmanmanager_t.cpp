@@ -452,6 +452,10 @@ protected:
 	virtual void OnRecvTryTalkEnd(LCUserItem* userItem) {};
 	virtual void OnUseTryTicket(LCC_ERR_TYPE err, const string& errmsg, const string& userId, TRY_TICKET_EVENT tickEvent) {};
 
+	// ------- user info listener -------
+	virtual void OnGetUserInfo(const string& userId, LCC_ERR_TYPE errType, const string& errMsg, const UserInfoItem& userInfo) {};
+	virtual void OnGetUsersInfo(LCC_ERR_TYPE errType, const string& errMsg, const UserInfoList& userList) {};
+
 	// ------- other http listener -------
 	virtual void OnCheckCoupon(bool success, const string& errNo, const string& errMsg, const string& userId, CouponStatus status) {};
 
@@ -624,7 +628,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	system("pause");
 
 	Sleep(2 * 1000);
-	g_manager->Logout();
+	g_manager->Logout(true);
 	ILiveChatManManager::Release(g_manager);
 
 	//system("pause");

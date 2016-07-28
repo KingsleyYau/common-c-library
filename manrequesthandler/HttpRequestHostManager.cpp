@@ -19,7 +19,6 @@ HttpRequestHostManager::~HttpRequestHostManager() {
 }
 
 string HttpRequestHostManager::GetHostByType(SiteType type) {
-
 	string host = "";
 
 	switch( type ) {
@@ -32,6 +31,9 @@ string HttpRequestHostManager::GetHostByType(SiteType type) {
 	case ChatVoiceSite:{
 		host = GetChatVoiceSite();
 	}break;
+    case FakeSite:{
+        host = GetFakeSite();
+    }break;
 	default:break;
 	}
 
@@ -68,4 +70,12 @@ string HttpRequestHostManager::GetChatVoiceSite() {
 
 string HttpRequestHostManager::GetAppSite() {
 	return mAppSite;
+}
+
+void HttpRequestHostManager::SetFakeSite(string fakeSite) {
+    mFakeSite = fakeSite;
+}
+
+string HttpRequestHostManager::GetFakeSite() {
+    return mFakeSite;
 }

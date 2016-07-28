@@ -13,14 +13,43 @@
 #include <regex.h>
 #endif
 
-static const char* s_pCheckArr[] = { "http://|HTTP://","https://|HTTPS://","ftp://|FTP://",
-		"(\\d{3,4}+[-|\\s])*\\d{5,11}","\\d+\\.\\d+\\.\\d+\\.\\d+",
-        "(\\d{1,}+[-|\\s]{1,}){3,}+(\\d{1,})*","(\\d{3,}+[\\n|\\r]{1,}){1,}+(\\d{1,})*",
-		"([0-9a-zA-Z])*[0-9a-zA-Z]+@([0-9a-zA-Z]+[\\s]{0,}+[.]+[\\s]{0,})+(com|net|cn|org|ru)+[\\s]{0,}",
-		"([0-9a-zA-Z]+[-._+&])*([0-9a-zA-Z]+[\\s]{0,}+[.]+[\\s]{0,})+(com|net|cn|org|ru)+[\\s]{1,}",
-		" fuck ", " fucking ", " fucked ", " ass ", " asshole ", " cock ", " dick ", " suck ", " sucking ", 
-		" tit ", " tits ", " nipples ", " horn ", " horny "," pussy ", " wet pussy "," shit "," make love ", 
-		" making love "," penis "," climax "," lick "," vagina "," sex ", " oral sex ", " anal sex " };
+static const char* s_pCheckArr[] = {
+    "http://|HTTP://",
+    "https://|HTTPS://",
+    "ftp://|FTP://",
+    "(([0-9]{3,4})+[-|\\s+])*[0-9]{5,11}",
+    "[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+",
+    "((([0-9]{1,})+[-|\\s+]{1,}){3,})+([0-9]{1,})*",
+    "((([0-9]{3,})+[\\n|\\r]{1,}){1,})+([0-9]{1,})*",
+    "([0-9a-zA-Z])*[0-9a-zA-Z]+@([0-9a-zA-Z]+([\\s+]{0,})+[.]+[\\s+]{0,})+(com|net|cn|org|ru)+[\\s+]{0,}",
+    "([0-9a-zA-Z]+[-._+&])*([0-9a-zA-Z]+([\\s+]{0,})+[.]+[\\s+]{0,})+(com|net|cn|org|ru)+[\\s+]{1,}",
+    "([^A-Za-z]|^)fuck([^A-Za-z]|$)",
+    "([^A-Za-z]|^)fucking([^A-Za-z]|$)",
+    "([^A-Za-z]|^)fucked([^A-Za-z]|$)",
+    "([^A-Za-z]|^)ass([^A-Za-z]|$)",
+    "([^A-Za-z]|^)asshole([^A-Za-z]|$)",
+    "([^A-Za-z]|^)cock([^A-Za-z]|$)",
+    "([^A-Za-z]|^)dick([^A-Za-z]|$)",
+    "([^A-Za-z]|^)suck([^A-Za-z]|$)",
+    "([^A-Za-z]|^)sucking([^A-Za-z]|$)",
+    "([^A-Za-z]|^)tit([^A-Za-z]|$)",
+    "([^A-Za-z]|^)tits([^A-Za-z]|$)",
+    "([^A-Za-z]|^)nipples([^A-Za-z]|$)",
+    "([^A-Za-z]|^)horn([^A-Za-z]|$)",
+    "([^A-Za-z]|^)horny([^A-Za-z]|$)",
+    "([^A-Za-z]|^)pussy([^A-Za-z]|$)",
+    "([^A-Za-z]|^)wet[^A-Za-z]+pussy([^A-Za-z]|$)",
+    "([^A-Za-z]|^)shit([^A-Za-z]|$)",
+    "([^A-Za-z]|^)make[^A-Za-z]+love([^A-Za-z]|$)",
+    "([^A-Za-z]|^)making[^A-Za-z]love([^A-Za-z]|$)",
+    "([^A-Za-z]|^)penis([^A-Za-z]|$)",
+    "([^A-Za-z]|^)climax([^A-Za-z]|$)",
+    "([^A-Za-z]|^)lick([^A-Za-z]|$)",
+    "([^A-Za-z]|^)vagina([^A-Za-z]|$)",
+    "([^A-Za-z]|^)sex([^A-Za-z]|$)",
+    "([^A-Za-z]|^)oral[^A-Za-z]+sex([^A-Za-z]|$)",
+    "([^A-Za-z]|^)anal[^A-Za-z]+sex([^A-Za-z]|$)"
+};
 
 static const char* s_pFilterStr = "******";
 
@@ -33,7 +62,10 @@ bool LCMessageFilter::IsIllegalMessage(const string& message)
 	regex_t ex = {0};
 	for (int i = 0; i < _countof(s_pCheckArr); i++)
 	{
-		if ( 0 == regcomp(&ex, s_pCheckArr[i], REG_EXTENDED|REG_NOSUB) )
+        string checkRegex("");
+//        checkRegex = "(?i)";
+        checkRegex += s_pCheckArr[i];
+		if ( 0 == regcomp(&ex, checkRegex.c_str(), REG_EXTENDED|REG_NOSUB|REG_ICASE) )
 		{
 			result = (0 == regexec(&ex, message.c_str(), 0, NULL, 0));
 			regfree(&ex);
@@ -69,7 +101,7 @@ string LCMessageFilter::FilterIllegalMessage(const string& message)
         for (int i = 0; i < _countof(s_pCheckArr); i++)
         {
             // 新建正则表达式对象
-            if ( 0 == regcomp(&ex, s_pCheckArr[i], REG_EXTENDED) )
+            if ( 0 == regcomp(&ex, s_pCheckArr[i], REG_EXTENDED|REG_ICASE) )
             {
                 regmatch_t pm = {0};
                 if ( 0 == regexec(&ex, message.c_str() + begin, 1, &pm, 0) )

@@ -104,6 +104,12 @@ LCInviteManager::HandleInviteMsgType LCInviteManager::IsToHandleInviteMsg(
 //					handle = true;
 //				}
 //			}
+            
+            // 其它
+            if (!handle) {
+                result = HANDLE;
+                handle = true;
+            }
 		}
 	}
 
@@ -129,12 +135,16 @@ LCUserItem* LCInviteManager::GetUserNotCreate(const string& userId)
 // 获取用户item（不存在则创建）
 LCUserItem* LCInviteManager::GetUser(const string& userId)
 {
-	LCUserItem* userItem = GetUserNotCreate(userId);
-	if (NULL == userItem)
-	{
-		userItem = new LCUserItem;
-		userItem->m_userId = userId;
-	}
+    LCUserItem* userItem = NULL;
+    if (!userId.empty())
+    {
+        userItem = GetUserNotCreate(userId);
+        if (NULL == userItem)
+        {
+            userItem = new LCUserItem;
+            userItem->m_userId = userId;
+        }
+    }
 	return userItem;
 }
 
@@ -250,7 +260,7 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 				, LCMessageItem::StatusType_Finish);
 		// 生成TextItem
 		LCTextItem* textItem = new LCTextItem;
-		textItem->Init(message);
+		textItem->Init(message, false);
 		// 把TextItem添加到MessageItem
 		item->SetTextItem(textItem);
 		// 添加到用户聊天记录中
@@ -295,20 +305,15 @@ LCMessageItem* LCInviteManager::HandleInviteMessage(
 			userItem->m_userName = inviteUserItem->m_userName;
 			userItem->m_chatType = inviteUserItem->m_chatType;
 			userItem->m_statusType = inviteUserItem->m_statusType;
-			userItem->LockMsgList();
 			for (LCMessageList::iterator iter = inviteUserItem->m_msgList.begin();
 				iter != inviteUserItem->m_msgList.end();
 				iter++)
 			{
 				userItem->InsertSortMsgList(*iter);
 			}
-			userItem->UnlockMsgList();
-
+			
 			// 抛出最后一条消息给外面显示
-			if (!userItem->m_msgList.empty()) {
-				LCMessageList::iterator iter = (userItem->m_msgList.end()--);
-				item = (*iter);
-			}
+            item = userItem->GetTheOtherLastMessage();
 		}
 
 		// 更新处理次数

@@ -31,6 +31,8 @@ using namespace std;
 #define ADVERT_WOMANLISTADVERT_PATH	"/advert/womanlistadvert"
 // 查询Push广告
 #define ADVERT_PUSHADVERT_PATH		"/advert/pushadvert"
+// 查询App推广广告
+#define ADVERT_APP_PROMOTION_PATH	"/advert/pop_ad"
 // item
 #define ADVERT_ADVERTID		"advertId"
 #define ADVERT_IMAGE		"image"
@@ -42,6 +44,9 @@ using namespace std;
 #define ADVERT_VALID		"valid"
 #define ADVERT_PUSHID		"pushId"
 #define ADVERT_MESSAGE		"message"
+
+//App Promotion
+#define ADVERT_ADOVERVIEW	"ad_overview"
 
 // ------ 枚举定义 ------
 // 广告URL打开方式

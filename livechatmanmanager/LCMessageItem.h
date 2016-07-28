@@ -15,6 +15,7 @@
 #include "LCVideoItem.h"
 #include "LCSystemItem.h"
 #include "LCCustomItem.h"
+#include <livechat/ILiveChatClient.h>
 #include <string>
 #include <list>
 using namespace std;
@@ -32,13 +33,13 @@ public:
 	typedef enum  {
 		MT_Unknow,		// 未知类型
 		MT_Text,		// 文本消息
-		MT_Warning,	// 警告消息
-		MT_Emotion,	// 高级表情
+		MT_Warning,		// 警告消息
+		MT_Emotion,		// 高级表情
 		MT_Voice,		// 语音
 		MT_Photo,		// 私密照
 		MT_Video,		// 微视频
 		MT_System,		// 系统消息
-		MT_Custom,     //自定义消息
+		MT_Custom,		//自定义消息
 	} MessageType;
 
 	// 消息发送方向 类型
@@ -56,6 +57,31 @@ public:
 		StatusType_Fail,			// 发送失败
 		StatusType_Finish,			// 发送完成/接收成功
 	} StatusType;
+
+	// 处理（发送/接收/购买）结果
+	class ProcResult 
+	{
+	public:
+		ProcResult() {
+			SetSuccess();
+		}
+		virtual ~ProcResult() {}
+	public:
+		void SetSuccess() {
+			m_errType = LCC_ERR_SUCCESS;
+			m_errNum = "";
+			m_errMsg = "";
+		}
+		void SetResult(LCC_ERR_TYPE errType, const string& errNum, const string& errMsg) {
+			m_errType = errType;
+			m_errNum = errNum;
+			m_errMsg = errMsg;
+		}
+	public:
+		LCC_ERR_TYPE	m_errType;	// 处理结果类型
+		string	m_errNum;			// 处理结果代码
+		string	m_errMsg;			// 处理结果描述
+	};
 
 public:
 	LCMessageItem();
@@ -121,6 +147,9 @@ public:
 	void SetCustomItem(LCCustomItem* theCustomItem);
 	// 获取自定义消息item
 	LCCustomItem* GetCustomItem() const;
+	// 判断子消息item（如：语音、图片、视频等）是否正在处理
+	bool IsSubItemProcssign() const;
+
 	// 设置用户item
 	void SetUserItem(LCUserItem* theUserItem);
 	// 获取用户item
@@ -130,6 +159,9 @@ public:
 
 	// 排序函数
 	static bool Sort(const LCMessageItem* item1, const LCMessageItem* item2);
+    
+    // 判断是否聊天消息
+    bool IsChatMessage();
 
 public:
 	int 			m_msgId;		// 消息ID
@@ -140,6 +172,7 @@ public:
 	long			m_createTime;	// 接收/发送时间
 	StatusType 		m_statusType;	// 处理状态
 	MessageType		m_msgType;		// 消息类型
+	ProcResult		m_procResult;	// 处理(发送/接收/购买)结果
 
 private:
 	LCTextItem*		m_textItem;		// 文本item

@@ -72,8 +72,10 @@ public:
 
 	/**
 	 * 停止请求
+     * @param bWait     是否等待停止
+     * @param isCleanCallback	是否清除Callback（不Callback）
 	 */
-	void StopAllRequest();
+	void StopAllRequest(bool bWait = false, bool isCleanCallback = false);
 
 	/**
 	 * 获取请求实例

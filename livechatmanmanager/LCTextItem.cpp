@@ -12,6 +12,7 @@
 LCTextItem::LCTextItem()
 {
 	m_message = "";
+    m_displayMsg = "";
 	m_illegal = false;
 }
 
@@ -20,15 +21,21 @@ LCTextItem::~LCTextItem()
 
 }
 
-bool LCTextItem::Init(const string& message)
+bool LCTextItem::Init(const string& message, bool isSend)
 {
+    // 消息内容
+    m_message = message;
+
+    // 判断是否包含非法字符
 	m_illegal = LCMessageFilter::IsIllegalMessage(message);
-	if ( m_illegal ) {
-		m_message = LCMessageFilter::FilterIllegalMessage(message);
-	}
-	else {
-		m_message = message;
-	}
+    
+    // 显示消息内容
+    if (isSend || !m_illegal) {
+        m_displayMsg = message;
+    }
+    else {
+        m_displayMsg = LCMessageFilter::FilterIllegalMessage(message);
+    }
 	return true;
 }
 

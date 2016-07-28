@@ -12,9 +12,6 @@
 #include <json/json/json.h>
 #include <common/CheckMemoryLeak.h>
 
-// 协议定义
-#define DEVICETYPE_ANDROID	30	// Android设备
-
 UploadDeviceTypeTask::UploadDeviceTypeTask(void)
 {
 	m_listener = NULL;
@@ -56,8 +53,7 @@ bool UploadDeviceTypeTask::GetSendData(void* data, unsigned int dataSize, unsign
 	bool result = false;
 
 	// 构造json协议
-	//int clientType = m_clientType==CLIENT_ANDROID ? 
-	int clientType = DEVICETYPE_ANDROID;		// 目前只有Android客户端
+	int clientType = (int)GetDeviceTypeWithClientType(m_clientType);
 	Json::Value root(clientType);
 	Json::FastWriter writer;
 	string json = writer.write(root);

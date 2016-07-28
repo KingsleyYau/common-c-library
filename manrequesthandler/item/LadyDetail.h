@@ -63,6 +63,7 @@ public:
 	string womanid;
 	string firstname;
 	string country;
+    int countryIndex;
 	string province;
 	string birthday;
 	int age;

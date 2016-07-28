@@ -541,8 +541,7 @@ bool LCPhotoManager::AddRequestItem(long requestId, LCMessageItem* item)
 	bool result = false;
 	if (NULL != item
 		&& LCMessageItem::MT_Photo == item->m_msgType
-		&& NULL != item->GetPhotoItem()
-		&& LCMessageItem::StatusType_Processing == item->m_statusType)
+		&& NULL != item->GetPhotoItem())
 	{
 		m_requestMap.lock();
 		m_requestMap.insert(RequestMap::value_type(requestId, item));

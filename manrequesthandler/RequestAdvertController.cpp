@@ -38,6 +38,8 @@ void RequestAdvertController::onSuccess(long requestId, string url, const char* 
 	}
 	else if( url.compare(ADVERT_PUSHADVERT_PATH) == 0 ) {
 		PushAdvertCallbackHandle(requestId, url, true, buf, size);
+	}else if( url.compare(ADVERT_APP_PROMOTION_PATH) == 0 ){
+		AppPromotionCallbackHandle(requestId, url, true, buf, size);
 	}
 	FileLog("httprequest", "RequestAdvertController::onSuccess() end, url:%s", url.c_str());
 }
@@ -54,6 +56,8 @@ void RequestAdvertController::onFail(long requestId, string url)
 	}
 	else if( url.compare(ADVERT_PUSHADVERT_PATH) == 0 ) {
 		PushAdvertCallbackHandle(requestId, url, false, NULL, 0);
+	}else if( url.compare(ADVERT_APP_PROMOTION_PATH) == 0 ){
+		AppPromotionCallbackHandle(requestId, url, false, NULL, 0);
 	}
 	FileLog("httprequest", "RequestAdvertController::onFail() end, url:%s", url.c_str());
 }
@@ -249,5 +253,58 @@ void RequestAdvertController::PushAdvertCallbackHandle(long requestId, const str
 
 	if( m_Callback.onRequestAdPushAdvert != NULL ) {
 		m_Callback.onRequestAdPushAdvert(requestId, bFlag, errnum, errmsg, list);
+	}
+}
+
+// ----------------------- AppPromotionAdvert -----------------------
+long RequestAdvertController::AppPromotionAdvert(const string& deviceId)
+{
+//	char temp[16];
+	HttpEntiy entiy;
+
+	// deviceId
+	entiy.AddContent(ADVERT_REQUEST_DEVICEID, deviceId);
+
+	string url = ADVERT_APP_PROMOTION_PATH;
+	FileLog("httprequest", "RequestAdvertController::AppPromotionAdvert"
+			"( url:%s, deviceId:%s)",url.c_str(), deviceId.c_str());
+
+	return StartRequest(url, entiy, this);
+}
+
+void RequestAdvertController::AppPromotionCallbackHandle(long requestId, const string& url, bool requestRet, const char* buf, int size)
+{
+	string adOverview = "";
+	string errnum = "";
+	string errmsg = "";
+	bool bFlag = false;
+
+	if (requestRet) {
+		// request success
+		Json::Value dataJson;
+		if( HandleResult(buf, size, errnum, errmsg, &dataJson) ) {
+			if (dataJson[ADVERT_ADOVERVIEW].isString()) {
+				adOverview = dataJson[ADVERT_ADOVERVIEW].asString();
+				bFlag = true;
+			}
+			if (!bFlag) {
+				// parsing fail
+				errnum = LOCAL_ERROR_CODE_PARSEFAIL;
+				errmsg = LOCAL_ERROR_CODE_PARSEFAIL_DESC;
+
+				FileLog("httprequest", "RequestAdvertController::AppPromotionCallbackHandle() parsing fail:"
+						"(url:%s, size:%d, buf:%s)",
+						url.c_str(), size, buf);
+			}
+		}
+	}
+	else {
+		// request fail
+		errnum = LOCAL_ERROR_CODE_TIMEOUT;
+		errmsg = LOCAL_ERROR_CODE_TIMEOUT_DESC;
+	}
+
+	if( m_Callback.onRequestAppPromotionAdvert != NULL ) {
+		m_Callback.onRequestAppPromotionAdvert(requestId, bFlag, errnum, errmsg, adOverview);
 	}
 }
