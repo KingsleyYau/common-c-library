@@ -259,7 +259,7 @@ public:
             hints.ai_socktype = SOCK_STREAM;
             hints.ai_flags = AI_DEFAULT;
             
-            int error = getaddrinfo("www.amazon.com", "http", &hints, &res0);
+            int error = getaddrinfo(ip.c_str(), "http", &hints, &res0);
             if( !error ) {
                 for (res = res0; res; res = res->ai_next) {
                     if(res->ai_family == AF_INET6) {
@@ -269,21 +269,21 @@ public:
                         inet_ntop(res->ai_family, &(iddr->sin6_addr), ipv6_buf, sizeof(ipv6_buf));
                         iddr->sin6_port = htons(port);
                         
-                        string ipv6 = ipv6_buf;
-                        string ipv6Prev = "";
-                        string::size_type index = ipv6.find("::");
-                        if( string::npos != index ) {
-                            ipv6Prev = ipv6.substr(0, index);
-                        }
+//                        string ipv6 = ipv6_buf;
+//                        string ipv6Prev = "";
+//                        string::size_type index = ipv6.find("::");
+//                        if( string::npos != index ) {
+//                            ipv6Prev = ipv6.substr(0, index);
+//                        }
+//                        
+//                        char ipv_buf[INET6_ADDRSTRLEN] = { 0 };
+//                        sprintf(ipv_buf, "%s::%s", ipv6Prev.c_str(), IPAddress::Ipv42Ipv6(ip).c_str());
+//                        sockaddr_in6 iddr6;
+//                        iddr6.sin6_family = AF_INET6;
+//                        inet_pton(AF_INET6, ipv_buf, (void *)&iddr6.sin6_addr);
+//                        iddr6.sin6_port = htons(port);
                         
-                        char ipv_buf[INET6_ADDRSTRLEN] = { 0 };
-                        sprintf(ipv_buf, "%s::%s", ipv6Prev.c_str(), IPAddress::Ipv42Ipv6(ip).c_str());
-                        sockaddr_in6 iddr6;
-                        iddr6.sin6_family = AF_INET6;
-                        inet_pton(AF_INET6, ipv_buf, (void *)&iddr6.sin6_addr);
-                        iddr6.sin6_port = htons(port);
-                        
-                        result = Connect((struct sockaddr*)&iddr6, sizeof(sockaddr_in6), msTimeout);
+                        result = Connect((struct sockaddr*)iddr, sizeof(sockaddr_in6), msTimeout);
 
                     } else {
                         // ipv4
@@ -293,7 +293,7 @@ public:
                         iddr->sin_port = htons(port);
                         
                         char ipv_buf[INET6_ADDRSTRLEN] = { 0 };
-                        sprintf(ipv_buf, "::FFFF:%s", IPAddress::Ipv42Ipv6(ip).c_str());
+                        sprintf(ipv_buf, "::FFFF:%s", IPAddress::Ipv42Ipv6(ipv4_buf).c_str());
                         sockaddr_in6 iddr6;
                         iddr6.sin6_family = AF_INET6;
                         inet_pton(AF_INET6, ipv_buf, (void *)&iddr6.sin6_addr);

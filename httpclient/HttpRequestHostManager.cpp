@@ -35,6 +35,9 @@ string HttpRequestHostManager::GetHostByType(SiteType type) {
 	case TransSite: {
 		host = GetTransSite();
 	}break;
+	case VideoUploadSite: {
+		host = GetVideoUploadSite();
+	}break;
 	default:break;
 	}
 
@@ -81,4 +84,14 @@ void HttpRequestHostManager::SetTransSite(const string& transSite)
 string HttpRequestHostManager::GetTransSite()
 {
 	return mTransSite;
+}
+
+void HttpRequestHostManager::SetVideoUploadSite(const string& videoUploadSite)
+{
+	mVideoUploadSite = videoUploadSite;
+}
+
+string HttpRequestHostManager::GetVideoUploadSite()
+{
+	return mVideoUploadSite;
 }

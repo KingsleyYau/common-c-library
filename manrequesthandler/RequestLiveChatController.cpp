@@ -442,7 +442,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 			HandleGetVideo(doc, url);
 		}
 
-		mRequestLiveChatControllerCallback->OnGetVideo(requestId, bFlag, "", "", url);
+		mRequestLiveChatControllerCallback->OnGetVideo(requestId, bFlag, errnum, errmsg, url);
 	}else if( url.compare(LC_GET_MAGICICON_CONFIG_PATH) == 0 ) {
 		// 6.15.查询小高级表情配置
 		TiXmlDocument doc;
@@ -456,7 +456,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 				}
 			}
 		}
-		mRequestLiveChatControllerCallback->OnGetMagicIconConfig(requestId, bFlag, "", "", config);
+		mRequestLiveChatControllerCallback->OnGetMagicIconConfig(requestId, bFlag, errnum, errmsg, config);
 	} else if (url.compare(LC_CHAT_RECHARGE_PATH) == 0) {
 		// 6.16.开聊自动买点
 		TiXmlDocument doc;
@@ -481,7 +481,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 			}
 		}
 
-		mRequestLiveChatControllerCallback->OnChatRecharge(requestId, bFlag, "", "", credits);
+		mRequestLiveChatControllerCallback->OnChatRecharge(requestId, bFlag, errnum, errmsg, credits);
 	}else if (url.compare(LC_GET_THEME_CONFIG_PATH) == 0) {
 		// 6.17.查询主题配置
 		TiXmlDocument doc;
@@ -495,7 +495,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 				}
 			}
 		}
-		mRequestLiveChatControllerCallback->OnGetThemeConfig(requestId, bFlag, "", "", config);
+		mRequestLiveChatControllerCallback->OnGetThemeConfig(requestId, bFlag, errnum, errmsg, config);
 	}else if (url.compare(LC_GET_THEME_DETAIL_PATH) == 0) {
 		// 6.18.获取指定主题
 		TiXmlDocument doc;
@@ -518,7 +518,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 			}
 			bFlag = true;
 		}
-		mRequestLiveChatControllerCallback->OnGetThemeDetail(requestId, bFlag, "", "", themeItemList);
+		mRequestLiveChatControllerCallback->OnGetThemeDetail(requestId, bFlag, errnum, errmsg, themeItemList);
 	}else if (url.compare(LC_CHECK_FUNCTIONS_PATH) == 0) {
 		// 6.19.检测功能是否开通
 		TiXmlDocument doc;
@@ -554,7 +554,7 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 			bFlag = true;
 		}
 
-		mRequestLiveChatControllerCallback->OnCheckFunctions(requestId, bFlag, "", "", flagList);
+		mRequestLiveChatControllerCallback->OnCheckFunctions(requestId, bFlag, errnum, errmsg, flagList);
 	}
 
 

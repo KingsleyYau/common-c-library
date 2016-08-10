@@ -19,6 +19,7 @@ typedef enum SiteType {
 	WebSite,		// www站点
 	ChatVoiceSite,	// 语音文件站点
 	TransSite,		// 翻译站点
+	VideoUploadSite,// 视频上传站点
 } SiteType;
 
 class HttpRequestHostManager {
@@ -35,12 +36,15 @@ public:
 	string GetChatVoiceSite();
 	void SetTransSite(const string& transSite);
 	string GetTransSite();
+	void SetVideoUploadSite(const string& videoUploadSite);
+	string GetVideoUploadSite();
 
 private:
 	string mWebSite;
 	string mAppSite;
 	string mChatVoiceSite;
 	string mTransSite;
+	string mVideoUploadSite;
 };
 
 #endif /* HTTPREQUESTHOSTMANAGER_H_ */
