@@ -278,7 +278,7 @@ private:
 
 	// ------------------- LCPhotoManagerCallback -------------------
 private:
-	virtual void OnDownloadPhoto(bool success, const string& errnum, const string& errmsg, LCMessageItem* item);
+	virtual void OnDownloadPhoto(bool success, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, const LCMessageList& msgList);
 
 	// ------------------- LCVideoManagerCallback -------------------
 private:

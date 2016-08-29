@@ -37,6 +37,10 @@ public:
 	// 回调函数
 public:
 	void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
+    
+private:
+    bool IsStart();
+    bool IsFinish();
 
 private:
 	LCPhotoManager*	m_photoMgr;
@@ -47,7 +51,7 @@ private:
 	LCMessageItem*	m_item;
 	GETPHOTO_PHOTOSIZE_TYPE	m_sizeType;
 	GETPHOTO_PHOTOMODE_TYPE m_modeType;
-	string	m_filePath;
+    bool    m_isStart;
 };
 
 class LCPhotoDownloaderCallback
@@ -56,6 +60,6 @@ public:
 	LCPhotoDownloaderCallback() {};
 	virtual ~LCPhotoDownloaderCallback() {};
 public:
-	virtual void onSuccess(LCPhotoDownloader* downloader, LCMessageItem* item) = 0;
-	virtual void onFail(LCPhotoDownloader* downloader, const string& errnum, const string& errmsg, LCMessageItem* item) = 0;
+	virtual void onSuccess(LCPhotoDownloader* downloader, GETPHOTO_PHOTOSIZE_TYPE sizeType, LCMessageItem* item) = 0;
+	virtual void onFail(LCPhotoDownloader* downloader, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, LCMessageItem* item) = 0;
 };

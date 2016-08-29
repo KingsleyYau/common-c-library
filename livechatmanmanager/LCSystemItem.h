@@ -20,7 +20,7 @@ public:
 		TRY_CHAT_END,			// 试聊结束
 		NOT_SUPPORT_TEXT,		// 不支持文本消息
 		NOT_SUPPORT_EMOTION,	// 不支持高级表情消息
-		NOT_SUPPORT_VIDEO,		// 不支持语音消息
+		NOT_SUPPORT_VOICE,		// 不支持语音消息
 		NOT_SUPPORT_PHOTO,		// 不支持私密照消息
 		NOT_SUPPORT_MAGICICON,	// 不支持小高表消息
 	} CodeType;

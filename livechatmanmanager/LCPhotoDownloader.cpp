@@ -11,6 +11,7 @@
 #include "LCPhotoManager.h"
 #include "LCPhotoItem.h"
 #include "LCUserItem.h"
+#include <common/CommonFunc.h>
 #include <common/CheckMemoryLeak.h>
 
 LCPhotoDownloader::LCPhotoDownloader()
@@ -21,7 +22,7 @@ LCPhotoDownloader::LCPhotoDownloader()
 	m_callback = NULL;
 	m_requestId = HTTPREQUEST_INVALIDREQUESTID;
 	m_item = NULL;
-	m_filePath = "";
+    m_isStart = false;
 }
 
 LCPhotoDownloader::~LCPhotoDownloader()
@@ -60,17 +61,21 @@ bool LCPhotoDownloader::StartGetPhoto(
 			, GETPHOTO_PHOTOMODE_TYPE modeType)
 {
 	bool result = false;
-	if (NULL != m_photoMgr
+	if (!IsStart ()
+        && NULL != m_photoMgr
 		&& NULL != m_requestMgr
 		&& NULL != m_requestController
 		&& NULL != callback
 		&& NULL != item
 		&& NULL != item->GetUserItem()
+        && NULL != item->GetPhotoItem()
 		&& !item->GetUserItem()->m_userId.empty()
 		&& !userId.empty()
 		&& !sid.empty())
 	{
-		string filePath = m_photoMgr->GetPhotoPath(item, modeType, sizeType);
+        m_isStart = true;
+        
+		string filePath = m_photoMgr->GetPhotoTempPath(item, modeType, sizeType);
 		GETPHOTO_TOFLAG_TYPE toFlag = (LCMessageItem::SendType_Recv == item->m_sendType ? GTT_MANGETWOMAN : GTT_MANGETSELF);
 		m_requestId = m_requestController->GetPhoto(toFlag, item->GetUserItem()->m_userId, userId, sid, item->GetPhotoItem()->m_photoId, sizeType, modeType, filePath);
 		result = (HTTPREQUEST_INVALIDREQUESTID != m_requestId);
@@ -81,8 +86,12 @@ bool LCPhotoDownloader::StartGetPhoto(
 			m_item = item;
 			m_sizeType = sizeType;
 			m_modeType = modeType;
-			m_filePath = filePath;
+            
+            m_item->GetPhotoItem()->AddProcessStatus(modeType, sizeType);
 		}
+        else {
+            m_isStart = false;
+        }
 
 		FileLog("LiveChatManager", "LCPhotoDownloader::StartGetPhoto() requestId:%d, result:%d", m_requestId, result);
 	}
@@ -96,7 +105,7 @@ bool LCPhotoDownloader::StartGetPhoto(
 bool LCPhotoDownloader::Stop()
 {
 	bool result = false;
-	if (NULL != m_requestMgr) {
+    if (IsFinish() && NULL != m_requestMgr) {
 		result = m_requestMgr->StopRequest(m_requestId, true);
 	}
 	return result;
@@ -114,16 +123,19 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
 
 	if (m_requestId == requestId)
 	{
-		// 重置下载状态
-		m_item->GetPhotoItem()->RemoveProcessStatus(m_modeType, m_sizeType);
+        m_requestId = HTTPREQUEST_INVALIDREQUESTID;
 
 		if (success) {
+            // 临时文件转正式文件
+            string dstFilePath = m_photoMgr->GetPhotoPath(m_item, m_modeType, m_sizeType);
+            CopyFile(filePath, dstFilePath);
+            
 			// 获取图片成功
 			if (m_photoMgr->SetPhotoFilePath(m_item, m_modeType, m_sizeType))
 			{
 				// 设置文件路径成功
 				m_item->m_procResult.SetSuccess();
-				m_callback->onSuccess(this, m_item);
+				m_callback->onSuccess(this, m_sizeType, m_item);
 
 				FileLog("LiveChatManager", "LCPhotoDownloader::OnGetPhoto() SetPhotoFilePath ok");
 			}
@@ -131,15 +143,32 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
 			{
 				// 设置文件路径失败
 				m_item->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
-				m_callback->onFail(this, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
+				m_callback->onFail(this, m_sizeType, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
 
 				FileLog("LiveChatManager", "LCPhotoDownloader::OnGetPhoto() SetPhotoFilePath fail");
 			}
 		}
 		else {
+            // 删除临时文件
+            RemoveFile(filePath);
+            
 			// 获取图片失败
 			m_item->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
-			m_callback->onFail(this, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
+			m_callback->onFail(this, m_sizeType, m_item->m_procResult.m_errNum, m_item->m_procResult.m_errMsg, m_item);
 		}
+        
+        // 重置状态
+        m_item->GetPhotoItem()->RemoveProcessStatus(m_modeType, m_sizeType);
+        m_isStart = false;
 	}
+}
+
+bool LCPhotoDownloader::IsStart()
+{
+    return m_isStart;
+}
+
+bool LCPhotoDownloader::IsFinish()
+{
+    return m_requestId != HTTPREQUEST_INVALIDREQUESTID;
 }

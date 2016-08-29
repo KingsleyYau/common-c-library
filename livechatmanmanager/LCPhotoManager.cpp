@@ -6,7 +6,6 @@
  */
 
 #include "LCPhotoManager.h"
-#include "LCMessageItem.h"
 #include "LCUserItem.h"
 #include <httpclient/HttpRequestDefine.h>
 #include <manrequesthandler/RequestLiveChatDefine.h>
@@ -105,6 +104,29 @@ string LCPhotoManager::GetPhotoPath(const string& photoId, GETPHOTO_PHOTOMODE_TY
 		path += GETPHOTO_PHOTOSIZE_PROTOCOL[sizeType];
 	}
 	return path;
+}
+
+// 获取图片本地临时缓存文件路径
+string LCPhotoManager::GetPhotoTempPath(LCMessageItem* item, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+{
+    string path = "";
+    if (item->m_msgType == LCMessageItem::MT_Photo && NULL != item->GetPhotoItem()
+        && !item->GetPhotoItem()->m_photoId.empty() && !m_dirPath.empty())
+    {
+        path = GetPhotoTempPath(item->GetPhotoItem()->m_photoId, modeType, sizeType);
+    }
+    return path;
+}
+
+// 获取图片本地临时缓存文件路径(全路径)
+string LCPhotoManager::GetPhotoTempPath(const string& photoId, GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+{
+    string path = "";
+    string photoPath = GetPhotoPath(photoId, modeType, sizeType);
+    if (!photoPath.empty()) {
+        path = photoPath + ".tmp";
+    }
+    return path;
 }
 
 // 获取图片指定类型路径(非全路径)
@@ -281,6 +303,140 @@ void LCPhotoManager::CombineMessageItem(LCUserItem* userItem)
 	}
 }
 
+// --------------------- LCPhotoItem管理 --------------------------
+// ---- PhotoMap管理 ----
+// 获取/生成PhotoItem
+LCPhotoItem* LCPhotoManager::GetPhotoItem(const string& photoId, LCMessageItem* msgItem)
+{
+    LCPhotoItem* item = NULL;
+    m_photoMap.lock();
+    PhotoMap::iterator iter = m_photoMap.find(photoId);
+    if (iter != m_photoMap.end()) {
+        item = (*iter).second;
+    }
+    else {
+        item = new LCPhotoItem;
+        if (NULL != item) {
+            item->Init(photoId, "", "", "", "", "", "", "", false);
+            m_photoMap.insert(PhotoMap::value_type(photoId, item));
+        }
+    }
+    m_photoMap.unlock();
+    
+    if (NULL != item && NULL != msgItem) {
+        // 设置MessageItem的PhotoItem
+        msgItem->SetPhotoItem(item);
+        // 添加绑定关系
+        BindPhotoIdWithMsgItem(item->m_photoId, msgItem);
+    }
+    
+    return item;
+}
+
+// 更新/生成PhotoItem(以返回的PhotoItem为准)
+LCPhotoItem* LCPhotoManager::UpdatePhotoItem(LCPhotoItem* photoItem, LCMessageItem* msgItem)
+{
+    LCPhotoItem* item = NULL;
+    m_photoMap.lock();
+    PhotoMap::iterator iter = m_photoMap.find(photoItem->m_photoId);
+    if (iter != m_photoMap.end()) {
+        item = (*iter).second;
+        item->Update(photoItem);
+        
+        delete photoItem;
+    }
+    else {
+        m_photoMap.insert(PhotoMap::value_type(photoItem->m_photoId, photoItem));
+        item = photoItem;
+    }
+    
+    if (NULL != item) {
+        msgItem->SetPhotoItem(item);
+    }
+    m_photoMap.unlock();
+    
+    return item;
+}
+
+// 清除PhotoMap
+void LCPhotoManager::ClearPhotoMap()
+{
+    m_photoMap.lock();
+    for (PhotoMap::iterator iter = m_photoMap.begin();
+         iter != m_photoMap.end();
+         iter++)
+    {
+        delete (*iter).second;
+    }
+    m_photoMap.clear();
+    m_photoMap.unlock();
+}
+
+// ---- PhotoMsgMap管理 ----
+// 绑定关联
+bool LCPhotoManager::BindPhotoIdWithMsgItem(const string& photoId, LCMessageItem* msgItem)
+{
+    bool result = false;
+    
+    // 把MessageItem添加至引用列表
+    m_photoBindMap.lock();
+    PhotoMsgMap::iterator photoIter = m_photoBindMap.find(photoId);
+    if (photoIter != m_photoBindMap.end()) {
+        // photoId不存在，更新列表
+        bool isExist = false;
+        for (LCMessageList::iterator msgIter = (*photoIter).second.begin();
+             msgIter != (*photoIter).second.end();
+             msgIter++)
+        {
+            if ((*msgIter) == msgItem) {
+                isExist = true;
+                break;
+            }
+        }
+        
+        // MessageItem不存在于列表则添加
+        if (!isExist) {
+            (*photoIter).second.push_back(msgItem);
+        }
+        
+        result = isExist;
+    }
+    else {
+        // photoId不存在，插入列表
+        LCMessageList msgList;
+        msgList.push_back(msgItem);
+        m_photoBindMap.insert(PhotoMsgMap::value_type(photoId, msgList));
+        
+        result = true;
+    }
+    m_photoBindMap.unlock();
+    
+    return result;
+}
+
+// 获取关联的MessageList
+LCMessageList LCPhotoManager::GetMsgListWithBindMap(const string& photoId)
+{
+    LCMessageList msgList;
+    
+    m_photoBindMap.lock();
+    PhotoMsgMap::const_iterator photoIter = m_photoBindMap.find(photoId);
+    if (photoIter != m_photoBindMap.end()) {
+        msgList = (*photoIter).second;
+    }
+    m_photoBindMap.unlock();
+    
+    return msgList;
+}
+
+// 清除关联
+void LCPhotoManager::ClearBindMap()
+{
+    m_photoBindMap.lock();
+    m_photoBindMap.clear();
+    m_photoBindMap.unlock();
+}
+
 // --------------------- sending（正在发送） --------------------------
 // 获取指定票根的item并从待发送map表中移除
 LCMessageItem* LCPhotoManager::GetAndRemoveSendingItem(int msgId)
@@ -363,7 +519,7 @@ bool LCPhotoManager::DownloadPhoto(
 		&& !sid.empty())
 	{
 		result = item->GetPhotoItem()->IsProcessStatus(modeType, sizeType);
-		FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() IsProcessStatus result:%d", result);
+		FileLog("LiveChatManager", "LCPhotoManager::DownloadPhoto() IsProcessStatus result:%d, photoId:%s", result, item->GetPhotoItem()->m_photoId.c_str());
 		if (!result)
 		{
 			// 还未处理
@@ -492,7 +648,7 @@ void LCPhotoManager::ClearAllFinishDownloader()
 	m_finishDownloaderList.unlock();
 }
 
-void LCPhotoManager::onSuccess(LCPhotoDownloader* downloader, LCMessageItem* item)
+void LCPhotoManager::onSuccess(LCPhotoDownloader* downloader, GETPHOTO_PHOTOSIZE_TYPE sizeType, LCMessageItem* item)
 {
 	// downloader添加到释放列表
 	FinishDownloaderItem finishItem;
@@ -506,14 +662,20 @@ void LCPhotoManager::onSuccess(LCPhotoDownloader* downloader, LCMessageItem* ite
 	m_downloadMap.lock();
 	m_downloadMap.eraseWithValue(downloader);
 	m_downloadMap.unlock();
+    
+    // 获取photoID关联的MessageList
+    LCMessageList msgList;
+    if (NULL != item && NULL != item->GetPhotoItem()) {
+        msgList = GetMsgListWithBindMap(item->GetPhotoItem()->m_photoId);
+    }
 
 	// 回调
 	if (NULL != m_callback) {
-		m_callback->OnDownloadPhoto(true, "", "", item);
+		m_callback->OnDownloadPhoto(true, sizeType, "", "", msgList);
 	}
 }
 
-void LCPhotoManager::onFail(LCPhotoDownloader* downloader, const string& errnum, const string& errmsg, LCMessageItem* item)
+void LCPhotoManager::onFail(LCPhotoDownloader* downloader, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, LCMessageItem* item)
 {
 	// downloader添加到释放列表
 	FinishDownloaderItem finishItem;
@@ -527,10 +689,16 @@ void LCPhotoManager::onFail(LCPhotoDownloader* downloader, const string& errnum,
 	m_downloadMap.lock();
 	m_downloadMap.eraseWithValue(downloader);
 	m_downloadMap.unlock();
+    
+    // 获取photoID关联的MessageList
+    LCMessageList msgList;
+    if (NULL != item && NULL != item->GetPhotoItem()) {
+        msgList = GetMsgListWithBindMap(item->GetPhotoItem()->m_photoId);
+    }
 
 	// 回调
 	if (NULL != m_callback) {
-		m_callback->OnDownloadPhoto(false, errnum, errmsg, item);
+		m_callback->OnDownloadPhoto(false, sizeType, errnum, errmsg, msgList);
 	}
 }
 

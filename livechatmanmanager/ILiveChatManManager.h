@@ -72,7 +72,7 @@ public:
 	virtual void OnSendVoice(LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, LCMessageItem* msgItem) = 0;
 
 	// ------- photo listener -------
-	virtual void OnGetPhoto(LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, LCMessageItem* msgItem) = 0;
+	virtual void OnGetPhoto(GETPHOTO_PHOTOSIZE_TYPE sizeType, LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, const LCMessageList& msglist) = 0;
 	virtual void OnPhotoFee(bool success, const string& errNo, const string& errMsg, LCMessageItem* msgItem) = 0;
 	virtual void OnRecvPhoto(LCMessageItem* msgItem) = 0;
 	virtual void OnSendPhoto(LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, LCMessageItem* msgItem) = 0;

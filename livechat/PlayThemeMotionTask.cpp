@@ -81,19 +81,23 @@ bool PlayThemeMotionTask::Handle(const TransportProtocol* tp)
 			result = true;
 		}
 		else {
-			result = false;
-		}
+			// 解析失败协议
+			int errType = 0;
+			string errMsg = "";
+			if (GetAMFProtocolError(root, errType, errMsg)) {
+				m_errType = (LCC_ERR_TYPE)errType;
+				m_errMsg = errMsg;
 
-		// 解析失败协议
-		int errType = 0;
-		string errMsg = "";
-		if (GetAMFProtocolError(root, errType, errMsg)) {
-			m_errType = (LCC_ERR_TYPE)errType;
-			m_errMsg = errMsg;
-
-			// 解析成功
-			result = true;
+				// 解析成功
+				result = true;
+			}
 		}
+	}
+
+	// 协议解析失败
+	if (!result) {
+		m_errType = LCC_ERR_PROTOCOLFAIL;
+		m_errMsg = "";
 	}
 
 	FileLog("LiveChatClient", "PlayThemeMotionTask::Handle() result:%d, success:%d", result, success);

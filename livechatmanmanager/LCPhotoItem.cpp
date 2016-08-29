@@ -73,6 +73,19 @@ bool LCPhotoItem::Init(const string& photoId				// 图片ID
 	return true;
 }
 
+// 更新信息
+bool LCPhotoItem::Update(const LCPhotoItem* photoItem)
+{
+    bool result = false;
+    if (NULL != photoItem) {
+        result = Init(photoItem->m_photoId, photoItem->m_sendId, photoItem->m_photoDesc
+                      , photoItem->m_showFuzzyFilePath, photoItem->m_thumbFuzzyFilePath
+                      , photoItem->m_srcFilePath, photoItem->m_showSrcFilePath, photoItem->m_thumbSrcFilePath
+                      , photoItem->m_charge);
+    }
+    return result;
+}
+
 // 设置图片处理状态
 LCPhotoItem::ProcessStatus LCPhotoItem::GetProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType)
 {

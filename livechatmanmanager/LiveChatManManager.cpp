@@ -323,6 +323,10 @@ void LiveChatManManager::ResetParamWithNotAutoLogin()
         m_photoMgr->ClearAllSendingItems();
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearAllDownload");
         m_photoMgr->ClearAllDownload();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearPhotoMap");
+        m_photoMgr->ClearPhotoMap();
+        FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearBindMap");
+        m_photoMgr->ClearBindMap();
 
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear voice begin");
         // 停止所有语音请求
@@ -1777,13 +1781,13 @@ void LiveChatManManager::OnDownloadEmotionPlayImage(bool result, LCEmotionItem* 
 }
 
 // ------------------- LCPhotoManagerCallback -------------------
-void LiveChatManManager::OnDownloadPhoto(bool success, const string& errnum, const string& errmsg, LCMessageItem* item)
+void LiveChatManManager::OnDownloadPhoto(bool success, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, const LCMessageList& msgList)
 {
-	FileLog("LiveChatManager", "OnDownloadPhoto() result:%d, photoId:%s", success, item->GetPhotoItem()->m_photoId.c_str());
+	FileLog("LiveChatManager", "OnDownloadPhoto() result:%d", success);
 
 	if (NULL != m_listener) {
 		LCC_ERR_TYPE err = (success ? LCC_ERR_SUCCESS : LCC_ERR_FAIL);
-		m_listener->OnGetPhoto(err, errnum, errmsg, item);
+		m_listener->OnGetPhoto(sizeType, err, errnum, errmsg, msgList);
 	}
 
 	FileLog("LiveChatManager", "OnDownloadPhoto() callback end");
@@ -2738,7 +2742,7 @@ void LiveChatManManager::OnRecvPhoto(const string& toId, const string& fromId, c
 			, userItem->m_inviteId
 			, LCMessageItem::StatusType_Finish);
 	// 生成PhotoItem
-	LCPhotoItem* photoItem = new LCPhotoItem();
+    LCPhotoItem* photoItem = m_photoMgr->GetPhotoItem(photoId, item);
 	photoItem->Init(photoId
 			, sendId
 			, photoDesc
@@ -2748,8 +2752,6 @@ void LiveChatManManager::OnRecvPhoto(const string& toId, const string& fromId, c
 			, m_photoMgr->GetPhotoPath(photoId, GMT_CLEAR, GPT_LARGE)
 			, m_photoMgr->GetPhotoPath(photoId, GMT_CLEAR, GPT_MIDDLE)
 			, charge);
-	// 把PhotoItem添加到MessageItem
-	item->SetPhotoItem(photoItem);
 
 	// 添加到用户聊天记录中
 	userItem->InsertSortMsgList(item);
@@ -2859,15 +2861,19 @@ void LiveChatManManager::OnCheckCoupon(long requestId, bool success, Coupon item
 
 		FileLog("LiveChatManager", "OnCheckCoupon() userId:%s, isOpt:%d", userId.c_str(), isOpt);
 
+        // 判断试聊券是否可用
+        bool canUse = (item.status == CouponStatus_Yes || item.status == CouponStatus_Started);
+        
 		if (isOpt)
 		{
 			// 外部操作
-			m_listener->OnCheckCoupon(success, errnum, errmsg, userId, item.status);
+            CouponStatus status = (canUse ? CouponStatus_Yes : item.status);
+			m_listener->OnCheckCoupon(success, errnum, errmsg, userId, status);
 		}
 		else
 		{
 			// LiveChatManManager内部操作
-			if (success && item.status == CouponStatus_Yes)
+			if (success && canUse)
 			{
 				// 尝试使用试聊券
 				InsertRequestTask(REQUEST_TASK_TryUseTicket, (unsigned long)userItem);
@@ -3025,6 +3031,8 @@ void LiveChatManManager::OnSendPhoto(long requestId, bool success, const string&
 		LCPhotoItem* photoItem = msgItem->GetPhotoItem();
 		photoItem->m_photoId = item.photoId;
 		photoItem->m_sendId = item.sendId;
+        // 更新PhotoItem
+        photoItem = m_photoMgr->UpdatePhotoItem(photoItem, msgItem);
 
 		// 把源文件copy到LiveChat目录下
 		m_photoMgr->CopyPhotoFileToDir(photoItem, photoItem->m_srcFilePath);

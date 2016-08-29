@@ -47,6 +47,9 @@ public:
 			, const string& thumbSrcFilePath	// 拇指原图路径
 			, bool charge						// 是否已付费
 			);
+    
+    // 更新信息
+    bool Update(const LCPhotoItem* photoItem);
 
 	// 添加图片处理状态
 	void AddProcessStatus(GETPHOTO_PHOTOMODE_TYPE modeType, GETPHOTO_PHOTOSIZE_TYPE sizeType);

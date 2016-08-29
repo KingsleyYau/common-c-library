@@ -170,9 +170,10 @@ bool LCMessageItem::InitWithRecord(
 	case LRM_PHOTO: {
 		if (!record.photoId.empty())
 		{
-			LCPhotoItem* photoItem = new LCPhotoItem;
 			// 男士端发送的为已付费
 			bool photoCharge = (m_sendType == SendType_Send ? true : record.photoCharge);
+            // 获取PhotoItem
+            LCPhotoItem* photoItem = photoMgr->GetPhotoItem(record.photoId, this);
 			photoItem->Init(
 					record.photoId
 					, ""
@@ -183,7 +184,6 @@ bool LCMessageItem::InitWithRecord(
 					, photoMgr->GetPhotoPath(record.photoId, GMT_CLEAR, GPT_LARGE)
 					, photoMgr->GetPhotoPath(record.photoId, GMT_CLEAR, GPT_MIDDLE)
 					, photoCharge);
-			SetPhotoItem(photoItem);
 			result = true;
 		}
 	}break;
@@ -242,7 +242,7 @@ LCVoiceItem* LCMessageItem::GetVoiceItem() const
 // 设置图片item
 void LCMessageItem::SetPhotoItem(LCPhotoItem* thePhotoItem)
 {
-	if (m_msgType == MT_Unknow
+	if ((m_msgType == MT_Unknow || m_msgType == MT_Photo)
 			&& thePhotoItem != NULL)
 	{
 		m_photoItem = thePhotoItem;
@@ -418,14 +418,15 @@ void LCMessageItem::Clear()
 	delete m_warningItem;
 	m_warningItem = NULL;
 
-	// in LCEmotionManager release
-	//delete m_emotionItem;
-	//m_emotionItem = NULL;
+	// release in LCEmotionManager
+//	delete m_emotionItem;
+	m_emotionItem = NULL;
 
 	delete m_voiceItem;
 	m_voiceItem = NULL;
 
-	delete m_photoItem;
+    // release in LCPhotoManager
+//	delete m_photoItem;
 	m_photoItem = NULL;
 
 	delete m_videoItem;
