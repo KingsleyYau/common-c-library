@@ -37,7 +37,7 @@ const char* HTTP_COOKIE_DIR = "cookie/";			// http cookie目录路径
 const char* EMOTION_DIR = "livechat/emotion";		// 高级表情目录路径
 const char* VOICE_DIR = "livechat/voice";			// 语音目录路径
 const char* PHOTO_DIR = "livechat/photo";			// 图片目录路径
-const char* PHOTO_TEMP_DIR = "livechat/photo/temp";	// 图片临时目录路径
+const char* PHOTO_TEMP_DIR = "livechat/temp/photo";	// 图片临时目录路径
 const char* VIDEO_DIR = "livechat/video";			// 视频目录路径
 
 LiveChatManManager::LiveChatManManager()
@@ -159,8 +159,14 @@ bool LiveChatManManager::SetDirPath(const string& path)
 		// 设置photo manager本地缓存目录
 		string photoPath = m_dirPath + PHOTO_DIR;
 		result = result && m_photoMgr->SetDirPath(photoPath);
+        
+        FileLog("LiveChatManager", "SetDirPath() m_photoMgr->SetDirPath() photoPath:%s, result:%d", photoPath.c_str(), result);
+        
+        // 设置photo manager临时本地缓存目录
+        string photoTempPath = m_dirPath + PHOTO_TEMP_DIR;
+        result = result && m_photoMgr->SetTempDirPath(photoTempPath);
 
-		FileLog("LiveChatManager", "SetDirPath() m_photoMgr->SetDirPath() photoPath:%s, result:%d", photoPath.c_str(), result);
+		FileLog("LiveChatManager", "SetDirPath() m_photoMgr->SetTempDirPath() photoTempPath:%s, result:%d", photoTempPath.c_str(), result);
 
 		// 设置video manager本地缓存目录
 		string videoPath = m_dirPath + VIDEO_DIR;
@@ -460,12 +466,25 @@ bool LiveChatManManager::Logout(bool isResetParam)
 	return result;
 }
 
+// 重新登录
+bool LiveChatManManager::Relogin()
+{
+    bool result =  m_client->Logout();
+    
+    // 立即重登录
+    long time = 1 * 1000;	// 每1秒重登录一次
+    InsertRequestTask(REQUEST_TASK_AutoRelogin, 0, time);
+    
+    return result;
+}
 
 // 清除所有图片、视频等资源文件
 void LiveChatManManager::RemoveSourceFile()
 {
 	// 清除图片文件
 	m_photoMgr->RemoveAllPhotoFile();
+    // 清除图片临时文件
+    m_photoMgr->RemoveAllTempPhotoFile();
 	// 清除视频文件
 	m_videoMgr->RemoveAllVideoFile();
 }
@@ -1338,6 +1357,13 @@ LCMessageItem* LiveChatManManager::SendPhoto(const string& userId, const string&
 		FileLog("LiveChatManager", "SendPhoto() getUserItem fail, userId:%s", userId.c_str());
 		return NULL;
 	}
+    
+    // 复制文件至临时目录
+    string tempPath("");
+    if (!m_photoMgr->CopyPhotoToTempDir(photoPath, tempPath)) {
+        FileLog("LiveChatManager", "SendPhoto() copy file to temp dir fail, userId:%s photoPath:%s", userId.c_str(), photoPath.c_str());
+        return NULL;
+    }
 
 	// 生成MessageItem
 	LCMessageItem* item = new LCMessageItem();
@@ -1355,7 +1381,7 @@ LCMessageItem* LiveChatManManager::SendPhoto(const string& userId, const string&
 			, ""
 			, ""
 			, ""
-			, photoPath
+			, tempPath
 			, ""
 			, ""
 			, true);

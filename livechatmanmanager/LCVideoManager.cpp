@@ -62,10 +62,10 @@ bool LCVideoManager::SetDirPath(const string& dirPath)
 			&& m_dirPath.at(m_dirPath.length()-1) != '\\')
 		{
 			m_dirPath += "/";
-
-			// 创建目录
-			result = MakeDir(m_dirPath);
 		}
+        
+        // 创建目录
+        result = MakeDir(m_dirPath);
 	}
 	return result;
 }

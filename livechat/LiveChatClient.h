@@ -113,6 +113,12 @@ public:
 	virtual bool ManApplyTheme(const string& userId, const string& themeId);
 	// 男/女士播放主题包动画
 	virtual bool PlayThemeMotion(const string& userId, const string& themeId);
+	// 获取自动邀请状态（仅女士）
+	virtual bool GetAutoInviteMsgSwitchStatus();
+	// 启动/关闭发送自动邀请消息（仅女士）
+	virtual bool SwitchAutoInviteMsg(bool isOpen);
+	// 女士推荐男士购买主题包（仅女士）
+	virtual bool RecommendThemeToMan(const string& userId, const string& themeId);
 
 public:
 	// 获取用户账号

@@ -59,6 +59,9 @@
 #include "ManApplyThemeTask.h"
 #include "PlayThemeMotionTask.h"
 #include "HearbeatTask.h"
+#include "SendAutoInviteTask.h"
+#include "GetAutoInviteStatusTask.h"
+#include "SendThemeReCommendTask.h"
 
 CLiveChatClient::CLiveChatClient()
 {
@@ -1272,6 +1275,81 @@ bool CLiveChatClient::PlayThemeMotion(const string& userId, const string& themeI
 	FileLog("LiveChatClient", "CLiveChatClient::PlayThemeMotion() end");
 	return result;
 }
+
+// 获取自动邀请状态（仅女士）
+bool CLiveChatClient:: GetAutoInviteMsgSwitchStatus()
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetAutoInviteStatus() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		 GetAutoInviteStatusTask* task = new GetAutoInviteStatusTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetAutoInviteStatus() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetAutoInviteStatus() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetAutoInviteStatus() end");
+	return result;
+}
+
+// 启动/关闭发送自动邀请消息（仅女士）
+bool CLiveChatClient::SwitchAutoInviteMsg(bool isOpen)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendAutoInvite() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		 SendAutoInviteTask* task = new SendAutoInviteTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendAutoInvite() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(isOpen);
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::SendAutoInvite() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::SendAutoInvite() end");
+	return result;
+}
+
+// 女士推荐男士购买主题包（仅女士）
+bool CLiveChatClient::RecommendThemeToMan(const string& userId, const string& themeId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendThemeRecommend() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		 SendThemeRecommendTask* task = new SendThemeRecommendTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendThemeRecommend() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, themeId);
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::SendThemeRecommend() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::SendThemeRecommend() end");
+	return result;
+}
+
 
 // 获取用户账号
 string CLiveChatClient::GetUser()

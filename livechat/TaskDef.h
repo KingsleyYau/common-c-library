@@ -64,6 +64,9 @@ typedef enum {
 	TCMD_MANFEETHEME		= 218,	// 男士购买主题包
 	TCMD_MANAPPLYTHEME		= 223,	// 男士应用主题包
 	TCMD_PLAYTHEMEMOTION	= 227,	// 男/女士播放主题包动画
+	TCMD_SENDAUTOINVITE        = 211, //启动/关闭发送自动邀请消息(仅女士)
+	TCMD_GETAUTOINVITESTATUS   = 212, //获取发送自动邀请消息状态(仅女士)
+    TCMD_SENDTHEMERECOMMEND    = 231, //女士推荐男士购买主题包(仅女士)
 	// 服务器主动请求命令
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
@@ -88,6 +91,10 @@ typedef enum {
 	TCMD_RECVMAGICICON	    = 199,	// 小高级表情聊天信息通知
 	TCMD_RECVTHEMEMOTION	= 229,	// 播放主题包动画通知
 	TCMD_RECVTHEMERECOMMEND	= 233,	// 女士推荐男士购买主题包通知(仅男士)
+	TCMD_RECVLADYAUTOINVITE	        = 207,	// 女士自动邀请消息通知(仅女士)
+	TCMD_RECVLADYAUTOINVITESTATUS	= 208,	// 女士发送自动邀请消息状态通知(仅女士)
+	TCMD_RECVMANFEETHEME		        = 221,	// 男士购买主题包通知(仅女士)
+	TCMD_RECVMANAPPLYTHEME		        = 224,	// 男士应用主题包通知(仅女士)
 } TASK_CMD_TYPE;
 
 // 判断是否客户端主动请求的命令
@@ -141,6 +148,9 @@ inline bool IsRequestCmd(int cmd)
 	case TCMD_MANFEETHEME:			// 男士购买主题包
 	case TCMD_MANAPPLYTHEME:		// 男士应用主题包
 	case TCMD_PLAYTHEMEMOTION:		// 男/女士播放主题包动画
+	case TCMD_SENDAUTOINVITE:       //启动/关闭发送自动邀请消息(仅女士)
+	case TCMD_GETAUTOINVITESTATUS:  //获取发送自动邀请消息状态(仅女士)
+	case TCMD_SENDTHEMERECOMMEND:   //女士推荐男士购买主题包(仅女士)
 		result = true;	// 主动请求的命令
 		break;
 	default:

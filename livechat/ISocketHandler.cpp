@@ -9,7 +9,6 @@
 //#include <KLog.h>
 #include <common/CheckMemoryLeak.h>
 //#include <netinet6/in6.h>
-#include <netdb.h>
 #include <string.h>
 #include "common/IPAddress.h"
 
@@ -26,6 +25,7 @@ public:
 	WinTcpSocketHandler() {
 		m_socket = INVALID_SOCKET;
 		m_block = false;
+		m_connStatus = CONNECTION_STATUS_DISCONNECT;
 	}
 	virtual ~WinTcpSocketHandler() {
 		Close();
@@ -33,7 +33,7 @@ public:
 
 public:
 	// 创建socket
-	virtual bool Create() {
+	virtual bool Create(bool supportIpv6) {
 		m_socket = socket(AF_INET, SOCK_STREAM, 0);
 		return INVALID_SOCKET != m_socket;
 	}
@@ -76,6 +76,7 @@ public:
 		server.sin_port = htons(port);
 
 		// 连接
+		m_connStatus = CONNECTION_STATUS_CONNECTING;
 		if (msTimeout > 0) {
 			SetBlock(false);
 			if (connect(m_socket, (SOCKADDR*)&server, sizeof(server)) == SOCKET_ERROR) {
@@ -112,6 +113,13 @@ public:
 				result = SOCKET_RESULT_SUCCESS;
 			}
 		}
+
+        if (SOCKET_RESULT_SUCCESS == result) {
+            m_connStatus = CONNECTION_STATUS_CONNECTED;
+        }
+        else {
+            m_connStatus = CONNECTION_STATUS_DISCONNECT;
+        }
 		return result;
 	}
 	
@@ -151,6 +159,12 @@ public:
 		return result;
 	}
 
+	// 获取当前连接状态
+    virtual CONNNECTION_STATUS GetConnectionStatus() const
+    {
+        return m_connStatus;
+    }
+
 private:
 	// blocking设置
 	bool SetBlock(bool block) {
@@ -169,6 +183,7 @@ private:
 private:
 	SOCKET	m_socket;
 	bool	m_block;
+	CONNNECTION_STATUS m_connStatus;
 };
 
 #else

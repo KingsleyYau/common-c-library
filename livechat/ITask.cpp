@@ -31,6 +31,10 @@
 #include "RecvMagicIconTask.h"
 #include "RecvThemeMotionTask.h"
 #include "RecvThemeRecommendTask.h"
+#include "RecvLadyAutoInviteTask.h"
+#include "RecvLadyAutoInviteStatusTask.h"
+#include "RecvManFeeThemeTask.h"
+#include "RecvManApplyThemeTask.h"
 #include <common/CheckMemoryLeak.h>
 
 // 根据 cmd 创建 task
@@ -106,6 +110,18 @@ ITask* ITask::CreateTaskWithCmd(int cmd)
     	break;
 	case TCMD_RECVTHEMERECOMMEND:
 		task = new RecvThemeRecommendTask();
+		break;
+	case TCMD_RECVLADYAUTOINVITE:
+		task = new RecvLadyAutoInviteTask();
+		break;
+	case TCMD_RECVLADYAUTOINVITESTATUS:
+		task = new RecvLadyAutoInviteStatusTask();
+		break;
+	case TCMD_RECVMANFEETHEME:
+		task = new RecvManFeeThemeTask();
+		break;
+	case TCMD_RECVMANAPPLYTHEME:
+		task = new RecvManApplyThemeTask();
 		break;
 	}
 

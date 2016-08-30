@@ -70,8 +70,12 @@ void md5_finish(P2(md5_state_t *pms, md5_byte_t digest[16]));
 void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 #endif
 
-// fgx 2012-06-29
+// get md5 string with string
 void GetMD5String(const char *src, char *des);
+// get md5 string with data
+void GetDataMD5String(const void* buffer, int bufferLen, char* des);
+// get md5 string with file (1:success, 0:fail)
+int GetFileMD5String(const char* filePath, char *des);
 
 
 #ifdef __cplusplus

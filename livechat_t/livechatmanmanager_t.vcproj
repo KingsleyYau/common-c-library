@@ -180,6 +180,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\LiveChatClientListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
@@ -395,6 +399,14 @@
 			</File>
 			<File
 				RelativePath="..\livechat\GetAllPaidThemeTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\GetAutoInviteStatusTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\GetAutoInviteStatusTask.h"
 				>
 			</File>
 			<File
@@ -698,6 +710,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteStatusTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteStatusTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteTask.h"
+				>
+			</File>
+			<File
 				RelativePath="..\livechat\RecvLadyVoiceCodeTask.cpp"
 				>
 			</File>
@@ -711,6 +739,22 @@
 			</File>
 			<File
 				RelativePath="..\livechat\RecvMagicIconTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManApplyThemeTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManApplyThemeTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManFeeThemeTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManFeeThemeTask.h"
 				>
 			</File>
 			<File
@@ -842,6 +886,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\livechat\SendAutoInviteTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendAutoInviteTask.h"
+				>
+			</File>
+			<File
 				RelativePath="..\livechat\SendEmotionTask.cpp"
 				>
 			</File>
@@ -895,6 +947,14 @@
 			</File>
 			<File
 				RelativePath="..\livechat\SendPhotoTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendThemeRecommendTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendThemeRecommendTask.h"
 				>
 			</File>
 			<File
@@ -1076,7 +1136,227 @@
 				>
 			</File>
 			<File
+				RelativePath=".\LiveChatClientListener.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="CmdHandle"
+			>
+			<File
+				RelativePath=".\CmdHandle\ApplyThemeCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ApplyThemeCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\AutoInviteCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\AutoInviteCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\BuyThemeCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\BuyThemeCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\CmdHandleDef.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\CommonFuncCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\CommonFuncCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\EmotionCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\EmotionCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ExitCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ExitCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetAllThemeCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetAllThemeCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetAutoInviteStatusCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetAutoInviteStatusCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetTalkListCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetTalkListCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetUserThemeCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\GetUserThemeCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\HelpCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\HelpCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ICmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ICmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\InitCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\InitCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoginCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoginCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LogoutCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LogoutCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopEmotionCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopEmotionCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopEmotionProcCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopEmotionProcCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopTextCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopTextCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopTextProcCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\LoopTextProcCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\MagiciconCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\MagiciconCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\PlayThemeCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\PlayThemeCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\TextCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\TextCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ThemeRecommendCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\ThemeRecommendCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UploadThemeVerCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UploadThemeVerCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UploadVerCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UploadVerCmdHandle.h"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UserInfoCmdHandle.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\CmdHandle\UserInfoCmdHandle.h"
 				>
 			</File>
 		</Filter>

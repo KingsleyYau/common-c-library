@@ -21,6 +21,7 @@ LCPhotoManager::LCPhotoManager()
 	m_requestController = NULL;
 
 	m_dirPath = "";
+    m_tempDirPath = "";
 
 	m_sendingMapLock = IAutoLock::CreateAutoLock();
 	if (NULL != m_sendingMapLock) {
@@ -47,7 +48,7 @@ bool LCPhotoManager::Init(LCPhotoManagerCallback* callback)
 	return result;
 }
 
-// 初始化
+// 设置本地缓存目录路径
 bool LCPhotoManager::SetDirPath(const string& dirPath)
 {
 	bool result = false;
@@ -59,12 +60,32 @@ bool LCPhotoManager::SetDirPath(const string& dirPath)
 			&& m_dirPath.at(m_dirPath.length() -1) != '\\')
 		{
 			m_dirPath += "/";
-
-			// 创建目录
-			result = MakeDir(m_dirPath);
 		}
+        
+        // 创建目录
+        result = MakeDir(m_dirPath);
 	}
 	return result;
+}
+
+// 设置临时本地缓存目录路径
+bool LCPhotoManager::SetTempDirPath(const string& dirPath)
+{
+    bool result = false;
+    
+    if (!dirPath.empty())
+    {
+        m_tempDirPath = dirPath;
+        if (m_tempDirPath.at(m_tempDirPath.length() -1) != '/'
+            && m_tempDirPath.at(m_tempDirPath.length() -1) != '\\')
+        {
+            m_tempDirPath += "/";
+        }
+        
+        // 创建目录
+        result = MakeDir(m_tempDirPath);
+    }
+    return result;
 }
 
 // 设置http接口参数
@@ -745,4 +766,52 @@ list<long> LCPhotoManager::ClearAllRequestItems()
 	}
 	m_requestMap.unlock();
 	return result;
+}
+
+// --------------------------- Temp Photo Manage（临时图片管理） -------------------------
+// 复制文件到临时目录（返回是否复制成功）
+bool LCPhotoManager::CopyPhotoToTempDir(const string& srcPhotoPath, string& dstPhotoPath)
+{
+    bool result = false;
+    
+    if (!m_tempDirPath.empty()) {
+        // 获取临时文件名
+        string fileName = GetTempPhotoFileName(srcPhotoPath);
+        if (!fileName.empty()) {
+            // 复制文件至临时文件目录
+            string filePath = m_tempDirPath + fileName;
+            result = CopyFile(srcPhotoPath, filePath);
+            
+            // 赋值
+            if (result) {
+                dstPhotoPath = filePath;
+            }
+        }
+    }
+    
+    return result;
+}
+
+// 清除临时目录的图片文件
+void LCPhotoManager::RemoveAllTempPhotoFile()
+{
+    if (!m_tempDirPath.empty())
+    {
+        CleanDir(m_tempDirPath);
+    }
+}
+
+// 生成临时文件名
+string LCPhotoManager::GetTempPhotoFileName(const string& srcPhotoPath) const
+{
+    string fileName = "";
+    
+    if (!srcPhotoPath.empty())
+    {
+        char md5[128] = {0};
+        GetFileMD5String(srcPhotoPath.c_str(), md5);
+        fileName = md5;
+    }
+    
+    return fileName;
 }

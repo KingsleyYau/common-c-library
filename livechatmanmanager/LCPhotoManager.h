@@ -61,6 +61,8 @@ public:
 	bool Init(LCPhotoManagerCallback* callback);
 	// 设置本地缓存目录
 	bool SetDirPath(const string& dirPath);
+    // 设置临时本地缓存目录路径
+    bool SetTempDirPath(const string& dirPath);
 	// 设置http接口参数
 	bool SetHttpRequest(HttpRequestManager* requestMgr, RequestLiveChatController* requestController);
 	// 获取图片本地缓存文件路径
@@ -146,6 +148,17 @@ private:
 	void LockSendingMap();
 	// 正在发送消息map表解锁
 	void UnlockSendingMap();
+    
+    // --------------------------- Temp Photo Manage（临时图片管理） -------------------------
+public:
+    // 复制文件到临时目录（返回是否复制成功）
+    bool CopyPhotoToTempDir(const string& srcPhotoPath, string& dstPhotoPath);
+    // 清除临时目录的图片文件
+    void RemoveAllTempPhotoFile();
+    
+private:
+    // 生成临时文件名
+    string GetTempPhotoFileName(const string& srcPhotoPath) const;
 
 public:
 	LCPhotoManagerCallback*		m_callback;				// callback
@@ -159,6 +172,7 @@ public:
 	FinishDownloaderList	m_finishDownloaderList;	// 已完成下载列表（待释放）
 
 	string			m_dirPath;				// 本地缓存目录路径
+    string          m_tempDirPath;          // 临时本地缓存目录路径
     
     PhotoMap        m_photoMap;             // Photo map表
     PhotoMsgMap     m_photoBindMap;         // PhotoID被哪些MessageItem引用

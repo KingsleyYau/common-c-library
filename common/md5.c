@@ -309,7 +309,7 @@ void md5_finish(md5_state_t *pms, md5_byte_t digest[16])
 	digest[i] = (md5_byte_t)(pms->abcd[i >> 2] >> ((i & 3) << 3));
 }
 
-// fgx 2012-06-29
+// get md5 string with buffer
 void GetMD5String(const char *src, char *des)
 {
     md5_byte_t digest[16];
@@ -324,3 +324,82 @@ void GetMD5String(const char *src, char *des)
         sprintf(des + i * 2, "%02x", (unsigned char)digest[i]);
     }
 }
+
+// get md5 string with data
+void GetDataMD5String(const void* buffer, int bufferLen, char* des)
+{
+    if (NULL != buffer && bufferLen > 0)
+    {
+        md5_byte_t digest[16];
+        md5_state_t ctx;
+        int i = 0;
+        
+        md5_init(&ctx);
+        md5_append(&ctx, (const md5_byte_t*)buffer, bufferLen);
+        md5_finish(&ctx, digest);
+        
+        for (i = 0; i < 16; i++){
+            sprintf(des + i * 2, "%02x", (unsigned char)digest[i]);
+        }
+    }
+}
+
+// get md5 string with file
+int GetFileMD5String(const char* filePath, char *des)
+{
+    int result = 0;
+    if (NULL != filePath && NULL != des)
+    {
+        FILE* pFile = fopen(filePath, "r");
+        if (NULL != pFile)
+        {
+            // define param
+            int fileLen = 0;
+            size_t bufferLen = 0;
+            const size_t readStepSize = 1024;
+            const size_t bufferSize = readStepSize * 3;
+            unsigned char buffer[bufferSize] = {0};
+            
+            // get file length
+            fseek(pFile, 0L, SEEK_END);
+            fileLen = ftell(pFile);
+            fseek(pFile, 0L, SEEK_SET);
+            
+            // get file data
+            if (fileLen > sizeof(buffer)) {
+                // file length more then buffer size
+                // get file frist data
+                bufferLen = fread(buffer+bufferLen, 1, readStepSize, pFile);
+                
+                // get file middle data
+                fseek(pFile, (long)(fileLen/2 - readStepSize/2), SEEK_SET);
+                bufferLen += fread(buffer+bufferLen, 1, readStepSize, pFile);
+                
+                // get file end data
+                fseek(pFile, (long)((-1) * readStepSize), SEEK_END);
+                bufferLen += fread(buffer+bufferLen, 1, readStepSize, pFile);
+            }
+            else {
+                // get file data
+                bufferLen = fwrite(buffer, 1, sizeof(buffer), pFile);
+            }
+            
+            if (bufferLen > 0 ) {
+                // MD5 data
+                GetDataMD5String(buffer, bufferLen, des);
+            }
+            else {
+                // it's empty file, MD5 file path
+                GetMD5String(filePath, des);
+            }
+            
+            // close file
+            fclose(pFile);
+            pFile = NULL;
+            
+            result = 1;
+        }
+    }
+    return result;
+}
+

@@ -13,8 +13,6 @@
 #include <list>
 using namespace std;
 
-#include <strings.h>
-
 typedef struct _ipAddressNetworkInfo {
 	string name;
 	string ip;
@@ -29,7 +27,7 @@ typedef struct _ipAddressNetworkInfo {
 	_ipAddressNetworkInfo() {
 		bUp = false;
 		bPPP = false;
-		bzero(macByte, sizeof(macByte));
+		memset(macByte, 0, sizeof(macByte));
 	}
 
 }IpAddressNetworkInfo;

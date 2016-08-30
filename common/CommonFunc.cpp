@@ -163,43 +163,41 @@ bool RenameFile(const string& srcPath, const string& desPath)
 bool CopyFile(const string& srcPath, const string& desPath)
 {
 	bool result = false;
-	if (IsFileExist(srcPath)
-		&& !desPath.empty()
-		&& desPath.at(desPath.length()-1) != '/'
-		&& desPath.at(desPath.length()-1) != '\\')
+    
+    if (IsFileExist(srcPath))
 	{
-		// 删除目标文件
-		RemoveFile(desPath);
+        if (srcPath == desPath) {
+            result = true;
+        }
+        else if (!desPath.empty()
+                 && desPath.at(desPath.length()-1) != '/'
+                 && desPath.at(desPath.length()-1) != '\\')
+        {
+            // 删除目标文件
+            RemoveFile(desPath);
 
-		// 方法1:执行复制文件命令
-//		string cmd = "cp -f";
-//		cmd += srcPath;
-//		cmd += " ";
-//		cmd += desPath;
-//		system(cmd.c_str());
-
-		// 方法2:使用c++
 #ifdef _WIN32
-		std::locale loc1 = std::locale::global(std::locale(""));
+            std::locale loc1 = std::locale::global(std::locale(""));
 #endif
 
-		ifstream srcStream(srcPath.c_str(), ios::in | ios::binary);
-		if (!srcStream.bad())
-		{
-			ofstream dstStream(desPath.c_str(), ios::out | ios::binary);
-			if (!dstStream.bad())
-			{
-				dstStream << srcStream.rdbuf();
-				dstStream.close();
-			}
-			srcStream.close();
-		}
+            ifstream srcStream(srcPath.c_str(), ios::in | ios::binary);
+            if (!srcStream.bad())
+            {
+                ofstream dstStream(desPath.c_str(), ios::out | ios::binary);
+                if (!dstStream.bad())
+                {
+                    dstStream << srcStream.rdbuf();
+                    dstStream.close();
+                }
+                srcStream.close();
+            }
 #ifdef _WIN32
-		std::locale::global(std::locale(loc1));
+            std::locale::global(std::locale(loc1));
 #endif
 
-		// 判断目标文件是否存在
-		result = IsFileExist(desPath);
+            // 判断目标文件是否存在
+            result = IsFileExist(desPath);
+        }
 	}
 	return result;
 }

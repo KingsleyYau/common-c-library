@@ -122,6 +122,8 @@ public:
 	virtual bool Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg);
 	// 注销
 	virtual bool Logout(bool isResetParam);
+    // 重新登录
+    virtual bool Relogin();
 	// 是否已经登录
 	virtual bool IsLogin();
 
