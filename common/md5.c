@@ -356,8 +356,9 @@ int GetFileMD5String(const char* filePath, char *des)
             // define param
             int fileLen = 0;
             size_t bufferLen = 0;
-            const size_t readStepSize = 1024;
-            const size_t bufferSize = readStepSize * 3;
+#define readStepSize 1024
+#define bufferSize (readStepSize * 3)
+
             unsigned char buffer[bufferSize] = {0};
             
             // get file length

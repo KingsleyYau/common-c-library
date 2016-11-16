@@ -187,6 +187,10 @@
 				RelativePath=".\stdafx.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\TestAuthorizationCallBack.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Í·ÎÄ¼þ"
@@ -199,6 +203,10 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TestAuthorizationCallBack.h"
 				>
 			</File>
 		</Filter>
@@ -245,6 +253,14 @@
 			</File>
 			<File
 				RelativePath="..\manrequesthandler\HttpRequestManager.h"
+				>
+			</File>
+			<File
+				RelativePath="..\manrequesthandler\RequestAuthorizationController.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\manrequesthandler\RequestAuthorizationController.h"
 				>
 			</File>
 			<File
@@ -628,6 +644,30 @@
 				>
 			</File>
 			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconDownloader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconDownloader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconItem.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconItem.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechatmanmanager\LCMagicIconManager.h"
+				>
+			</File>
+			<File
 				RelativePath="..\livechatmanmanager\LCMessageFilter.cpp"
 				>
 			</File>
@@ -825,6 +865,14 @@
 			</File>
 			<File
 				RelativePath="..\livechat\GetAllPaidThemeTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\GetAutoInviteStatusTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\GetAutoInviteStatusTask.h"
 				>
 			</File>
 			<File
@@ -1128,6 +1176,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteStatusTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteStatusTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvLadyAutoInviteTask.h"
+				>
+			</File>
+			<File
 				RelativePath="..\livechat\RecvLadyVoiceCodeTask.cpp"
 				>
 			</File>
@@ -1141,6 +1205,22 @@
 			</File>
 			<File
 				RelativePath="..\livechat\RecvMagicIconTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManApplyThemeTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManApplyThemeTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManFeeThemeTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\RecvManFeeThemeTask.h"
 				>
 			</File>
 			<File
@@ -1272,6 +1352,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\livechat\SendAutoInviteTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendAutoInviteTask.h"
+				>
+			</File>
+			<File
 				RelativePath="..\livechat\SendEmotionTask.cpp"
 				>
 			</File>
@@ -1325,6 +1413,14 @@
 			</File>
 			<File
 				RelativePath="..\livechat\SendPhotoTask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendThemeRecommendTask.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\livechat\SendThemeRecommendTask.h"
 				>
 			</File>
 			<File

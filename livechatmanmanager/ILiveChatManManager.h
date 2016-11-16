@@ -12,6 +12,7 @@
 #include <livechat/ILiveChatClientDef.h>
 #include <manrequesthandler/RequestLiveChatDefine.h>
 #include <manrequesthandler/item/Other.h>
+#include <manrequesthandler/item/MagicIconConfig.h>
 
 class ILiveChatManManagerListener
 {
@@ -97,6 +98,18 @@ public:
 			, const LCMessageList& msgList) = 0;
 	virtual void OnRecvVideo(LCMessageItem* msgItem) = 0;
 	virtual void OnVideoFee(bool success, const string& errNo, const string& errMsg, LCMessageItem* msgItem) = 0;
+    
+    //------- magicIcon listener -------
+	// 小高级表情配置的回调（在Onlogin 更新／获取小高级表情配置）
+    virtual void OnGetMagicIconConfig(bool success, const string& errNo, const string& errMsg, const MagicIconConfig& config) = 0;
+    // 手动下载／更新小高级表情原图下载
+	virtual void OnGetMagicIconSrcImage(bool success, const LCMagicIconItem* item) = 0;
+	// 手动下载／更新小高级表情拇子图
+    virtual void OnGetMagicIconThumbImage(bool success, const LCMagicIconItem* item) = 0;
+	// 发送小高级表情
+    virtual void OnSendMagicIcon(LCC_ERR_TYPE errType, const string& errMsg, LCMessageItem* msgItem) = 0;
+	// 接收小高级表情
+    virtual void OnRecvMagicIcon(LCMessageItem* msgItem) = 0;
 };
 
 class HttpRequestManager;
@@ -133,6 +146,8 @@ public:
     virtual bool Relogin() = 0;
 	// 是否已经登录
 	virtual bool IsLogin() = 0;
+    // 是否获取历史记录
+    virtual bool IsGetHistory() = 0;
 
 	// ---------- 会话操作 ----------
 	// 检测是否可使用试聊券
@@ -163,6 +178,8 @@ public:
 	virtual LCUserList GetChatingUsers() = 0;
     // 获取用户最后一条聊天消息
     virtual LCMessageItem* GetLastMessage(const string& userId) = 0;
+    // 获取对方最后一条聊天消息
+    virtual LCMessageItem* GetTheOtherLastMessage(const string& userId) = 0;
 
 	// -------- 文本消息 --------
 	// 发送文本消息
@@ -215,4 +232,16 @@ public:
 	virtual string GetVideoPhotoPathWithExist(const string& userId, const string& inviteId, const string& videoId, VIDEO_PHOTO_TYPE type) = 0;
 	// 获取视频文件路径（仅文件存在）
 	virtual string GetVideoPathWithExist(const string& userId, const string& inviteId, const string& videoId) = 0;
+    
+    // --------- 小高级表情消息 --------
+    // 发送小高级表情消息
+    virtual LCMessageItem* SendMagicIcon(const string& userId, const string& iconId) = 0;
+    // 获取小高级表情配置item
+    virtual MagicIconConfig GetMagicIconConfigItem() const = 0;
+    // 获取小高级表情item
+    virtual LCMagicIconItem* GetMagicIconInfo(const string& magicIconId) = 0;
+    // 手动下载／更新小高级表情原图
+    virtual bool GetMagicIconSrcImage(const string& magicIconId) = 0;
+    // 手动下载／更新小高级表情拇子图
+    virtual bool GetMagicIconThumbImage(const string& magicIconId) = 0;
 };

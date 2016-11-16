@@ -182,6 +182,7 @@ void LCInviteManager::RemoveOverTimeInvite()
 		if (m_inviteUserList.end() != userIter && NULL != (*userIter))
 		{
 			LCUserItem* userItem = (*userIter);
+            userItem->LockMsgList();
 			if (!userItem->m_msgList.empty())
 			{
 				LCMessageList::iterator msgIter = userItem->m_msgList.begin();
@@ -191,7 +192,8 @@ void LCInviteManager::RemoveOverTimeInvite()
 					removeFlag = false;
 				}
 			}
-
+            userItem->UnlockMsgList();
+            
 			if (removeFlag) {
 				m_inviteUserList.erase(userIter);
 				continue;

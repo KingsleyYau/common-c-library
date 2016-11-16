@@ -104,15 +104,16 @@ bool KZip::AddFile(string src, string parent) {
 
 			 fileName = src + "/" + entry->d_name;
 
-			 lstat(entry->d_name, &statbuf);
-		     if( S_IFDIR & statbuf.st_mode ) {
+			 lstat(fileName.c_str(), &statbuf);//使用绝对路径
+
+		     if( S_ISDIR(statbuf.st_mode) ) {
 		    	 if( strcmp(".", entry->d_name) == 0 || strcmp("..", entry->d_name) == 0 ) {
 		    		 continue;
 		    	 }
 		    	 AddFile(fileName, relativePath);
+		     }else{
+		    	 AddFileToZip(fileName, relativePath);
 		     }
-
-		     AddFileToZip(fileName, relativePath);
 		 }
 		 closedir(dp);
 		 bFlag = true;

@@ -45,9 +45,10 @@ public:
      * @param sid           跨服务器唯一标识
      * @param receipt       AppStore支付成功返回的recetip参数（BASE64）
      * @param orderNo       订单号
+     * @param code          AppStore支付完成返回的状态码
      * @return				请求唯一标识
      */
-    long CheckPayment(const string& manId, const string& sid, const string& receipt, const string& orderNo);
+    long CheckPayment(const string& manId, const string& sid, const string& receipt, const string& orderNo, int code);
 
 protected:
 	void onSuccess(long requestId, string path, const char* buf, int size);

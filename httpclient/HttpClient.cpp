@@ -189,6 +189,84 @@ void HttpClient::SetCookiesInfo(const list<string>& cookies)
 	}
 }
 
+// 获取所有域名的cookieItem
+list<CookiesItem> HttpClient::GetCookiesItem()
+{
+	list<CookiesItem> cookiesItem;
+
+	CURL *curl = curl_easy_init();
+	if (NULL != curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_SHARE, sh);
+
+		struct curl_slist *cookies = NULL;
+		CURLcode res = curl_easy_getinfo(curl, CURLINFO_COOKIELIST, &cookies);
+		if (CURLE_OK == res)
+		{
+			int i = 0;
+			curl_slist* cookies_item = NULL;
+			for (i = 0, cookies_item = cookies;
+				cookies_item != NULL;
+				i++, cookies_item = cookies_item->next)
+			{
+
+				int j = 0;
+//				bool bFlag = false;
+				char *p = strtok(cookies_item->data, "\t");
+				CookiesItem item;
+				while(p != NULL){
+					switch(j){
+						case 0:
+							item.m_domain = p;
+							break;
+						case 1:
+							item.m_accessOtherWeb = p;
+							break;
+						case 2:
+							item.m_symbol = p;
+							break;
+						case 3:
+							item.m_isSend = p;
+							break;
+						case 4:
+							item.m_expiresTime = p;
+							break;
+						case 5:
+							item.m_cName = p;
+							break;
+						 case 6:
+							item.m_value = p;
+							break;
+						 default:break;
+					}
+	
+					j++;
+					p = strtok(NULL,"\t");
+				}
+
+				if (NULL != cookies_item->data
+					&& strlen(cookies_item->data) > 0)
+				{
+					FileLog("httpclient", "HttpClient::GetCookiesInfo() cookies_item->data:%s", cookies_item->data);
+
+					cookiesItem.push_back(item);
+
+				}
+
+			}
+		}
+
+		if (NULL != cookies)
+		{
+			curl_slist_free_all(cookies);
+		}
+
+		curl_easy_cleanup(curl);
+	}
+
+	return cookiesItem;
+}
+
 string HttpClient::GetCookies(string site) {
 	string cookie = "";
 	FileLog("httpclient", "HttpClient::GetCookies( site : %s )", site.c_str());

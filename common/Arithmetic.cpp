@@ -248,10 +248,10 @@ int Arithmetic::HexToAscii(const char* data, int i_in_len, char* code)
     return len;
 }
 
-string Arithmetic::AsciiToHexWithSep(const char* data, int i_in_len)
+string Arithmetic::AsciiToHexWithSep(const unsigned char* data, int i_in_len)
 {
     string result = "";
-    const char* p = data;
+    const unsigned char* p = (const unsigned char*)data;
     for (int i = 0; i < i_in_len; i++){
     	result += hex[p[i] >> 4];
     	result += hex[p[i] & (16 - 1)];

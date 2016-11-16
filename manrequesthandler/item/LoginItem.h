@@ -111,6 +111,10 @@ public:
 					livechat = permission[AUTHORIZATION_LIVECHAT].asInt();
 				}
 
+				if( permission[AUTHORIZATION_LIVECHAT_INVITE].isInt() ) {
+					livechat_invite = permission[AUTHORIZATION_LIVECHAT_INVITE].asInt();
+				}
+
 				if( permission[AUTHORIZATION_ADMIRER].isInt() ) {
 					admirer = permission[AUTHORIZATION_ADMIRER].asInt();
 				}
@@ -160,6 +164,7 @@ public:
 		premit = true;
 		ladyprofile = false;
 		livechat = false;
+		livechat_invite = 0;
 		admirer = false;
 		bpemf = false;
 
@@ -193,6 +198,7 @@ public:
 	 * @param premit			帐号可用状态
 	 * @param ladyprofile		女士详细信息风控标识（true：有风控，false：无）
 	 * @param livechat			LiveChat详细风控标识（true：有风控，false：无）
+	 * @param livechat_invite	聊天邀请（0：不作任何限制 ，1：限制发送信息，2：限制接受邀请，3 ：收发全部限制；）
 	 * @param admirer			意向信风控标识（true：有风控，false：无）
 	 * @param bpemf				EMF风控标识（true：有风控，false：无）
 	 * @param rechargeCredit	自动买点配置（0：无权限，大于0：每次买点的数量）
@@ -219,6 +225,7 @@ public:
 	bool premit;
 	bool ladyprofile;
 	bool livechat;
+	int livechat_invite;
 	bool admirer;
 	bool bpemf;
 	bool videoreceived;

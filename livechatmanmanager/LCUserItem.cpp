@@ -147,10 +147,15 @@ void LCUserItem::ClearFinishedMsgList()
 			iter++)
 	{
 		if ((*iter)->m_statusType == LCMessageItem::StatusType_Finish
-			&& !(*iter)->IsSubItemProcssign())
-		{
-			tempList.push_back(*iter);
-		}
+			&& !(*iter)->IsSubItemProcssign()
+            && (*iter)->m_msgType != LCMessageItem::MT_Custom   // 不删除自定义消息(临时处理)
+            ){
+            	tempList.push_back(*iter);
+        }
+//        if ((*iter)->m_msgType != LCMessageItem::MT_Custom) // 不删除自定义消息(临时处理)
+//        {
+//			tempList.push_back(*iter);
+//		}
 	}
 
 	// 移除已完成的聊天记录

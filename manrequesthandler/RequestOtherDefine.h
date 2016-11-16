@@ -100,6 +100,7 @@
 #define OTHER_SYNCONFIG_CD				"4"
 #define OTHER_SYNCONFIG_LA				"5"
 #define OTHER_SYNCONFIG_HOST			"socket_host"
+#define OTHER_SYNCONFIG_HOST_DOMAIN		"socket_host_domain"
 #define OTHER_SYNCONFIG_PROXYHOST		"socket_proxy_host"
 #define OTHER_SYNCONFIG_PORT			"socket_port"
 #define OTHER_SYNCONFIG_MINCHAT			"min_balance_for_chat"

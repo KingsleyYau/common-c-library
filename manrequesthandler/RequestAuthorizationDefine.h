@@ -65,6 +65,7 @@
 #define AUTHORIZATION_PERMISSION		"permission"
 #define AUTHORIZATION_LADYPROFILE		"ladyprofile"
 #define AUTHORIZATION_LIVECHAT			"livechat"
+#define AUTHORIZATION_LIVECHAT_INVITE	"livechat_invite"
 #define AUTHORIZATION_ADMIRER			"admirer"
 #define AUTHORIZATION_BPEMF				"bpemf"
 
@@ -85,6 +86,10 @@
 #define AUTHORIZATION_LANDLINE_CC		"landline_cc"
 #define AUTHORIZATION_LANDLINE_AC		"landline_ac"
 #define AUTHORIZATION_LANDLINE			"landline"
+
+/*提交App token 绑定*/
+#define AUTHORIZATION_TOKEN_DEVICE_ID   "device_id"
+#define AUTHORIZATION_TOKEN_ID          "token"
 
 /* 字段  end*/
 
@@ -134,6 +139,16 @@
  * 2.9.固定电话获取认证短信
  */
 #define VERIFY_FIXED_PHONE_PATH "/member/sms_verify"
+
+/**
+ * 2.11. 添加App token
+ */
+#define SUMMIT_APP_TOKEN_PATH   "/member/add_token"
+
+/**
+ * 2.12. 销毁App token
+ */
+#define UNBIND_APP_TOKEN_PATH "/member/destroy_token"
 
 /* 接口路径定义  end */
 

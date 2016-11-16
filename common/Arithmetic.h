@@ -28,7 +28,7 @@ public:
     static int AsciiToHex(const char* data, int i_in_len, char* code);
     static int HexToAscii(const char* data, int i_in_len, char* code);
 
-    static string AsciiToHexWithSep(const char* data, int i_in_len);
+    static string AsciiToHexWithSep(const unsigned char* data, int i_in_len);
 
     static int encode_url(const char* data, int length, char *code);
     static int decode_url(const char* data, int length, char *code);

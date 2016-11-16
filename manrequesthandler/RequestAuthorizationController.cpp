@@ -121,6 +121,16 @@ void RequestAuthorizationController::onSuccess(long requestId, string url, const
 		if( mRequestAuthorizationControllerCallback.onVerifyFixedPhone != NULL ) {
 			mRequestAuthorizationControllerCallback.onVerifyFixedPhone(requestId, bFlag, errnum, errmsg);
 		}
+	} else if( url.compare(SUMMIT_APP_TOKEN_PATH) == 0 ) {
+		/* 2.11.添加App token */
+		if( mRequestAuthorizationControllerCallback.onSummitAppToken != NULL ) {
+			mRequestAuthorizationControllerCallback.onSummitAppToken(requestId, bFlag, errnum, errmsg);
+		}
+	} else if( url.compare(UNBIND_APP_TOKEN_PATH) == 0 ) {
+		/* 2.12.销毁App token */
+		if( mRequestAuthorizationControllerCallback.onUnbindAppToken != NULL ) {
+			mRequestAuthorizationControllerCallback.onUnbindAppToken(requestId, bFlag, errnum, errmsg);
+		}
 	}
 
 	FileLog("httprequest", "RequestAuthorizationController::onSuccess() end, url:%s", url.c_str());
@@ -178,6 +188,16 @@ void RequestAuthorizationController::onFail(long requestId, string url) {
 		/* 2.9.固定电话短信认证 */
 		if( mRequestAuthorizationControllerCallback.onVerifyFixedPhone != NULL ) {
 			mRequestAuthorizationControllerCallback.onVerifyFixedPhone(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
+		}
+	} else if( url.compare(SUMMIT_APP_TOKEN_PATH) == 0 ) {
+		/* 2.11.添加App token */
+		if( mRequestAuthorizationControllerCallback.onSummitAppToken != NULL ) {
+			mRequestAuthorizationControllerCallback.onSummitAppToken(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
+		}
+	} else if( url.compare(UNBIND_APP_TOKEN_PATH) == 0 ) {
+		/* 2.12.销毁App token*/
+		if( mRequestAuthorizationControllerCallback.onUnbindAppToken != NULL ) {
+			mRequestAuthorizationControllerCallback.onUnbindAppToken(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC);
 		}
 	}
 	FileLog("httprequest", "RequestAuthorizationController::onFail() end, url:%s", url.c_str());
@@ -684,6 +704,51 @@ long RequestAuthorizationController::VerifyFixedPhone(string verify_code) {
 			")",
 			url.c_str(),
 			verify_code.c_str()
+			);
+
+	return StartRequest(url, entiy, this);
+}
+
+/**
+ * 2.11. 添加App token
+ * @param tokenId
+ */
+long RequestAuthorizationController::SummitAppToken(string deviceId, string tokenId) {
+	HttpEntiy entiy;
+
+	if( deviceId.length() > 0 ) {
+		entiy.AddContent(AUTHORIZATION_TOKEN_DEVICE_ID, deviceId.c_str());
+	}
+
+	if( tokenId.length() > 0 ) {
+		entiy.AddContent(AUTHORIZATION_TOKEN_ID, tokenId.c_str());
+	}
+
+	string url = SUMMIT_APP_TOKEN_PATH;
+	FileLog("httprequest", "RequestAuthorizationController::SummitAppToken( "
+			"url : %s, "
+			"deviceId : %s, "
+			"tokenId : %s, "
+			")",
+			url.c_str(),
+			deviceId.c_str(),
+			tokenId.c_str()
+			);
+
+	return StartRequest(url, entiy, this);
+}
+
+/**
+ * 2.12. 销毁App token
+ */
+long RequestAuthorizationController::UnbindAppToken() {
+	HttpEntiy entiy;
+
+	string url = UNBIND_APP_TOKEN_PATH;
+	FileLog("httprequest", "RequestAuthorizationController::UnbindAppToken( "
+			"url : %s, "
+			")",
+			url.c_str()
 			);
 
 	return StartRequest(url, entiy, this);

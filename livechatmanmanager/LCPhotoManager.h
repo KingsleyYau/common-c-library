@@ -139,7 +139,7 @@ public:
 	// 获取并移除正在请求的map表
 	LCMessageItem* GetAndRemoveRequestItem(long requestId);
 	// 获取并清除所有正在的请求
-	list<long> ClearAllRequestItems();
+	void ClearAllRequestItems();
 
 private:
 	// 获取图片指定类型路径(非全路径)

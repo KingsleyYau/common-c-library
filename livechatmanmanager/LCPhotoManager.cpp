@@ -754,18 +754,18 @@ LCMessageItem* LCPhotoManager::GetAndRemoveRequestItem(long requestId)
 }
 
 // 获取并清除所有正在的请求
-list<long> LCPhotoManager::ClearAllRequestItems()
+void LCPhotoManager::ClearAllRequestItems()
 {
-	list<long> result;
 	m_requestMap.lock();
 	for (RequestMap::const_iterator iter = m_requestMap.begin();
 		iter != m_requestMap.end();
 		iter++)
 	{
-		result.push_back((*iter).first);
+        long requestId = (*iter).first;
+        m_requestMgr->StopRequest(requestId, true);
 	}
+    m_requestMap.clear();
 	m_requestMap.unlock();
-	return result;
 }
 
 // --------------------------- Temp Photo Manage（临时图片管理） -------------------------

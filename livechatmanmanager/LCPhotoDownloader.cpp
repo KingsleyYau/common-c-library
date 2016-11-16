@@ -123,8 +123,6 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
 
 	if (m_requestId == requestId)
 	{
-        m_requestId = HTTPREQUEST_INVALIDREQUESTID;
-
 		if (success) {
             // 临时文件转正式文件
             string dstFilePath = m_photoMgr->GetPhotoPath(m_item, m_modeType, m_sizeType);
@@ -160,6 +158,8 @@ void LCPhotoDownloader::OnGetPhoto(long requestId, bool success, const string& e
         // 重置状态
         m_item->GetPhotoItem()->RemoveProcessStatus(m_modeType, m_sizeType);
         m_isStart = false;
+        
+        m_requestId = HTTPREQUEST_INVALIDREQUESTID;
 	}
 }
 

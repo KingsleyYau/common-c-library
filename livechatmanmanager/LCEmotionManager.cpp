@@ -217,6 +217,8 @@ bool LCEmotionManager::UpdateConfigItem(const OtherEmotionConfigItem& configItem
 {
 	// 停止图片文件下载
 	StopAllDownloadImage();
+    // 停止播放文件下载(注意之前没有调用这个，可能漏了，之后要注意添加后会不会有问题)
+    StopAllDownloadPlayImage();
 	// 删除本地缓存目录下所有文件
 	DeleteAllEmotionFile();
 	// 删除所有高级表情item

@@ -33,6 +33,8 @@ typedef void (*OnGetSms)(long requestId, bool success, string errnum, string err
 typedef void (*OnVerifySms)(long requestId, bool success, string errnum, string errmsg);
 typedef void (*OnGetFixedPhone)(long requestId, bool success, string errnum, string errmsg);
 typedef void (*OnVerifyFixedPhone)(long requestId, bool success, string errnum, string errmsg);
+typedef void (*OnSummitAppToken)(long requestId, bool success, string errnum, string errmsg);
+typedef void (*OnUnbindAppToken)(long requestId, bool success, string errnum, string errmsg);
 
 typedef struct RequestAuthorizationControllerCallback {
 	OnLoginWithFacebook onLoginWithFacebook;
@@ -44,6 +46,8 @@ typedef struct RequestAuthorizationControllerCallback {
 	OnVerifySms onVerifySms;
 	OnGetFixedPhone onGetFixedPhone;
 	OnVerifyFixedPhone onVerifyFixedPhone;
+	OnSummitAppToken onSummitAppToken;
+	OnUnbindAppToken onUnbindAppToken;
 } RequestAuthorizationControllerCallback;
 
 
@@ -187,6 +191,18 @@ public:
      * @return					请求唯一标识
      */
     long VerifyFixedPhone(string verify_code);
+
+    /**
+     * 2.11. 添加App token
+     * @param deviceId
+     * @param tokenId
+     */
+    long SummitAppToken(string deviceId, string tokenId);
+
+    /**
+     * 2.12. 销毁App token
+     */
+    long UnbindAppToken();
 
 protected:
 	void onSuccess(long requestId, string path, const char* buf, int size);

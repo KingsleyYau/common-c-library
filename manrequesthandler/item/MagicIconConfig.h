@@ -12,7 +12,7 @@
 #include <list>
 using namespace std;
 
-#include "../RequestOtherDefine.h"
+#include "../RequestLiveChatDefine.h"
 #include <xml/tinyxml.h>
 
 class MagicIconConfig {

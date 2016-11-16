@@ -15,6 +15,7 @@
 #include "LCVideoItem.h"
 #include "LCSystemItem.h"
 #include "LCCustomItem.h"
+#include "LCMagicIconItem.h"
 #include <livechat/ILiveChatClient.h>
 #include <string>
 #include <list>
@@ -24,6 +25,7 @@ class LCEmotionManager;
 class LCVoiceManager;
 class LCPhotoManager;
 class LCVideoManager;
+class LCMagicIconManager;
 class LCUserItem;
 class Record;
 class LCMessageItem
@@ -36,6 +38,7 @@ public:
 		MT_Warning,		// 警告消息
 		MT_Emotion,		// 高级表情
 		MT_Voice,		// 语音
+        MT_MagicIcon,   // 小高级表情
 		MT_Photo,		// 私密照
 		MT_Video,		// 微视频
 		MT_System,		// 系统消息
@@ -114,7 +117,8 @@ public:
 					, LCEmotionManager* emotionMgr
 					, LCVoiceManager* voiceMgr
 					, LCPhotoManager* photoMgr
-					, LCVideoManager* videoMgr);
+					, LCVideoManager* videoMgr
+                    , LCMagicIconManager* magicIconMgr);
 	// 设置语音item
 	void SetVoiceItem(LCVoiceItem* theVoiceItem);
 	// 获取语音item
@@ -149,7 +153,10 @@ public:
 	LCCustomItem* GetCustomItem() const;
 	// 判断子消息item（如：语音、图片、视频等）是否正在处理
 	bool IsSubItemProcssign() const;
-
+    //  设置小高级表情item alex 2016－09-12
+    void SetMagicIconItem(LCMagicIconItem* theMagicIconItem);
+    //  设置小高级表情item alex 2016-09-12
+    LCMagicIconItem* GetMagicIconItem() const;
 	// 设置用户item
 	void SetUserItem(LCUserItem* theUserItem);
 	// 获取用户item
@@ -181,8 +188,9 @@ private:
 	LCVoiceItem*	m_voiceItem;	// 语音item
 	LCPhotoItem*	m_photoItem;	// 图片item
 	lcmm::LCVideoItem*	m_videoItem;	// 微视频item
-	LCSystemItem*	m_systemItem;	// 系统消息item
-	LCCustomItem*	m_customItem;	// 自定义消息item
+	LCSystemItem*	  m_systemItem;	// 系统消息item
+	LCCustomItem*	  m_customItem;	// 自定义消息item
+    LCMagicIconItem*  m_magicIconItem;  // 小高级表情Item
 
 	LCUserItem*		m_userItem;		// 用户item
 

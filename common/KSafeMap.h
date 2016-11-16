@@ -18,6 +18,8 @@ class KSafeMap {
 	typedef map<Key, Value> SafeMap;
 
 public:
+	typedef typename SafeMap::iterator iterator;
+
 	KSafeMap() {
 
 	}
@@ -27,13 +29,7 @@ public:
 
 	void Insert(Key key, Value value) {
 		mKMutex.lock();
-		Value findValue = Find(key);
-		if( findValue == 0 ) {
-			mMap.insert( typename SafeMap::value_type(key, value) );
-		}
-		else {
-			findValue = value;
-		}
+		mMap.insert( typename SafeMap::value_type(key, value) );
 		mKMutex.unlock();
 	}
 	Value Erase(Key key) {
@@ -52,16 +48,50 @@ public:
 		mMap.empty();
 		mKMutex.unlock();
 	}
-private:
-	Value Find(Key key) {
-		Value value = 0;
+
+//	Value Find(Key key) {
+//		Value value = 0;
+//		typename SafeMap::iterator itr = mMap.find(key);
+//		if( itr != mMap.end() ) {
+//			value = itr->second;
+//		}
+//		return value;
+//	}
+
+	iterator Find(Key key) {
 		typename SafeMap::iterator itr = mMap.find(key);
-		if( itr != mMap.end() ) {
-			value = itr->second;
-		}
-		return value;
+		return itr;
 	}
 
+	iterator Begin() {
+		return mMap.begin();
+	}
+
+	iterator End() {
+		return mMap.end();
+	}
+
+	/**
+	 * 经删节点, 调用前需要先记录
+	 * Example:
+	 * 	KSafeMap<string> map;
+	 * 	RequestkMap::iterator itr = map.Find(identify);
+	 *	map.Erase(itr++);
+	 *
+	 */
+	void Erase(iterator itr) {
+		if( itr != mMap.end() ) {
+			mMap.erase(itr);
+		}
+	}
+	void Lock() {
+		mKMutex.lock();
+	}
+	void Unlock() {
+		mKMutex.unlock();
+	}
+
+private:
 	KMutex mKMutex;
 	SafeMap mMap;
 };

@@ -12,6 +12,7 @@
 #include "HttpEntiy.h"
 #include <curl/curl.h>
 #include <list>
+#include "CookiesItem.h"
 
 class HttpClient;
 class IHttpClientCallback {
@@ -41,6 +42,8 @@ public:
 	static list<string> GetCookiesInfo();
 	// 设置cookies
 	static void SetCookiesInfo(const list<string>& cookies);
+	// 获取所有域名的cookieItem
+	static list<CookiesItem> GetCookiesItem();
 
 	void Stop();
 	void Init(string url);

@@ -29,6 +29,7 @@
 #include "LCBlockManager.h"
 #include "LCContactManager.h"
 
+#include "DeviceTypeDef.h"
 static const int s_msgIdBegin = 1;		// 消息ID起始值
 
 const char* LOG_DIR = "log/";						// log目录路径
@@ -39,6 +40,7 @@ const char* VOICE_DIR = "livechat/voice";			// 语音目录路径
 const char* PHOTO_DIR = "livechat/photo";			// 图片目录路径
 const char* PHOTO_TEMP_DIR = "livechat/temp/photo";	// 图片临时目录路径
 const char* VIDEO_DIR = "livechat/video";			// 视频目录路径
+const char* MAGICICON_DIR = "livechat/magicicon";   //小高级表情目录路径
 
 LiveChatManManager::LiveChatManManager()
 {
@@ -56,6 +58,7 @@ LiveChatManManager::LiveChatManManager()
 	m_riskControl = false;
 	m_isRecvVideoMsg = true;
 	m_isLogin = false;
+    m_isGetHistory = false;
     m_isResetParam = false;
 	m_isAutoLogin = false;
 	m_getUsersHistoryMsgRequestId = HTTPREQUEST_INVALIDREQUESTID;
@@ -70,6 +73,7 @@ LiveChatManManager::LiveChatManManager()
 	m_voiceMgr = new LCVoiceManager;		// 语音管理器
 	m_photoMgr = new LCPhotoManager;		// 图片管理器
 	m_videoMgr = new LCVideoManager;		// 视频管理器
+    m_magicIconMgr = new LCMagicIconManager; //小高级表情管理器
 
 	// 用户管理器
 	m_userMgr = new LCUserManager;			// 用户管理器
@@ -101,6 +105,8 @@ LiveChatManManager::~LiveChatManManager()
 	delete m_voiceMgr;
 	delete m_photoMgr;
 	delete m_videoMgr;
+    // 释放小高级表情管理器
+    delete m_magicIconMgr;
 
 	delete m_userMgr;
 	delete m_inviteMgr;
@@ -173,6 +179,12 @@ bool LiveChatManManager::SetDirPath(const string& path)
 		result = result && m_videoMgr->SetDirPath(videoPath);
 
 		FileLog("LiveChatManager", "SetDirPath() m_videoMgr->SetDirPath() videoPath:%s, result:%d", videoPath.c_str(), result);
+        
+        // 设置magicIcon manager本地缓存目录
+        string MagicIconPath = m_dirPath + MAGICICON_DIR;
+        result = result && m_magicIconMgr->SetDirPath(MagicIconPath, logPath);
+        
+        FileLog("LiveChatManager", "SetDirPath() m_magicIconMgr->SetDirPath() MagicIconPath:%s, logPath:%s, result:%d", MagicIconPath.c_str(), logPath.c_str(), result);
 	}
 	return result;
 }
@@ -214,6 +226,9 @@ bool LiveChatManManager::Init(list<string> ipList
 		FileLog("LiveChatManager", "Init() m_videoMgr->Init() result:%d", result);
         result = result && m_inviteMgr->Init(m_userMgr, m_blockMgr, m_contactMgr, m_client);
         FileLog("LiveChatManager", "Init() Mm_inviteMgr->Init() result:%d", result);
+        //初始化小高级表情管理器 alex 2016-09-09
+        result = result && m_magicIconMgr->Init(webHost, this);
+        FileLog("LiveChatManager", "Init() magicIconMgr->Init() result:%d", result);
 		result = result && m_client->Init(ipList, port, this);
 		FileLog("LiveChatManager", "Init() client->Init() result:%d", result);
 		if (result) {
@@ -258,6 +273,9 @@ bool LiveChatManManager::Init(list<string> ipList
 
 		// 设置高级表情管理器的http参数
 		m_emotionMgr->SetAuthorization(httpUser, httpPassword);
+        
+        // 设置高级表情管理器的http参数
+        m_magicIconMgr->SetAuthorization(httpUser, httpPassword);
 
 		// 设置图片管理器的http控制器
 		m_photoMgr->SetHttpRequest(m_httpRequestManager, m_requestController);
@@ -310,6 +328,8 @@ void LiveChatManManager::ResetParamWithNotAutoLogin()
         }
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion StopAllDownloadImage");
         m_emotionMgr->StopAllDownloadImage();
+        // 停止播放文件下载(注意之前没有调用这个，可能漏了，之后要注意添加后会不会有问题)
+        m_emotionMgr->StopAllDownloadPlayImage();
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion removeAllSendingItems");
         m_emotionMgr->RemoveAllSendingItems();
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear emotion ClearAllDownloader");
@@ -318,13 +338,6 @@ void LiveChatManManager::ResetParamWithNotAutoLogin()
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo begin");
         // 停止所有图片请求
         m_photoMgr->ClearAllRequestItems();
-    //		ArrayList<Long> photoRequestIds = m_photoMgr->clearAllRequestItems();
-    //		if (NULL != photoRequestIds) {
-    //			for (Iterator<Long> iter = photoRequestIds.iterator(); iter.hasNext(); ) {
-    //				long requestId = iter.next();
-    //				RequestJni.StopRequest(requestId);
-    //			}
-    //		}
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo clearAllSendingItems");
         m_photoMgr->ClearAllSendingItems();
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear photo ClearAllDownload");
@@ -359,7 +372,20 @@ void LiveChatManManager::ResetParamWithNotAutoLogin()
         m_textMgr->RemoveAllSendingItems();
         FileLog("LiveChatManager", "ResetParamWithNotAutoLogin() clear other removeAllUserItem");
         m_userMgr->RemoveAllUserItem();
-
+        
+        // 停止所有小高表请求
+        if(HTTPREQUEST_INVALIDREQUESTID != m_magicIconMgr->m_magicIconConfigReqId){
+            m_magicIconMgr->m_magicIconConfigReqId = HTTPREQUEST_INVALIDREQUESTID;
+        }
+        // 停止所有下载的母子图
+        m_magicIconMgr->StopAllDownloadThumbImage();
+        // 停止所有下载的原图
+        m_magicIconMgr->StopAllDownloadSourceImage();
+        // 删除所有待发送的message
+        m_magicIconMgr->RemoveAllSendingItems();
+        // 清除所有的小高级表情的下载器
+        m_magicIconMgr->ClearAllDownloader();
+        
         // 检测试聊券http request
         m_checkCouponOptMap.lock();
         m_checkCouponOptMap.clear();
@@ -374,7 +400,16 @@ void LiveChatManManager::ResetParamWithNotAutoLogin()
 // 重置参数（用于自动登录时重置参数）
 void LiveChatManManager::ResetParamWithAutoLogin()
 {
-
+    // 删除图片关联
+    m_photoMgr->ClearAllRequestItems();
+    m_photoMgr->ClearAllDownload();
+    m_photoMgr->ClearBindMap();
+    m_isGetHistory = false;
+//   LCUserList userList = m_userMgr->GetChatingUsers();
+//    for(LCUserList::iterator itr = userList.begin(); itr != userList.end(); itr++) {
+//        LCUserItem *userItem = *itr;
+//        userItem->m_getHistory = false;
+//    }
 }
 
 // 登录
@@ -569,6 +604,12 @@ bool LiveChatManManager::IsLogin()
 	return m_isLogin;
 }
 
+// 是否获取历史记录
+bool LiveChatManManager::IsGetHistory()
+{
+    return m_isGetHistory;
+}
+
 
 /**
  * 是否处理发送操作
@@ -586,19 +627,60 @@ bool LiveChatManManager::IsHandleSendOpt()
 	return result;
 }
 
-
+// 检测试聊券，或者马上发送消息
+bool LiveChatManManager::SendMsgWithCoupon(LCUserItem* userItem, LCMessageItem* msgItem) {
+    bool result = false;
+    
+    if (IsSendMessageNow(userItem))
+    {
+        if (!IsCheckCoupon(userItem)) {
+            // 立即发送
+            SendMessageItem(msgItem);
+        }
+        else {
+            // 把消息添加到待发列表
+            userItem->InsertSendMsgList(msgItem);
+            // 执行尝试使用试聊券流程
+            CheckCouponProc(userItem);
+        }
+        
+        result = true;
+    }
+    else if (m_isAutoLogin)
+    {
+        // 把消息添加到待发列表
+        userItem->InsertSendMsgList(msgItem);
+        result = true;
+    }
+    
+    return result;
+}
 // 是否立即发送消息给用户
 bool LiveChatManManager::IsSendMessageNow(LCUserItem* userItem)
 {
 	bool result = false;
 	if (NULL != userItem)
 	{
-		// 已经登录及聊天状态为inchat或男士邀请
-		result = IsLogin() && (userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_CHARGE
-				|| userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_USE_TRY_TICKET
-				|| userItem->m_chatType == LCUserItem::LC_CHATTYPE_MANINVITE);
+        
+//        if (!userItem->m_getHistory){
+//            result = false;
+//        }else{
+            // 已经登录及聊天状态为inchat或男士邀请
+            result = IsLogin() && IsGetHistory();
+//        }
+
 	}
 	return result;
+}
+
+// 是否检测试聊券
+bool LiveChatManManager::IsCheckCoupon(LCUserItem* userItem)
+{
+    bool result = false;
+    result = !(userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_CHARGE
+                 || userItem->m_chatType == LCUserItem::LC_CHATTYPE_IN_CHAT_USE_TRY_TICKET
+                 || userItem->m_chatType == LCUserItem::LC_CHATTYPE_MANINVITE );
+    return result;
 }
 
 ///**
@@ -687,6 +769,17 @@ LCMessageItem* LiveChatManManager::GetLastMessage(const string& userId)
     return msgItem;
 }
 
+
+// 获取用户最后一条聊天消息
+LCMessageItem* LiveChatManManager::GetTheOtherLastMessage(const string& userId)
+{
+    LCMessageItem* msgItem = NULL;
+    LCUserItem* userItem = m_userMgr->GetUserItem(userId);
+    if (NULL != userItem) {
+        msgItem = userItem->GetTheOtherLastMessage();
+    }
+    return msgItem;
+}
 ///**
 // * 检测用户帐号是否有足够点数
 // * @return
@@ -998,6 +1091,8 @@ void LiveChatManManager::SendMessageListFailProc(LCUserItem* userItem, LCC_ERR_T
 			(*iter)->m_procResult.SetResult(errType, "", "");
 		}
 		m_listener->OnSendMessageListFail(errType, userItem->m_sendMsgList);
+        BuildAndInsertWarningWithErrType(userItem->m_userId, errType);
+        userItem->m_sendMsgList.clear();
 		userItem->UnlockSendMsgList();
 	}
 	else {
@@ -1070,21 +1165,8 @@ LCMessageItem* LiveChatManManager::SendTextMessage(const string& userId, const s
 		FileLog("LiveChatManager", "SendTextMessage() IsSendMessageNow:%d, m_isAutoLogin:%d, IsLogin:%d"
 				, IsSendMessageNow(userItem), m_isAutoLogin, IsLogin());
 
-		if (IsSendMessageNow(userItem))
-		{
-			// 发送消息
-			SendTextMessageProc(item);
-		}
-		else if (m_isAutoLogin)
-		{
-			// 若有身份，把消息添加到待发列表
-			userItem->InsertSendMsgList(item);
-			if (IsLogin()) {
-				// 若已登录，则执行尝试使用试聊券流程
-				CheckCouponProc(userItem);
-				// 否则等待登录成功，再发送待发列表
-			}
-		}
+        SendMsgWithCoupon(userItem, item);
+
 	}
 	else {
 		FileLog("LiveChatManager", "SendTextMessage() param error, userId:%s, message:%s", userId.c_str(), message.c_str());
@@ -1225,21 +1307,7 @@ LCMessageItem* LiveChatManManager::SendEmotion(const string& userId, const strin
 		FileLog("LiveChatManager", "SendEmotion() IsSendMessageNow:%d, m_isAutoLogin:%d, IsLogin:%d"
 						, IsSendMessageNow(userItem), m_isAutoLogin, IsLogin());
 
-		if (IsSendMessageNow(userItem))
-		{
-			// 发送消息
-			SendEmotionProc(item);
-		}
-		else if (m_isAutoLogin)
-		{
-			// 若有身份，把消息添加到待发列表
-			userItem->InsertSendMsgList(item);
-			if (IsLogin()) {
-				// 若已登录，则执行尝试使用试聊券流程
-				CheckCouponProc(userItem);
-				// 否则等待登录成功，再发送待发列表
-			}
-		}
+        SendMsgWithCoupon(userItem, item);
 	}
 	else {
 		FileLog("LiveChatManager", "SendEmotion() param error, userId:%s, emotionId:%s", userId.c_str(), emotionId.c_str());
@@ -1261,7 +1329,7 @@ void LiveChatManManager::SendEmotionProc(LCMessageItem* item)
 	}
 }
 
-// 手动下载/更新高级表情图片文件
+// 手动下载/更新高级表情图片文件（缩略图）
 bool LiveChatManManager::GetEmotionImage(const string& emotionId)
 {
 	LCEmotionItem* emotionItem = m_emotionMgr->GetEmotion(emotionId);
@@ -1295,7 +1363,7 @@ bool LiveChatManManager::GetEmotionImage(const string& emotionId)
 	return result;
 }
 
-// 手动下载/更新高级表情图片文件
+// 手动下载/更新高级表情图片文件(大图)
 bool LiveChatManManager::GetEmotionPlayImage(const string& emotionId)
 {
 	LCEmotionItem* emotionItem = m_emotionMgr->GetEmotion(emotionId);
@@ -1390,22 +1458,8 @@ LCMessageItem* LiveChatManManager::SendPhoto(const string& userId, const string&
 	// 添加到历史记录
 	userItem->InsertSortMsgList(item);
 
-	if (IsSendMessageNow(userItem))
-	{
-		// 发送消息
-		SendPhotoProc(item);
-	}
-	else if (m_isAutoLogin)
-	{
-		// 若有身份，把消息添加到待发列表
-		userItem->InsertSendMsgList(item);
-		if (IsLogin()) {
-			// 若已登录，则执行尝试使用试聊券流程
-			CheckCouponProc(userItem);
-			// 否则等待登录成功，再发送待发列表
-		}
-	}
-
+    SendMsgWithCoupon(userItem, item);
+    
 	return item;
 }
 
@@ -1447,6 +1501,11 @@ bool LiveChatManManager::PhotoFee(const string& userId, int msgId)
 		FileLog("LiveChatManager", "PhotoFee() get message item fail, msgId:%d", msgId);
 		return false;
 	}
+    
+    if (!m_isLogin) {
+        FileLog("LiveChatManager", "PhotoFee() m_isLogin:%d, msgId:%d", m_isLogin, msgId);
+        return false;
+    }
 
 	result = PhotoFee(item);
 
@@ -1610,21 +1669,7 @@ LCMessageItem* LiveChatManManager::SendVoice(const string& userId, const string&
 	FileLog("LiveChatManager", "SendVoice() IsSendMessageNow:%d, m_isAutoLogin:%d, IsLogin:%d"
 					, IsSendMessageNow(userItem), m_isAutoLogin, IsLogin());
 
-	if (IsSendMessageNow(userItem))
-	{
-		// 发送消息
-		SendVoiceProc(item);
-	}
-	else if (m_isAutoLogin)
-	{
-		// 若当前有身份，把消息添加到待发列表
-		userItem->InsertSendMsgList(item);
-		if (IsLogin()) {
-			// 若已登录，则执行尝试使用试聊券流程
-			CheckCouponProc(userItem);
-			// 否则等待登录成功，再发送待发列表
-		}
-	}
+    SendMsgWithCoupon(userItem, item);
 	return item;
 }
 
@@ -1787,6 +1832,136 @@ string LiveChatManManager::GetVideoPathWithExist(const string& userId, const str
 	return m_videoMgr->GetVideoPathWithExist(userId, inviteId, videoId);
 }
 
+// ---------------- 小高级表情（小高表）操作函数(MagicIcon) ----------------
+// 发送小高级表情消息处理
+void LiveChatManManager::SendMagicIconProc(LCMessageItem* item)
+{
+    if (m_client->SendMagicIcon(item->m_toId, item->GetMagicIconItem()->m_magicIconId, item->m_msgId)) {
+        m_magicIconMgr->AddSendingItem(item);
+    }
+    else{
+        item->m_statusType = LCMessageItem::StatusType_Fail;
+        item->m_procResult.SetResult(LCC_ERR_FAIL, "", "");
+        m_listener->OnSendMagicIcon(item->m_procResult.m_errType, item->m_procResult.m_errMsg, item);
+    }
+}
+
+////获取小高级表情配置
+bool LiveChatManManager::GetMagicIconConfig()
+{
+    if (m_magicIconMgr->m_magicIconConfigReqId != HTTPREQUEST_INVALIDREQUESTID) {
+        return true;
+    }
+    
+    m_magicIconMgr->m_magicIconConfigReqId = m_requestController->GetMagicIconConfig();
+    return m_magicIconMgr->m_magicIconConfigReqId != HTTPREQUEST_INVALIDREQUESTID;
+}
+
+// 发送小高级表情
+LCMessageItem* LiveChatManManager::SendMagicIcon(const string& userId, const string& iconId)
+{
+    if(!IsHandleSendOpt()){
+        FileLog("LiveChatManager", "SendMagicIcon() IsHandleSendOpt()==false");
+        return NULL;
+    }
+    
+    LCUserItem* userItem = m_userMgr->GetUserItem(userId);
+    if(NULL == userItem){
+        FileLog("LiveChatManager", "SendMagicIcon() getUserItem fail, userId:%s", userId.c_str());
+        return NULL;
+    }
+    
+    LCMessageItem* item = NULL;
+    if(!iconId.empty()){
+        item = new LCMessageItem();
+        item->Init(m_msgIdBuilder.GetAndIncrement()
+                   , LCMessageItem::SendType_Send
+                   , m_userId
+                   , userId
+                   , userItem->m_inviteId
+                   , LCMessageItem::StatusType_Processing);
+        // 获取MagicIconItem
+        LCMagicIconItem* magicIconItem = m_magicIconMgr->GetMagicIcon(iconId);
+        // 把MagicIconItem添加到MessageItem
+        item->SetMagicIconItem(magicIconItem);
+        // 添加到历史记录
+        userItem->InsertSortMsgList(item);
+        
+        FileLog("LiveChatManManager", "SendMagicIcon() IsSendMeesageNow:%d, m_isAutoLogin:%d, IsLogin:%d",
+                IsSendMessageNow(userItem), m_isAutoLogin, m_isLogin);
+        
+        SendMsgWithCoupon(userItem, item);
+    }
+    else{
+        FileLog("LiveChatManager", "SendMagicIcon() param error, userId:%s, iconId:%s", userId.c_str(), iconId.c_str());
+    }
+    return item;
+}
+
+// 获取小高级表情配置item
+MagicIconConfig LiveChatManManager::GetMagicIconConfigItem() const
+{
+    return m_magicIconMgr->GetConfigItem();
+}
+
+// 获取小高级表情item
+LCMagicIconItem* LiveChatManManager::GetMagicIconInfo(const string& magicIconId)
+{
+    return m_magicIconMgr->GetMagicIcon(magicIconId);
+}
+
+// 手动下载／更新小高级表情原图
+bool LiveChatManManager::GetMagicIconSrcImage(const string& magicIconId)
+{
+    LCMagicIconItem* magicIconItem = m_magicIconMgr->GetMagicIcon(magicIconId);
+    FileLog("LiveChatManManager", "GetMagicIconSrcImage() magicIconId:%s, magicIconItem:%p", magicIconId.c_str(), magicIconItem);;
+    
+    bool result = false;
+    if (!magicIconItem->m_sourcePath.empty()) {
+        if (IsFileExist(magicIconItem->m_sourcePath)) {
+            if(NULL != m_listener){
+                m_listener->OnGetMagicIconSrcImage(true, magicIconItem);
+            }
+            result = true;
+        }
+    }
+    
+    // 文件不存在，需要下载
+    if(!result){
+        FileLog("LiveChatManager", "GetMagicIconSrcImage() magicIconId:%s", magicIconId.c_str());
+        result = m_magicIconMgr->StartDownloadSourceImage(magicIconItem);
+    }
+    
+    FileLog("LiveChatManManager", "GetManicIconSrcImage() magicIconId:%s, result:%d", magicIconId.c_str(), result);
+    return result;
+    
+}
+// 手动下载／更新小高级表情拇子图
+bool LiveChatManManager::GetMagicIconThumbImage(const string& magicIconId)
+{
+    LCMagicIconItem* magicIconItem = m_magicIconMgr->GetMagicIcon(magicIconId);
+    FileLog("LiveChatManManager", "GetMagicIconThumnImage() magicIconId:%s, magicIconItem:%p", magicIconId.c_str(), magicIconItem);
+    
+    bool result = false;
+    
+    if (!magicIconItem->m_thumbPath.empty()) {
+        if (IsFileExist(magicIconItem->m_thumbPath)) {
+            if (NULL != m_listener) {
+                m_listener->OnGetMagicIconThumbImage(true, magicIconItem);
+            }
+            result = true;
+        }
+    }
+    
+    if (!result) {
+        FileLog("LiveChatManManage", "GetMagicIconThumbImage() magicIconId:%s", magicIconId.c_str());
+        result = m_magicIconMgr->StartDownloadThumbImage(magicIconItem);
+    }
+    FileLog("LiveChatManManage", "GetMagicIconThumbImage() magicIconId:%s, result:%d", magicIconId.c_str(), result);
+    
+    return result;
+}
+
 // ------------------- LCEmotionManagerCallback -------------------
 void LiveChatManManager::OnDownloadEmotionImage(bool result, LCEmotionItem* emotionItem)
 {
@@ -1844,6 +2019,24 @@ void LiveChatManManager::OnDownloadVideo(bool success, const string& userId, con
 	m_listener->OnGetVideo(result, userId, videoId, inviteId, filePath, msgList);
 }
 
+// ------------------- LCMagicIconManagerCallback -------------------
+// 小高级表情原图下载完成回调
+void LiveChatManManager::OnDownloadMagicIconImage(bool success, LCMagicIconItem* magicIconItem)
+{
+    FileLog("LiveChatManManager", "OnDownloadMagicIconImage() result:%d, magicIconId:%s", success, magicIconItem->m_magicIconId.c_str());
+    if (NULL != m_listener) {
+        m_listener->OnGetMagicIconSrcImage(success, magicIconItem);
+    }
+}
+//  小高级表情拇子图下载完成回调
+void LiveChatManManager::OnDownloadMagicIconThumbImage(bool success, LCMagicIconItem* magicIconItem)
+{
+    FileLog("LiveChatManManager", "OnDownloadMagicIconThumbImag() result:%d, magicIconId:%s", success, magicIconItem->m_magicIconId.c_str());
+    if (NULL != m_listener) {
+        m_listener->OnGetMagicIconThumbImage(success, magicIconItem);
+    }
+}
+
 // ------------------- ILiveChatClientListener -------------------
 // 客户端主动请求
 void LiveChatManManager::OnLogin(LCC_ERR_TYPE err, const string& errmsg)
@@ -1872,15 +2065,21 @@ void LiveChatManManager::OnLogin(LCC_ERR_TYPE err, const string& errmsg)
 
 		// 获取高级表情配置
 		InsertRequestTask(REQUEST_TASK_GetEmotionConfig);
+        // alex获取小高级表情配置
+        InsertRequestTask(REQUEST_TASK_GetMagicIconConfig);
 
-		// 使用试聊券，发送待发消息
-		InsertRequestTask(REQUEST_TASK_CheckCouponWithToSendUser);
+//		// 使用试聊券，发送待发消息
+//		InsertRequestTask(REQUEST_TASK_CheckCouponWithToSendUser);
 
 		// 启动定时释放高级表情下载器任务
 		InsertRequestTask(REQUEST_TASK_ReleaseEmotionDownloader);
 
 		// 启动定时释放图片下载器任务
 		InsertRequestTask(REQUEST_TASK_ReleasePhotoDownloader);
+        
+        // 启动定时释放小高级表情下载器任务
+        InsertRequestTask(REQUEST_TASK_ReleaseMagicIconDownloader);
+        
 	}
 	else if (IsAutoRelogin(err))
 	{
@@ -2439,7 +2638,24 @@ void LiveChatManManager::OnGetLadyCustomTemplate(const string& inUserId, LCC_ERR
 
 void LiveChatManManager::OnSendMagicIcon(const string& inUserId, const string& inIconId, int inTicket, LCC_ERR_TYPE err, const string& errmsg)
 {
-
+    FileLog("LiveChatManManager", "OnSendMagicIcon() begin");
+    LCMessageItem* item = m_magicIconMgr->GetAndRemoveSendingItem(inTicket);
+    if (NULL != item) {
+        // 修改在线状态
+        SetUserOnlineStatusWithLccErrType(item->GetUserItem(), err);
+        
+        //处理消息
+        item->m_statusType = (err == LCC_ERR_SUCCESS ? LCMessageItem::StatusType_Finish : LCMessageItem::StatusType_Fail);
+        item->m_procResult.SetResult(err, "", errmsg);
+        m_listener->OnSendMagicIcon(err, errmsg, item);
+    }
+    else{
+        FileLog("LiveChatManManager", "OnSendMagicIcon() get sending item fail, ticket:%d", inTicket);
+    }
+    // 生成警告消息
+    if (err != LCC_ERR_SUCCESS) {
+        BuildAndInsertWarningWithErrType(inUserId, err);
+    }
 }
 
 void LiveChatManManager::OnGetPaidTheme(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeList)
@@ -2848,7 +3064,41 @@ void LiveChatManManager::OnRecvVideo(const string& toId, const string& fromId, c
 
 void LiveChatManManager::OnRecvMagicIcon(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& iconId)
 {
-
+    // 返回票根给服务器
+    m_client->UploadTicket(fromId, ticket);
+    
+    //
+    LCUserItem* userItem = m_userMgr->GetUserItem(fromId);
+    if (NULL == userItem) {
+        FileLog("LiveChatManManager", "OnRecvMagicIcon() getUserItem fail, fromId:%s", fromId.c_str());
+        return;
+    }
+    userItem->m_inviteId = inviteId;
+    userItem->m_userName = fromName;
+    userItem->SetChatTypeWithTalkMsgType(charge, msgType);
+    SetUserOnlineStatus(userItem, USTATUS_ONLINE);
+    
+    //生成MessageItem
+    LCMessageItem* item = new LCMessageItem();
+    item->Init(m_msgIdBuilder.GetAndIncrement()
+               , LCMessageItem::SendType_Recv
+               , fromId
+               , toId
+               , userItem->m_inviteId
+               , LCMessageItem::StatusType_Finish);
+    // 获取MagicIConItem
+    LCMagicIconItem* magicIcomItem = m_magicIconMgr->GetMagicIcon(iconId);
+    // 把MagicIconItem添加到MessageItem
+    item->SetMagicIconItem(magicIcomItem);
+    
+    // 添加到用户聊天记录中
+   userItem->InsertSortMsgList(item);
+    
+    // callback
+    if (NULL != m_listener) {
+        m_listener->OnRecvMagicIcon(item);
+    }
+    
 }
 
 void LiveChatManManager::OnRecvThemeMotion(const string& themeId, const string& manId, const string& womanId)
@@ -2954,7 +3204,8 @@ void LiveChatManManager::OnQueryChatRecord(long requestId, bool success, int dbT
 						m_emotionMgr,
 						m_voiceMgr,
 						m_photoMgr,
-						m_videoMgr))
+						m_videoMgr,
+                        m_magicIconMgr))
 				{
 					userItem->InsertSortMsgList(item);
 				}
@@ -3012,7 +3263,8 @@ void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, 
 							m_emotionMgr,
 							m_voiceMgr,
 							m_photoMgr,
-							m_videoMgr))
+							m_videoMgr,
+                            m_magicIconMgr))
 					{
 						userItem->InsertSortMsgList(item);
 					}
@@ -3042,6 +3294,12 @@ void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, 
 
 	// 重置ReuqestId
 	m_getUsersHistoryMsgRequestId = HTTPREQUEST_INVALIDREQUESTID;
+
+    if (success) {
+        m_isGetHistory = true;
+        // 使用试聊券，发送待发消息
+        InsertRequestTask(REQUEST_TASK_CheckCouponWithToSendUser);
+    }
 }
 
 void LiveChatManManager::OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item)
@@ -3085,6 +3343,9 @@ void LiveChatManManager::OnSendPhoto(long requestId, bool success, const string&
 		// 上传文件不成功
 		msgItem->m_statusType = LCMessageItem::StatusType_Fail;
 		msgItem->m_procResult.SetResult(LCC_ERR_FAIL, errnum, errmsg);
+        if(errnum == "ERROR00003"){
+            BuildAndInsertWarningWithErrType(msgItem->m_toId, LCC_ERR_NOMONEY);
+        }
 		m_listener->OnSendPhoto(msgItem->m_procResult.m_errType, msgItem->m_procResult.m_errNum, msgItem->m_procResult.m_errMsg, msgItem);
 	}
 }
@@ -3201,6 +3462,27 @@ void LiveChatManManager::OnGetVideo(long requestId, bool success, const string& 
 	m_listener->OnVideoFee(success, errnum, errmsg, item);
 }
 
+void LiveChatManManager::OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config)
+{
+    FileLog("LiveChatManager", "OnGetMagicIconConfig() OnMagicIconConfig begin");
+    bool isSuccess = success;
+    MagicIconConfig configItem = config;
+    if(isSuccess){
+        if (m_magicIconMgr->IsVerNewThenConfigItem(config.maxupdatetime)) {
+            isSuccess = m_magicIconMgr->UpdateConfigItem(config);
+        }
+        else{
+            configItem = m_magicIconMgr->GetConfigItem();
+        }
+    }
+    FileLog("LiveChatManager", "OnGetMagicIconConfig() OnMagicIconConfig callback");
+    if (NULL != m_listener) {
+        m_listener->OnGetMagicIconConfig(success, errnum, errmsg, config);
+    }
+    m_magicIconMgr->m_magicIconConfigReqId = HTTPREQUEST_INVALIDREQUESTID;
+    FileLog("LiveChatManager", "OnGetMagicIconConfig() OnMagicIconCongig end");
+}
+
 // ------------------- IRequestOtherControllerCallback -------------------
 void LiveChatManManager::OnEmotionConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item)
 {
@@ -3224,6 +3506,41 @@ void LiveChatManManager::OnEmotionConfig(long requestId, bool success, const str
 	}
 	m_emotionMgr->m_emotionConfigReqId = HTTPREQUEST_INVALIDREQUESTID;
 	FileLog("LiveChatManager", "OnEmotionConfig() OnOtherEmotionConfig end");
+}
+
+//// 男士会员统计回调（money，coupon等等）
+void LiveChatManManager::OnGetCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item)
+{
+    FileLog("LiveChatManager", "OnGetCount() begin");
+    bool isSuccess = success;
+    OtherGetCountItem CountItem = item;
+    LCUserItem* userItem = NULL;
+    // 获取待发消息的userItem
+    m_inviteMsgMap.lock();
+    map<long, LCUserItem*>::iterator iter = m_inviteMsgMap.find(requestId);
+    if (iter != m_inviteMsgMap.end()) {
+        userItem = (*iter).second;
+        m_inviteMsgMap.erase(iter);
+    }
+    m_inviteMsgMap.unlock();
+    if (isSuccess) {
+        // 判断点是不是大于聊天最少点
+        if (CountItem.money >= m_minBalance && NULL != userItem) {
+                // 发送代发消息
+                SendMessageList(userItem);
+        }
+        else{
+                // 失败
+                LCC_ERR_TYPE errType = LCC_ERR_NOMONEY;
+                SendMessageListFailProc(userItem, errType);
+        }
+    }
+    // 连接失败
+    else
+    {
+        LCC_ERR_TYPE fErrType = LCC_ERR_CONNECTFAIL;
+        SendMessageListFailProc(userItem, fErrType);
+    }
 }
 
 // ------------------- 请求线程 -------------------
@@ -3287,6 +3604,10 @@ void LiveChatManManager::RequestThreadProc()
 					// 获取高级表情配置
 					GetEmotionConfig();
 					break;
+                case REQUEST_TASK_GetMagicIconConfig:
+                     // 获取小高级表情配置
+                     GetMagicIconConfig();
+                     break;
 				case REQUEST_TASK_AutoRelogin:
 					// 执行自动重登录流程
 					AutoRelogin();
@@ -3316,7 +3637,12 @@ void LiveChatManManager::RequestThreadProc()
 
 						if (!userIds.empty()) {
 							GetUsersHistoryMessage(userIds);
-						}
+                        }
+                        else
+                        {
+                            // 不需要获取历史纪录
+                            m_isGetHistory = true;
+                        }
 					}
 					break;
 				case REQUEST_TASK_CheckCouponWithToSendUser:
@@ -3329,9 +3655,9 @@ void LiveChatManManager::RequestThreadProc()
 						{
 							LCUserItem* userItem = (*iter);
 							if (NULL != userItem) {
-								if (!CheckCouponProc(userItem)) {
-									// 执行失败，照常发送
-									SendMessageList(userItem);
+								if ( IsCheckCoupon(userItem) || !CheckCouponProc(userItem)) {
+                                    // 执行失败，照常发送
+                                    SendMessageList(userItem);
 								}
 							}
 						}
@@ -3370,10 +3696,12 @@ void LiveChatManManager::RequestThreadProc()
 						LCUserItem* userItem = (LCUserItem*)item.param;
 						if (NULL != userItem) {
 							// 暂不检测是否有足够点数，直接发送
-	//						if (!GetCountProc(userItem)) {
+							if (!GetCountProc(userItem)) {
 								// 执行失败，照常发送
-								SendMessageList(userItem);
-	//						}
+								//SendMessageList(userItem);
+                                LCC_ERR_TYPE errType = LCC_ERR_CONNECTFAIL;
+                                SendMessageListFailProc(userItem, errType);
+							}
 						}
 					}
 					break;
@@ -3412,6 +3740,14 @@ void LiveChatManManager::RequestThreadProc()
 						InsertRequestTask(REQUEST_TASK_ReleaseVideoDownloader, 0, stepTime);
 					}
 					break;
+                case REQUEST_TASK_ReleaseMagicIconDownloader:
+                        // 释放小高级表情downloader
+                    {
+                        m_magicIconMgr->ClearFinishDownloaderWithTimer();
+                        static const long stepTime = 5 * 1000; // 每5秒释放一次
+                        InsertRequestTask(REQUEST_TASK_ReleaseMagicIconDownloader, 0, stepTime);
+                    }
+                    break;
 				}
 			}
 			else 
@@ -3460,9 +3796,15 @@ bool LiveChatManManager::GetCountProc(LCUserItem* userItem)
 	{
 //		long requestId = m_requestController(userItem->m_userId);
 //		result = HTTPREQUEST_INVALIDREQUESTID != requestId;
-
+        long requestId = m_requestOtherController->GetCount(true, false, false, false, false, false);
+        result = HTTPREQUEST_INVALIDREQUESTID != requestId;
+        if (result) {
+            m_inviteMsgMap.lock();
+            m_inviteMsgMap.insert(map<long, LCUserItem*>::value_type(requestId, userItem));
+            m_inviteMsgMap.unlock();
+        }
 		// 直接发送
-		SendMessageList(userItem);
+		//SendMessageList(userItem);
 	}
 	return result;
 }

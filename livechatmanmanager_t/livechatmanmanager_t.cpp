@@ -8,11 +8,14 @@
 #include <common/CheckMemoryLeak.h>
 #include <common/list_lock.h>
 #include <livechat/IThreadHandler.h>
+#include <livechat/ISocketHandler.h>
+
+#include "TestAuthorizationCallBack.h"
 
 using namespace std;
 
 ILiveChatManManager* g_manager = NULL;
-
+TestAuthorizationCallBack *g_testAuthorizationCallBack = NULL;
 // ------ thread msg process ------
 enum E_THREAD_MSG
 {
@@ -300,8 +303,9 @@ protected:
 	};
 
 	// ------- photo listener -------
-	virtual void OnGetPhoto(LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, LCMessageItem* msgItem) {
-		
+	//virtual void OnGetPhoto(LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, LCMessageItem* msgItem) {
+	virtual void OnGetPhoto(GETPHOTO_PHOTOSIZE_TYPE sizeType, LCC_ERR_TYPE errType, const string& errNo, const string& errMsg, const LCMessageList& msglist) {
+		/*
 		if (!msgItem->GetPhotoItem()->m_charge
 			&& !msgItem->GetPhotoItem()->m_showFuzzyFilePath.empty())
 		{
@@ -319,7 +323,7 @@ protected:
 			msgItem1.msg = TM_SENDPHOTO;
 			msgItem1.param1 = (unsigned long)msgItem;
 			g_threadMsgList.push_back(msgItem1);
-		}
+		}*/
 	};
 	virtual void OnPhotoFee(bool success, const string& errNo, const string& errMsg, LCMessageItem* msgItem) {
 		// ����ɹ�
@@ -431,6 +435,73 @@ protected:
 		}
 	};
 
+	//------- magicIcon listener -------
+	// 小高级表情配置的回调（在Onlogin 更新／获取小高级表情配置）
+	virtual void OnGetMagicIconConfig(bool success, const string& errNo, const string& errMsg, const MagicIconConfig& config){
+		string magicIconLog("");
+		for(MagicIconConfig::MagicIconList::const_iterator iter = config.magicIconList.begin(); iter != config.magicIconList.end(); iter++){
+			if(!magicIconLog.empty()){
+				magicIconLog +=",";
+			}
+			magicIconLog += (*iter).iconId;
+		}
+		printf("OnGetMagicIconConfig() success:%d, errNo:%s, errMsg:%s, magicIconList:%s\n",success, errNo.c_str(), errMsg.c_str(), magicIconLog.c_str());
+		if(success){
+			m_magicIconConfig = config;
+
+		   // 测试邀请
+		   const char* msg = "1.2.3.4.5";
+		   g_manager->SendTextMessage("P810793", msg);
+		}
+		
+	}
+    // 手动下载／更新小高级表情原图下载
+	virtual void OnGetMagicIconSrcImage(bool success, const LCMagicIconItem* item){
+		printf("OnGetMagicIconSrcImage() success:%d, magicIconId:%s, sourceImgPath:%s, thumbImgPath:%s", success, item->m_magicIconId.c_str(), item->m_sourcePath.c_str(), item->m_thumbPath.c_str());
+	}
+	// 手动下载／更新小高级表情拇子图
+	virtual void OnGetMagicIconThumbImage(bool success, const LCMagicIconItem* item){
+		printf("OnGetMagicIconSrcImage() success:%d, magicIconId:%s, sourceImgPath:%s, thumbImgPath:%s", success, item->m_magicIconId.c_str(), item->m_sourcePath.c_str(), item->m_thumbPath.c_str());
+	}
+	// 发送小高级表情
+	virtual void OnSendMagicIcon(LCC_ERR_TYPE errType, const string& errMsg, LCMessageItem* msgItem){
+		string message = GetMessageLog(msgItem);
+		printf("OnSendMagicIcon() errType:%d, errMsg:%s, message:%s\n", errType, errMsg.c_str(), message.c_str());
+
+		if(msgItem->GetMagicIconItem()->m_sourcePath.empty()){
+			g_manager->GetMagicIconSrcImage(msgItem->GetMagicIconItem()->m_magicIconId);
+		}
+
+		if(msgItem->GetMagicIconItem()->m_thumbPath.empty()){
+			g_manager->GetMagicIconThumbImage(msgItem->GetMagicIconItem()->m_magicIconId);
+		}
+	}
+	// 接收小高级表情
+	virtual void OnRecvMagicIcon(LCMessageItem* msgItem){
+		string message = GetMessageLog(msgItem);
+		printf("OnRecvMagicIcon()message:%s\n", message.c_str());
+
+		if(msgItem->GetMagicIconItem()->m_sourcePath.empty()){
+			g_manager->GetMagicIconSrcImage(msgItem->GetMagicIconItem()->m_magicIconId);
+		}
+
+		if(msgItem->GetMagicIconItem()->m_thumbPath.empty()){
+			g_manager->GetMagicIconThumbImage(msgItem->GetMagicIconItem()->m_magicIconId);
+		}
+
+		MagicIconConfig::MagicIconItem magicIconItem;
+		MagicIconConfig::MagicIconList::iterator iter;
+		int i;
+		for (i = 0, iter = m_magicIconConfig.magicIconList.begin();
+			iter != m_magicIconConfig.magicIconList.end() && i <= m_sendMagicIconIndex;
+			iter++, i++)
+		{
+			magicIconItem = (*iter);
+		}
+		m_sendMagicIconIndex = (m_sendMagicIconIndex + 1) % m_magicIconConfig.magicIconList.size();
+		g_manager->SendMagicIcon(msgItem->m_fromId, magicIconItem.iconId);
+	}
+
 	// ------- other listener -------
 	virtual void OnChangeOnlineStatus(LCUserItem* userItem) {};
 	virtual void OnGetHistoryMessage(bool success, const string& errNo, const string& errMsg, LCUserItem* userItem) {};
@@ -461,7 +532,9 @@ protected:
 
 private:
 	OtherEmotionConfigItem m_emotionConfig;
+	MagicIconConfig m_magicIconConfig;
 	int m_sendEmotionIndex;
+	int m_sendMagicIconIndex;
 };
 
 LiveChatManManagerListener g_listener;
@@ -505,6 +578,10 @@ bool Init(ILiveChatManManager* manager, bool isDemo)
 	}
 	string path = fileName;
 
+	g_testAuthorizationCallBack->Init(webHost, appHost, chatVoiceHost
+				, httpUser, httpPassword
+				, appVer,&g_listener);
+
 	return manager->Init(ips, port, siteType
 				, webHost, appHost, chatVoiceHost
 				, httpUser, httpPassword
@@ -514,6 +591,7 @@ bool Init(ILiveChatManManager* manager, bool isDemo)
 
 bool Login(ILiveChatManManager* manager, const string& userId, const string& sId)
 {
+	/*
 	//string userId = "CM42137154";
 	//string sId = "11111";
 
@@ -522,7 +600,10 @@ bool Login(ILiveChatManManager* manager, const string& userId, const string& sId
 	cookies.push_back(".chnlove.com	TRUE	/	FALSE	1467020352	CHNPOPUREG	samson.fan%40qpidnetwork.com");
 	cookies.push_back("demo-mobile.chnlove.com	FALSE	/member/	FALSE	1	CHNCOOKSTA	deleted");
 
-	return manager->Login(userId, sId, cookies, "866501010242493", true);
+	return manager->Login(userId, sId, CLIENT_ANDROID, cookies, "866501010242493", true);
+	*/
+	g_testAuthorizationCallBack->Login(userId,sId,"866501010242493");
+	return true;
 }
 
 static TH_RETURN_PARAM ThreadMsgProc(void* arg)
@@ -594,13 +675,19 @@ static TH_RETURN_PARAM ThreadMsgProc(void* arg)
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	ISocketHandler::InitEnvironment();
 	bool result = false;
+
+	HttpClient::Init();
 
 	// ��ʼ���߳�
 	IThreadHandler* pThreadHandler = IThreadHandler::CreateThreadHandler();
 	g_threadRun = true;
 	pThreadHandler->Start(ThreadMsgProc, NULL);
 
+	//Alex shum
+	g_testAuthorizationCallBack = new TestAuthorizationCallBack;
+	
 	// ��������ʼ��
 	g_manager = ILiveChatManManager::Create();
 	int isDemo = 1;

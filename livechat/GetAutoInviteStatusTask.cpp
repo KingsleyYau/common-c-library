@@ -1,8 +1,8 @@
 /*
- * author:Alex shem
- *   date:2016-8-23
- *   file:GetAutoInviteStatusTask.cpp
- *   desc:��ȡ�����Զ�������Ϣ״̬����Ůʿ��
+ * author: Alex shem
+ *   date: 2016-8-23
+ *   file: GetAutoInviteStatusTask.cpp
+ *   desc: 获取发送自动邀请消息状态（仅女士）
 */
 
 #include "GetAutoInviteStatusTask.h"
@@ -28,7 +28,7 @@ GetAutoInviteStatusTask::~GetAutoInviteStatusTask(void)
 {
 }
 
-//��ʼ��
+//初始化
 bool GetAutoInviteStatusTask::Init(ILiveChatClientListener* listener)
 {
 	bool result = false;
@@ -41,7 +41,7 @@ bool GetAutoInviteStatusTask::Init(ILiveChatClientListener* listener)
 }
 
 
-//����������
+//处理接收数据
 bool GetAutoInviteStatusTask::Handle(const TransportProtocol* tp)
 {
 	bool result = false;
@@ -57,7 +57,7 @@ bool GetAutoInviteStatusTask::Handle(const TransportProtocol* tp)
 			result = true;
 		}
 
-		// ����ʧ��Э��
+		// 解析失败协议
 		if (!result) {
 			int errType = 0;
 			string errMsg = "";
@@ -68,64 +68,65 @@ bool GetAutoInviteStatusTask::Handle(const TransportProtocol* tp)
 			}
 		}
 	}
-	// Э�����ʧ��
+
+	// 协议解析失败
 	if(!result){
 		m_errType = LCC_ERR_PROTOCOLFAIL;
 		m_errMsg = "";
 	}
-	// ֪ͨlistener
+	//通知listener
 	if(NULL != m_listener){
 		m_listener->OnGetAutoInviteMsgSwitchStatus(m_errType, m_errMsg, m_isOpenStatus);
 	}
     return result;
 }
 
-// ��ȡ���͵���ݣ����Ȼ�ȡdata���ȣ��磺GetSendData(NULL, 0, dataLen);
+// 获取待发送的数据，可先获取data长度，如：GetSendData(NULL, 0, dataLen);
 bool GetAutoInviteStatusTask::GetSendData(void* data, unsigned int dataSize, unsigned int& dataLen)
 {
-	// û�в���
+	// 没有参数
 	dataLen = 0;
 	return true;
 }
 
-// ��ȡ������ݵ�����
+// 获取待发送数据的类型
 TASK_PROTOCOL_TYPE GetAutoInviteStatusTask::GetSendDataProtocolType()
 {
 	return JSON_PROTOCOL;
 }
 
-// ��ȡ�����
+// 获取命令号
 int GetAutoInviteStatusTask::GetCmdCode()
 {
 	return TCMD_GETAUTOINVITESTATUS;
 }
 
-// ����seq
+// 设置seq
 void GetAutoInviteStatusTask::SetSeq(unsigned int seq)
 {
 	m_seq = seq;
 }
 
-// ��ȡseq
+//  获取seq
 unsigned int GetAutoInviteStatusTask::GetSeq()
 {
 	return m_seq;
 }
 
-// �Ƿ���Ҫ�ȴ�ظ�����false���ͺ��ͷ�(delete��)�������ͺ�ᱻ�������ظ��б?�յ��ظ����ͷ�
+// 是否需要等待回复。若false则发送后释放(delete掉)，否则发送后会被添加至待回复列表，收到回复后释放
 bool GetAutoInviteStatusTask::IsWaitToRespond()
 {
 	return true;
 }
 
-// ��ȡ������
+// 获取处理结果
 void GetAutoInviteStatusTask::GetHandleResult(LCC_ERR_TYPE& errType, string& errMsg)
 {
 	errType = m_errType;
 	errMsg = m_errMsg;
 }
 
-// δ�������Ķ���֪ͨ
+// 未完成任务的断线通知
 void GetAutoInviteStatusTask::OnDisconnect()
 {
 	if (NULL != m_listener) {

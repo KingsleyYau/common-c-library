@@ -18,6 +18,7 @@
 #define PAID_NUMBER     "number"
 #define PAID_RECEIPT    "receipt"
 #define PAID_ORDERNO    "orderno"
+#define PAID_ASCODE     "code"
 #define PAID_PRODUCTID  "product_id"
 
 #define PAID_RESULT     "result"

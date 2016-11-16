@@ -401,6 +401,7 @@ public:
 	public:
 		SiteItem() {
 			host = "";
+            domain = "";
 			port = 0;
 			minChat = 0;
 			minEmf = 0;
@@ -413,6 +414,9 @@ public:
 				if (data[OTHER_SYNCONFIG_HOST].isString()) {
 					host = data[OTHER_SYNCONFIG_HOST].asString();
 				}
+                if (data[OTHER_SYNCONFIG_HOST_DOMAIN].isString()) {
+                    domain = data[OTHER_SYNCONFIG_HOST_DOMAIN].asString();
+                }
 				if (data[OTHER_SYNCONFIG_PROXYHOST].isString()) {
 					string strProxyHostList = data[OTHER_SYNCONFIG_PROXYHOST].asString();
 
@@ -487,6 +491,7 @@ public:
 		}
 	public:
 		string	host;		// LiveChat服务器host
+        string  domain;     // LiveChat服务器domain
 		ProxyHostList	proxyHostList;	// LiveChat proxy host
 		int		port;		// LiveChat端口
 		double	minChat;	// 使用LiveChat的最少点数

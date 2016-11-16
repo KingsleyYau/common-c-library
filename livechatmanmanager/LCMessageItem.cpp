@@ -10,6 +10,7 @@
 #include "LCVoiceManager.h"
 #include "LCPhotoManager.h"
 #include "LCVideoManager.h"
+#include "LCMagicIconManager.h"
 #include "LCUserItem.h"
 #include <common/CommonFunc.h>
 #include <manrequesthandler/item/Record.h>
@@ -40,6 +41,7 @@ LCMessageItem::LCMessageItem()
 	m_videoItem = NULL;
 	m_systemItem = NULL;
 	m_customItem = NULL;
+    m_magicIconItem = NULL;
 
 	m_userItem = NULL;
 }
@@ -120,7 +122,8 @@ bool LCMessageItem::InitWithRecord(
 				, LCEmotionManager* emotionMgr
 				, LCVoiceManager* voiceMgr
 				, LCPhotoManager* photoMgr
-				, LCVideoManager* videoMgr)
+				, LCVideoManager* videoMgr
+                , LCMagicIconManager* magicIconMgr)
 {
 	bool result = false;
 	m_msgId = msgId;
@@ -176,7 +179,7 @@ bool LCMessageItem::InitWithRecord(
             LCPhotoItem* photoItem = photoMgr->GetPhotoItem(record.photoId, this);
 			photoItem->Init(
 					record.photoId
-					, ""
+					, record.photoSendId
 					, record.photoDesc
 					, photoMgr->GetPhotoPath(record.photoId, GMT_FUZZY, GPT_LARGE)
 					, photoMgr->GetPhotoPath(record.photoId, GMT_FUZZY, GPT_MIDDLE)
@@ -215,6 +218,13 @@ bool LCMessageItem::InitWithRecord(
 			result = true;
 		}
 	}break;
+        case LRM_MAGIC_ICON: {
+            if (!record.magicIconId.empty()) {
+                LCMagicIconItem* magicIconItem = magicIconMgr->GetMagicIcon(record.magicIconId);
+                SetMagicIconItem(magicIconItem);
+                result = true;
+            }
+        }
 	default: {
 		FileLog("LiveChatManager", "LCMessageItem::InitWithRecord() unknow message type");
 	}break;
@@ -388,6 +398,24 @@ bool LCMessageItem::IsSubItemProcssign() const
 	return result;
 }
 
+// 设置小高级表情item
+void LCMessageItem::SetMagicIconItem(LCMagicIconItem* theMagicIConItem)
+{
+
+    if (m_msgType == MT_Unknow
+        && theMagicIConItem != NULL)
+    {
+        m_magicIconItem = theMagicIConItem;
+        m_msgType = MT_MagicIcon;
+    }
+}
+
+// 获取小高级表情item
+LCMagicIconItem* LCMessageItem::GetMagicIconItem() const
+{
+    return m_magicIconItem;
+}
+
 // 设置用户item
 void LCMessageItem::SetUserItem(LCUserItem* theUserItem)
 {
@@ -437,6 +465,8 @@ void LCMessageItem::Clear()
 
 	delete m_customItem;
 	m_customItem = NULL;
+    
+    m_magicIconItem = NULL;
 
 	m_userItem = NULL;
 }
@@ -468,6 +498,7 @@ bool LCMessageItem::IsChatMessage()
         case MT_Video:
         case MT_Voice:
         case MT_Emotion:
+        case MT_MagicIcon:
             result = true;
             break;
             

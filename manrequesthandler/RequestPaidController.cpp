@@ -153,9 +153,10 @@ long RequestPaidController::GetPaymentOrder(const string& manId, const string& s
  * @param sid           跨服务器唯一标识
  * @param receipt       AppStore支付成功返回的recetip参数（BASE64）
  * @param orderNo       订单号
+ * @param code          AppStore支付完成返回的状态码
  * @return				请求唯一标识
  */
-long RequestPaidController::CheckPayment(const string& manId, const string& sid, const string& receipt, const string& orderNo)
+long RequestPaidController::CheckPayment(const string& manId, const string& sid, const string& receipt, const string& orderNo, int code)
 {
     HttpEntiy entiy;
     
@@ -175,18 +176,27 @@ long RequestPaidController::CheckPayment(const string& manId, const string& sid,
         entiy.AddContent(PAID_ORDERNO, orderNo);
     }
     
+    char temp[64] = {0};
+    sprintf(temp, "%d", code);
+    string strCode = temp;
+    if ( strCode.length() > 0 ) {
+        entiy.AddContent(PAID_ASCODE, strCode);
+    }
+    
     string url = PAID_CHECKPAY_PATH;
     FileLog("httprequest", "RequestPaidController::Pay( "
             "url : %s, "
             "manId : %s, "
             "sid : %s, "
-            "receipt : %s ,"
-            "orderNo : %s ,",
+            "receipt : %s , "
+            "orderNo : %s , "
+            "code : %s",
             url.c_str(),
             manId.c_str(),
             sid.c_str(),
             receipt.c_str(),
-            orderNo.c_str()
+            orderNo.c_str(),
+            strCode.c_str()
             );
     
     return StartRequest(url, entiy, this);

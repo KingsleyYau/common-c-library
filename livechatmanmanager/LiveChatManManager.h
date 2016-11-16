@@ -23,6 +23,8 @@
 #include "LCEmotionManager.h"
 #include "LCPhotoManager.h"
 #include "LCVideoManager.h"
+//添加小高级表情管理器
+#include "LCMagicIconManager.h"
 
 #include <list>
 #include <string>
@@ -50,12 +52,14 @@ class LiveChatManManager : public ILiveChatManManager
 								, LCEmotionManagerCallback
 								, LCPhotoManagerCallback
 								, LCVideoManagerCallback
+                                , LCMagicIconManagerCallback
 {
 public:
 	// 请求task定义
 	typedef enum {
 		REQUEST_TASK_Unknow,						// 未知请求类型
 		REQUEST_TASK_GetEmotionConfig,				// 获取高级表情配置
+        REQUEST_TASK_GetMagicIconConfig,            // alex获取小高级表情配置
 		REQUEST_TASK_AutoRelogin,					// 执行自动重登录流程
 		REQUEST_TASK_GetUsersHistoryMessage,        // 获取用户的聊天历史记录
 		REQUEST_TASK_CheckCouponWithToSendUser,		// 有待发消息的用户调用检测试聊券流程
@@ -69,6 +73,7 @@ public:
 		REQUEST_TASK_ReleasePhotoDownloader,		// 释放图片downloader
 		REQUEST_TASK_ReleaseVideoPhotoDownloader,	// 释放视频图片downloader
 		REQUEST_TASK_ReleaseVideoDownloader,		// 释放视频downloader
+        REQUEST_TASK_ReleaseMagicIconDownloader,	// 释放高级表情downloader
 	} REQUEST_TASK_TYPE;
 	// 请求item
 	typedef struct _tagRequestItem
@@ -126,6 +131,8 @@ public:
     virtual bool Relogin();
 	// 是否已经登录
 	virtual bool IsLogin();
+    // 是否获取历史记录
+    virtual bool IsGetHistory();
 
 	// ---------- 会话操作 ----------
 	// 检测是否可使用试聊券
@@ -156,6 +163,8 @@ public:
 	virtual LCUserList GetChatingUsers();
     // 获取用户最后一条聊天消息
     virtual LCMessageItem* GetLastMessage(const string& userId);
+    // 获取对方最后一条聊天消息
+    virtual LCMessageItem* GetTheOtherLastMessage(const string& userId);
 
 	// -------- 文本消息 --------
 	// 发送文本消息
@@ -208,7 +217,18 @@ public:
 	virtual string GetVideoPhotoPathWithExist(const string& userId, const string& inviteId, const string& videoId, VIDEO_PHOTO_TYPE type);
 	// 获取视频文件路径（仅文件存在）
 	virtual string GetVideoPathWithExist(const string& userId, const string& inviteId, const string& videoId);
-
+    
+    // --------- 小高级表情消息（小高表） --------
+    // 发送小高级表情
+    virtual LCMessageItem* SendMagicIcon(const string& userId, const string& iconId);
+    // 获取小高级表情配置item
+    virtual MagicIconConfig GetMagicIconConfigItem() const;
+    // 获取小高级表情item
+    virtual LCMagicIconItem* GetMagicIconInfo(const string& magicIconId);
+    // 手动下载／更新小高级表情原图
+    virtual bool GetMagicIconSrcImage(const string& magicIconId);
+    // 手动下载／更新小高级表情拇子图
+    virtual bool GetMagicIconThumbImage(const string& magicIconId);
 private:
 	// 获取log路径
 	string GetLogPath();
@@ -236,6 +256,10 @@ private:
 	bool IsHandleSendOpt();
 	// 是否立即发送消息给用户
 	bool IsSendMessageNow(LCUserItem* userItem);
+    // 检测试聊券，或者马上发送消息
+    bool SendMsgWithCoupon(LCUserItem* userItem, LCMessageItem* msgItem);
+    // 是否检测试聊券
+    bool IsCheckCoupon(LCUserItem* userItem);
 	// 发送待发消息列表
 	void SendMessageList(LCUserItem* userItem);
 	// 发送待发消息列表处理
@@ -272,6 +296,11 @@ private:
 	bool PhotoFee(LCMessageItem* item);
 	// 获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）
 	bool GetPhoto(LCMessageItem* item, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+    // --------- 小高级表情消息 --------
+    // 获取小高级表情配置
+    bool GetMagicIconConfig();
+    // 发送小高级表情消息处理
+    void SendMagicIconProc(LCMessageItem* item);
 
 	// ------------------- LCEmotionManagerCallback -------------------
 private:
@@ -298,6 +327,12 @@ private:
 	// 视频下载完成回调
 	virtual void OnDownloadVideo(bool success, const string& userId, const string& videoId, const string& inviteId, const string& filePath, const LCMessageList& msgList);
 
+    // ------------------- LCMagicIconManagerCallback -------------------
+    // 小高级表情原图下载完成回调
+    virtual void OnDownloadMagicIconImage(bool result, LCMagicIconItem* magicIconItem);
+    // 小高级表情拇子图下载完成回调
+    virtual void OnDownloadMagicIconThumbImage(bool result, LCMagicIconItem* magicIconItem);
+    
 	// ------------------- ILiveChatClientListener -------------------
 private:
 	// 客户端主动请求
@@ -374,11 +409,14 @@ private:
 	virtual void OnPlayVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
 	virtual void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
 	virtual void OnGetVideo(long requestId, bool success, const string& errnum, const string& errmsg, const string& url);
+    //获取小高级表情配置回调 alex 2016-09-09
+    virtual void OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config);
+    
 
 	// ------------------- IRequestOtherControllerCallback -------------------
 private:
 	virtual void OnEmotionConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item);
-
+    virtual void OnGetCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item);
 	// ------------------- 请求线程 -------------------
 private:
 	static TH_RETURN_PARAM RequestThread(void* obj);
@@ -409,7 +447,7 @@ private:
 	int			m_port;				// LiveChat服务器端口(从同步配置获取)
 	int			m_siteType;			// 站点ID
 	string 		m_appVer;			// app的版本号
-	int			m_minBalance;		// 最少可以聊天的点数(从同步配置获取)
+	double			m_minBalance;		// 最少可以聊天的点数(从同步配置获取)
 
 	string		m_userId;			// 用户Id
 	string		m_sId;				// sId
@@ -419,6 +457,7 @@ private:
 	bool		m_riskControl;		// 风控标志（true:需要风控）
 	bool		m_isRecvVideoMsg;	// 是否接收视频消息
 	bool		m_isLogin;			// 是否已经登录
+    bool        m_isGetHistory;     // 是否获取历史记录
     bool        m_isResetParam;     // 是否重置参数
 	bool		m_isAutoLogin;		// 是否尝试自动重登录（如断线后自动尝试重）
 	long		m_getUsersHistoryMsgRequestId;	// 获取多个用户历史聊天记录的requestId
@@ -430,6 +469,8 @@ private:
 	LCVoiceManager*		m_voiceMgr;		// 语音管理器
 	LCPhotoManager*		m_photoMgr;		// 图片管理器
 	LCVideoManager*		m_videoMgr;		// 视频管理器
+    //添加小高级管理器 alex 2016－09-09
+    LCMagicIconManager* m_magicIconMgr; //小高级表情管理器
 
 	// 用户管理器
 	LCUserManager*		m_userMgr;		// 用户管理器
@@ -449,4 +490,6 @@ private:
 	RequestLiveChatController* m_requestController;		// LiveChat请求控制器
 	RequestOtherController*	m_requestOtherController;	// Other请求控制器
 	map_lock<long, long>	m_checkCouponOptMap;		// 检测试聊请求map表
+    
+    map_lock<long, LCUserItem*> m_inviteMsgMap;
 };
