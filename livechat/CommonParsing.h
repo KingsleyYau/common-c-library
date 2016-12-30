@@ -16,3 +16,6 @@ bool ParsingUserInfoItem(amf_object_handle handle, UserInfoItem& item);
 
 // 解析主题包
 bool ParsingThemeInfoItem(amf_object_handle handle, ThemeInfoItem& item);
+
+//解析会话信息
+bool ParsingSessionInfoItem(amf_object_handle handle, SessionInfoItem& item);

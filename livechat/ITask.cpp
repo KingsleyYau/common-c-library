@@ -35,6 +35,11 @@
 #include "RecvLadyAutoInviteStatusTask.h"
 #include "RecvManFeeThemeTask.h"
 #include "RecvManApplyThemeTask.h"
+#include "RecvLadyCamStatusTask.h"
+#include "RecvAcceptCamInviteTask.h"
+#include "RecvCamShareInviteTask.h"
+#include "RecvCamShareStartTask.h"
+#include "RecvCamHearbeatExceptionTask.h"
 #include <common/CheckMemoryLeak.h>
 
 // 根据 cmd 创建 task
@@ -123,6 +128,21 @@ ITask* ITask::CreateTaskWithCmd(int cmd)
 	case TCMD_RECVMANAPPLYTHEME:
 		task = new RecvManApplyThemeTask();
 		break;
+	case TCMD_RECVLADYCAMSTATUS:
+		task = new RecvLadyCamStatusTask();
+		break;
+	case TCMD_RECVACCEPTCAMINVITE:
+		task = new RecvAcceptCamInviteTask();
+		break;
+	case TCMD_RECVCAMSHAREINVITE:
+		task = new RecvCamShareInviteTask();
+		break;
+	case TCMD_RECVCAMSHARESTART:
+		task = new RecvCamShareStartTask();
+	
+	case TCMD_RECVCAMHEARBEATEXCEPTION:
+		task = new RecvCamHearbeatExceptionTask();
+	
 	}
 
 	return task;

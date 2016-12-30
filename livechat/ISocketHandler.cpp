@@ -340,51 +340,22 @@ public:
         
         if (INVALID_SOCKET != m_socket )
         {
-            // 获取当前block状态
-            bool block = IsBlock();
-            
-            // 连接
+			// 获取当前block状态
+			bool block = IsBlock();
+
+			SetBlock(true);
+
             m_connStatus = CONNECTION_STATUS_CONNECTING;
-            if (msTimeout > 0) {
-                SetBlock(false);
-                if (connect(m_socket, (struct sockaddr*)server, socketLen) == SOCKET_ERROR) {
-                    if (errno == EINPROGRESS) {
-                        timeval timeout;
-                        timeout.tv_sec = msTimeout / 1000;
-                        timeout.tv_usec = msTimeout % 1000;
-                        fd_set writeset, exceptset;
-                        FD_ZERO(&writeset);
-                        FD_SET(m_socket, &writeset);
-                        FD_ZERO(&exceptset);
-                        FD_SET(m_socket, &exceptset);
-                        
-                        int ret = select(FD_SETSIZE, NULL, &writeset, &exceptset, &timeout);
-                        if (ret == 0) {
-                            result = SOCKET_RESULT_TIMEOUT;
-                        }
-                        else if (ret > 0) {
-                            if( FD_ISSET(m_socket, &exceptset) ) {
-                                result = SOCKET_RESULT_SUCCESS;
-                            } else {
-                                result = SOCKET_RESULT_FAIL;
-                            }
-                        } else {
-                            result = SOCKET_RESULT_FAIL;
-                        }
-                    }
-                    else if (errno == 0) {
-                        result = SOCKET_RESULT_SUCCESS;
-                    }
-                }
-                else {
-                    result = SOCKET_RESULT_SUCCESS;
-                }
+			if( msTimeout > 0 ) {
+                timeval timeout;
+                timeout.tv_sec = msTimeout / 1000;
+                timeout.tv_usec = msTimeout % 1000;
+                socklen_t len = sizeof(timeout);
+                setsockopt(m_socket, SOL_SOCKET, SO_SNDTIMEO, &timeout, len);
             }
-            else {
-                SetBlock(true);
-                if (connect(m_socket, (struct sockaddr*)server, socketLen) == 0) {
-                    result = SOCKET_RESULT_SUCCESS;
-                }
+
+            if (connect(m_socket, (struct sockaddr*)server, socketLen) == 0) {
+                result = SOCKET_RESULT_SUCCESS;
             }
 
             if (SOCKET_RESULT_SUCCESS == result) {
@@ -395,7 +366,7 @@ public:
             }
             
             // 回复block状态
-            SetBlock(block);
+			SetBlock(block);
         }
         return result;
     }

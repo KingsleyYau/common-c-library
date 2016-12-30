@@ -29,6 +29,7 @@
 #define INVITEDID_PARAM		"invitedId"		// 邀请ID
 #define CHARGET_PARAM		"charget"		// 是否已付费
 #define CHATTIME_PARAM		"chatTime"		// 聊天时长
+#define SERVICE_TYPE        "serviceType"   // 服务类型
 
 // 以下函数若定义为成员，外部使用Task时需要include amf解析器头文件，但外部不应知道协议使用什么解析器，因此没有定义为成员函数
 // 解析TalkUserList
@@ -292,6 +293,13 @@ bool ParsingTalkSessionListItem(amf_object_handle handle, TalkSessionListItem& i
 			item.chatTime = chatTimeObject->intValue;
 		}
 
+		// serviceType
+		amf_object_handle serviceTypeObject = handle->get_child(SERVICE_TYPE);
+		if (!serviceTypeObject.isnull()
+			&& serviceTypeObject->type == DT_INTEGER)
+		{
+			item.serviceType = serviceTypeObject->intValue;
+		}
 
 		// 判断是否解析成功
 		if (!item.targetId.empty()) {

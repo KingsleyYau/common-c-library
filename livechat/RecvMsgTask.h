@@ -48,12 +48,13 @@ private:
 	LCC_ERR_TYPE	m_errType;	// 服务器返回的处理结果
 	string			m_errMsg;	// 服务器返回的结果描述
 
-	string			m_toId;		// 接收用户Id（自己）
-	string			m_fromId;	// 发送用户Id（对方）
-	string			m_fromName;	// 发送用户名称
-	string			m_inviteId;	// 邀请Id
-	bool			m_charge;	// 是否已付费
-	int				m_ticket;	// 票根
-	TALK_MSG_TYPE	m_msgType;	// 消息类型
-	string			m_message;	// 消息内容
+	string			m_toId;		  // 接收用户Id（自己）
+	string			m_fromId;	  // 发送用户Id（对方）
+	string			m_fromName;	  // 发送用户名称
+	string			m_inviteId;	  // 邀请Id
+	bool			m_charge;	  // 是否已付费
+	int				m_ticket;	  // 票根
+	TALK_MSG_TYPE	m_msgType;	  // 消息类型
+	string			m_message;	  // 消息内容
+	INVITE_TYPE     m_inviteType; // 邀请消息类型
 };

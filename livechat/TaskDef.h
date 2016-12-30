@@ -44,6 +44,7 @@ typedef enum {
 	TCMD_SENDPHOTO		    = 181,	// 发送图片
 	TCMD_SHOWPHOTO		    = 182,	// 显示图片
 	TCMD_SENDLADYPHOTO		= 180,	// 女士发送图片
+	TCMD_GETSESSIONINFO     = 55,   //获取会话信息（仅男士端使用）
 	TCMD_GETRECENTCONTACTLIST	= 85,	// 获取最近联系人列表
 	TCMD_SEARCHONLINEMAN	= 98,	// 搜索在线男士
 	TCMD_REPLYIDENTIFYCODE  = 105,	// 回复验证码
@@ -67,6 +68,12 @@ typedef enum {
 	TCMD_SENDAUTOINVITE        = 211, //启动/关闭发送自动邀请消息(仅女士)
 	TCMD_GETAUTOINVITESTATUS   = 212, //获取发送自动邀请消息状态(仅女士)
     TCMD_SENDTHEMERECOMMEND    = 231, //女士推荐男士购买主题包(仅女士)
+	TCMD_GETLADYCAMSTATUS      = 261, // 获取女士Cam状态 （仅男士端）
+	TCMD_SENDCAMSHAREINVITE    = 252, // 发送CamShare邀请
+	TCMD_APPLYCAMSHARE         = 239, // 男士发起CamShare并开始扣费（仅男士端）
+	TCMD_LADYACCEPTCAMINVITE   = 253, // 女士接受男士Cam邀请(仅女士端)
+	TCMD_CAMSHAREHEARBEAT      = 286, // CamShare聊天扣费心跳
+	TCMD_GETUSERSCAMSTATUS     = 265, // 批量获取女士端Cam状态（仅男士端）
 	// 服务器主动请求命令
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
@@ -95,6 +102,11 @@ typedef enum {
 	TCMD_RECVLADYAUTOINVITESTATUS	= 208,	// 女士发送自动邀请消息状态通知(仅女士)
 	TCMD_RECVMANFEETHEME		        = 221,	// 男士购买主题包通知(仅女士)
 	TCMD_RECVMANAPPLYTHEME		        = 224,	// 男士应用主题包通知(仅女士)
+	TCMD_RECVLADYCAMSTATUS              = 257,  // 女士Cam状态改变通知（仅男士端）
+	TCMD_RECVACCEPTCAMINVITE            = 249,  // 女士接受邀请通知（仅男士端)
+	TCMD_RECVCAMSHAREINVITE             = 247,  // CamShare邀请通知
+	TCMD_RECVCAMSHARESTART              = 255,  // Cam聊天开始通知（仅女士端）
+	TCMD_RECVCAMHEARBEATEXCEPTION       = 287,  // Cam心跳包异常更新通知
 } TASK_CMD_TYPE;
 
 // 判断是否客户端主动请求的命令
@@ -151,6 +163,13 @@ inline bool IsRequestCmd(int cmd)
 	case TCMD_SENDAUTOINVITE:       //启动/关闭发送自动邀请消息(仅女士)
 	case TCMD_GETAUTOINVITESTATUS:  //获取发送自动邀请消息状态(仅女士)
 	case TCMD_SENDTHEMERECOMMEND:   //女士推荐男士购买主题包(仅女士)
+	case TCMD_GETLADYCAMSTATUS:     // 获取女士Cam状态 （仅男士端）
+	case TCMD_SENDCAMSHAREINVITE:   // 发送CamShare邀请
+	case TCMD_APPLYCAMSHARE:        // 男士发起CamShare并开始扣费（仅男士端）
+	case TCMD_LADYACCEPTCAMINVITE:  // 女士接受男士Cam邀请(仅女士端)
+	case TCMD_CAMSHAREHEARBEAT:     // CamShare聊天扣费心跳
+	case TCMD_GETUSERSCAMSTATUS:    // 批量获取女士端Cam状态（仅男士端）
+	case TCMD_GETSESSIONINFO:          //获取会话信息（仅男士端使用）
 		result = true;	// 主动请求的命令
 		break;
 	default:

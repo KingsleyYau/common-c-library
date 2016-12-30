@@ -107,6 +107,10 @@ public:
 					ladyprofile = permission[AUTHORIZATION_LADYPROFILE].asInt();
 				}
 
+				if( permission[AUTHORIZATION_CAMSHARE].isInt() ) {
+					camshare = permission[AUTHORIZATION_CAMSHARE].asInt();
+				}
+
 				if( permission[AUTHORIZATION_LIVECHAT].isInt() ) {
 					livechat = permission[AUTHORIZATION_LIVECHAT].asInt();
 				}
@@ -163,6 +167,7 @@ public:
 
 		premit = true;
 		ladyprofile = false;
+		camshare = false;
 		livechat = false;
 		livechat_invite = 0;
 		admirer = false;
@@ -197,6 +202,7 @@ public:
 	 * @param videoreceived		微视频接收权限（true：允许，false：不能）
 	 * @param premit			帐号可用状态
 	 * @param ladyprofile		女士详细信息风控标识（true：有风控，false：无）
+	 * @param camshare          Camshare详细风控标识（true：有风控，false：无）
 	 * @param livechat			LiveChat详细风控标识（true：有风控，false：无）
 	 * @param livechat_invite	聊天邀请（0：不作任何限制 ，1：限制发送信息，2：限制接受邀请，3 ：收发全部限制；）
 	 * @param admirer			意向信风控标识（true：有风控，false：无）
@@ -224,6 +230,7 @@ public:
 	bool photoreceived;
 	bool premit;
 	bool ladyprofile;
+	bool camshare;
 	bool livechat;
 	int livechat_invite;
 	bool admirer;

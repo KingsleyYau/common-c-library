@@ -63,6 +63,7 @@
 #define AUTHORIZATION_PREMIT			"premit"
 
 #define AUTHORIZATION_PERMISSION		"permission"
+#define AUTHORIZATION_CAMSHARE		    "camshare"
 #define AUTHORIZATION_LADYPROFILE		"ladyprofile"
 #define AUTHORIZATION_LIVECHAT			"livechat"
 #define AUTHORIZATION_LIVECHAT_INVITE	"livechat_invite"

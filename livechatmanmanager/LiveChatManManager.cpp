@@ -1103,25 +1103,27 @@ void LiveChatManManager::SendMessageListFailProc(LCUserItem* userItem, LCC_ERR_T
 // 发送消息item
 void LiveChatManManager::SendMessageItem(LCMessageItem* item)
 {
-	// 发送消息
-	switch (item->m_msgType)
-	{
-	case LCMessageItem::MT_Text:
-		SendTextMessageProc(item);
-		break;
-	case LCMessageItem::MT_Emotion:
-		SendEmotionProc(item);
-		break;
-	case LCMessageItem::MT_Photo:
-		SendPhotoProc(item);
-		break;
-	case LCMessageItem::MT_Voice:
-		SendVoiceProc(item);
-		break;
-	default:
-		FileLog("LiveChatManager", "SendMessageList() msgType error, msgType:%s", item->m_msgType);
-		break;
-	}
+    // 发送消息
+    switch (item->m_msgType)
+    {
+        case LCMessageItem::MT_Text:
+            SendTextMessageProc(item);
+            break;
+        case LCMessageItem::MT_Emotion:
+            SendEmotionProc(item);
+            break;
+        case LCMessageItem::MT_Photo:
+            SendPhotoProc(item);
+            break;
+        case LCMessageItem::MT_Voice:
+            SendVoiceProc(item);
+            break;
+        case LCMessageItem::MT_MagicIcon:
+            SendMagicIconProc(item);
+        default:
+            FileLog("LiveChatManager", "SendMessageList() msgType error, msgType:%s", item->m_msgType);
+            break;
+    }
 }
 
 // ---------------- 文字聊天操作函数(message) ----------------
@@ -1487,7 +1489,7 @@ void LiveChatManManager::SendPhotoProc(LCMessageItem* item)
 }
 
 // 购买图片（包括付费购买图片(php)）
-bool LiveChatManManager::PhotoFee(const string& userId, int msgId)
+bool LiveChatManManager::PhotoFee(const string& userId, const string& photoId)
 {
 	bool result = false;
 	LCUserItem* userItem = m_userMgr->GetUserItem(userId);
@@ -1495,15 +1497,33 @@ bool LiveChatManManager::PhotoFee(const string& userId, int msgId)
 		FileLog("LiveChatManager", "PhotoFee() get user item fail, userId:%s", userId.c_str());
 		return false;
 	}
-
-	LCMessageItem* item = userItem->GetMsgItemWithId(msgId);
-	if (NULL == item) {
-		FileLog("LiveChatManager", "PhotoFee() get message item fail, msgId:%d", msgId);
-		return false;
-	}
+    
+    
+    
+    LCMessageItem* item = NULL;
+    LCMessageList listItem = m_photoMgr->GetMsgListWithBindMap(photoId);
+    for (LCMessageList::const_iterator msgIter = listItem.begin();  msgIter != listItem.end(); msgIter++) {
+        if ( (*msgIter)->GetUserItem() == userItem) {
+            item = *msgIter;
+            break;
+        }
+    }
+    if (NULL == item) {
+        FileLog("LiveChatManager", "GetPhoto() get message item fail, photoId;%s", photoId.c_str());
+        return false;
+    }
+    
+//    result = GetPhoto(item, sizeType);
+//    
+//    
+//    LCMessageItem* item = userItem->GetMsgItemWithId(msgId);
+//	if (NULL == item) {
+//		FileLog("LiveChatManager", "PhotoFee() get message item fail, msgId:%d", msgId);
+//		return false;
+//	}
     
     if (!m_isLogin) {
-        FileLog("LiveChatManager", "PhotoFee() m_isLogin:%d, msgId:%d", m_isLogin, msgId);
+        FileLog("LiveChatManager", "PhotoFee() m_isLogin:%d, msgId:%d", m_isLogin);
         return false;
     }
 
@@ -1556,25 +1576,33 @@ bool LiveChatManManager::PhotoFee(LCMessageItem* item)
 }
 
 // 根据消息ID获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）
-bool LiveChatManManager::GetPhoto(const string& userId, int msgId, GETPHOTO_PHOTOSIZE_TYPE sizeType)
+bool LiveChatManManager::GetPhoto(const string& userId, const string& photoId, GETPHOTO_PHOTOSIZE_TYPE sizeType, LCMessageItem::SendType sendType)
 {
-	bool result = false;
-	LCUserItem* userItem = m_userMgr->GetUserItem(userId);
-	if (NULL == userItem) {
-		FileLog("LiveChatManager", "GetPhoto() get user item fail, userId:%s", userId.c_str());
-		return false;
-	}
-
-	LCMessageItem* item = userItem->GetMsgItemWithId(msgId);
-	if (NULL == item) {
-		FileLog("LiveChatManager", "GetPhoto() get message item fail, msgId:%d", msgId);
-		return false;
-	}
-
-	result = GetPhoto(item, sizeType);
-
-	return result;
+    bool result = false;
+    LCUserItem* userItem = m_userMgr->GetUserItem(userId);
+    if (NULL == userItem) {
+        FileLog("LiveChatManager", "GetPhoto() get user item fail, userId;%s", userId.c_str());
+        return false;
+    }
+    
+    LCMessageItem* item = NULL;
+    LCMessageList listItem = m_photoMgr->GetMsgListWithBindMap(photoId);
+    for (LCMessageList::const_iterator msgIter = listItem.begin();  msgIter != listItem.end(); msgIter++) {
+        if ( (*msgIter)->m_sendType == sendType && (*msgIter)->GetUserItem() == userItem) {
+            item = *msgIter;
+            break;
+        }
+    }
+    if (NULL == item) {
+        FileLog("LiveChatManager", "GetPhoto() get message item fail, photoId;%s", photoId.c_str());
+        return false;
+    }
+    
+    result = GetPhoto(item, sizeType);
+    
+    return result;
 }
+
 
 // 获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）
 bool LiveChatManManager::GetPhoto(LCMessageItem* item, GETPHOTO_PHOTOSIZE_TYPE sizeType)
@@ -2536,7 +2564,7 @@ void LiveChatManManager::OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err,
     }
 }
 
-void LiveChatManManager::OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList)
+void LiveChatManManager::OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const list<string>& userIdList,const UserInfoList& userList)
 {
     if (err == LCC_ERR_SUCCESS)
     {
@@ -2699,7 +2727,7 @@ void LiveChatManManager::OnRecvAutoChargeResult(const string& manId, double mone
 
 }
 
-void LiveChatManManager::OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message)
+void LiveChatManManager::OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message,INVITE_TYPE inviteType)
 {
 	FileLog("LiveChatManager", "OnRecvMessage() begin, fromId:%s, ticket:%d, message:%s", fromId.c_str(), ticket, message.c_str());
 

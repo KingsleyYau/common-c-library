@@ -58,6 +58,7 @@ public:
 	 * @param photoList			图片URL列表
 	 * @param videoList			视频列表
 	 * @param photoLockNum      锁定的相片数量
+	 * @param camStatus         Cam是否打开
 	 */
 
 	string womanid;
@@ -93,6 +94,7 @@ public:
 	list<string> photoList;
 	list<VideoItem> videoList;
 	int photoLockNum;
+	bool camStatus;
 };
 
 #endif /* LADYDETAIL_H_ */

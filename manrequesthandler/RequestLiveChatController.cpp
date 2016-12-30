@@ -815,14 +815,19 @@ void RequestLiveChatController::onReceiveBody(long requestId, string url, const 
 /**
  * 5.1.查询是否符合试聊条件
  * @param womanId			女士ID
+ * @param serviceType       服务类型
  * @return					请求唯一标识
  */
-long RequestLiveChatController::CheckCoupon(string womanId) {
+long RequestLiveChatController::CheckCoupon(string womanId, int serviceType) {
 	HttpEntiy entiy;
+	char temp[16] = {0};
 
 	if( womanId.length() > 0 ) {
 		entiy.AddContent(LIVECHAT_WOMAN_ID, womanId);
 	}
+
+	sprintf(temp, "%d", serviceType);
+	entiy.AddContent(LIVECHAT_SERVICE_TYPE, temp);
 
 	string url = CHECK_COUPON_PATH;
 	FileLog("httprequest", "RequestLiveChatController::CheckCoupon( "
@@ -846,14 +851,19 @@ long RequestLiveChatController::CheckCoupon(string womanId) {
 /**
  * 5.2.使用试聊券
  * @param womanId			女士ID
+ * @param serviceType       服务类型
  * @return					请求唯一标识
  */
-long RequestLiveChatController::UseCoupon(string womanId) {
+long RequestLiveChatController::UseCoupon(string womanId, int serviceType) {
 	HttpEntiy entiy;
+	char temp[16] = {0};
 
 	if( womanId.length() > 0 ) {
 		entiy.AddContent(LIVECHAT_WOMAN_ID, womanId);
 	}
+
+	sprintf(temp, "%d", serviceType);
+	entiy.AddContent(LIVECHAT_SERVICE_TYPE, temp);
 
 	string url = USE_COUPON_PATH;
 	FileLog("httprequest", "RequestLiveChatController::UseCoupon( "

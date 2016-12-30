@@ -65,6 +65,8 @@ public:
 
 	// 比较函数
 	static bool Sort(LCUserItem* item1, LCUserItem* item2);
+    
+    void isSamePhotoId(LCMessageItem* messageItem);
 
 public:
 	// 聊天消息列表加锁

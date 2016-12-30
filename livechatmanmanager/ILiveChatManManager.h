@@ -215,9 +215,11 @@ public:
 	// 发送图片（包括上传图片文件(php)、发送图片(livechat)）
 	virtual LCMessageItem* SendPhoto(const string& userId, const string& photoPath) = 0;
 	// 购买图片（包括付费购买图片(php)）
-	virtual bool PhotoFee(const string& userId, int msgId) = 0;
-	// 根据消息ID获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）
-	virtual bool GetPhoto(const string& userId, int msgId, GETPHOTO_PHOTOSIZE_TYPE sizeType) = 0;
+	//virtual bool PhotoFee(const string& userId, int msgId) = 0;
+    // 购买图片（包括付费购买图片(php)）
+    virtual bool PhotoFee(const string& userId, const string& photoId) = 0;
+	// 根据消息ID获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）    
+    virtual bool GetPhoto(const string& userId, const string& photoId, GETPHOTO_PHOTOSIZE_TYPE sizeType, LCMessageItem::SendType sendType) = 0;
 
 	// --------- 视频消息 --------
 	// 获取微视频图片

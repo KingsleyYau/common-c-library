@@ -52,6 +52,11 @@ public:
 			if( root[LADY_LASTTIME].isIntegral() ) {
 				lasttime = root[LADY_LASTTIME].asInt();
 			}
+
+			if( root[LADY_CAN_CAM].isInt() ) {
+				int status = root[LADY_CAN_CAM].asInt();
+				camStatus = (status == 1)?true:false;
+			}
 		}
 
 		if (!womanId.empty()) {
@@ -69,6 +74,7 @@ public:
 		isFavorite = false;
 		videoCount = 0;
 		lasttime = 0;
+		camStatus = false;
 	}
 
 	virtual ~LadyRecentContact() {
@@ -83,6 +89,7 @@ public:
 	bool isFavorite;
 	int videoCount;
 	long lasttime;
+	bool camStatus;
 };
 
 #endif /* LADYRECENTCONTACT_H_ */

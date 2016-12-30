@@ -96,16 +96,18 @@ public:
 	/**
 	 * 5.1.查询是否符合试聊条件
 	 * @param womanId			女士ID
+	 * @param serviceType       服务类型
 	 * @return					请求唯一标识
 	 */
-	long CheckCoupon(string womanId);
+	long CheckCoupon(string womanId, int serviceType = 0);
 
 	/**
 	 * 5.2.使用试聊券
 	 * @param womanId			女士ID
+	 * @param serviceType       服务类型
 	 * @return					请求唯一标识
 	 */
-	long UseCoupon(string womanId);
+	long UseCoupon(string womanId, int serviceType = 0);
 
 	/**
 	 * 5.3.获取虚拟礼物列表

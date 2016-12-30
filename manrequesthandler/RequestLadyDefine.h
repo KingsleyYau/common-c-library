@@ -38,6 +38,7 @@
 #define LADY_PHOTO_BIG_URL 		"photoBigURL"
 #define LADY_ONLINE_STATUS		"online_status"
 #define LADY_GENDER             "gender"        // 用于假服务器
+#define LADY_CAN_CAM            "camStatus"
 
 /* 4.4.查询女士详细信息 */
 #define LADY_ZODIAC				"zodiac"

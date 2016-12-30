@@ -270,8 +270,8 @@ bool ParsingUserInfoItem(amf_object_handle handle, UserInfoItem& item)
 bool ParsingThemeInfoItem(amf_object_handle handle, ThemeInfoItem& item)
 {
 	bool result = false;
-	
-	if (!handle.isnull() && handle->type == DT_OBJECT) 
+
+	if (!handle.isnull() && handle->type == DT_OBJECT)
 	{
 		// themeId
 		amf_object_handle themeIdObject = handle->get_child(THEMEINFO_THEMEID_PARAM);
@@ -331,6 +331,130 @@ bool ParsingThemeInfoItem(amf_object_handle handle, ThemeInfoItem& item)
 		{
 			double updateTime = updateTimeObject->doubleValue / 1000;
 			item.updateTime = (int)updateTime;
+		}
+
+		// 解析成功
+		result = true;
+	}
+
+	return result;
+}
+
+
+// 用户会话信息（SessionInfo）
+#define	SESSIONINFO_TARGETID_PARAM		"targetId"
+#define SESSIONINFO_INVITEID_PARAM		"invitedId"
+#define SESSIONINFO_CHARGET_PARAM		"chatget"
+#define SESSIONINFO_CHATTIME_PARAM		"chatTime"
+#define SESSIONINFO_FREECHAT_PARAM		"freeChat"
+#define SESSIONINFO_VIDEO_PARAM		    "video"
+#define SESSIONINFO_VIDEOTYPE_PARAM	    "videoType"
+#define SESSIONINFO_VIDEOTIME_PARAM		"videoTime"
+#define SESSIONINFO_FREETARGET_PARAM	"freeTarget"
+#define SESSIONINFO_FORBIT_PARAM		"forbit"
+#define SESSIONINFO_INVITETIME_PARAM	"inviteDtime"
+#define SESSIONINFO_CAMINVITED_PARAM	"camInvited"
+// 解析会话信息
+bool ParsingSessionInfoItem(amf_object_handle handle, SessionInfoItem& item)
+{
+	bool result = false;
+	
+	if (!handle.isnull() && handle->type == DT_OBJECT) 
+	{
+		// targetId
+		amf_object_handle targetIdObject = handle->get_child(SESSIONINFO_TARGETID_PARAM);
+		if (!targetIdObject.isnull()
+			&& targetIdObject->type == DT_STRING)
+		{
+			item.targetId = targetIdObject->strValue;
+		}
+
+		// invitedId
+		amf_object_handle invitedIdObject = handle->get_child(SESSIONINFO_INVITEID_PARAM);
+		if (!invitedIdObject.isnull()
+			&& invitedIdObject->type == DT_STRING)
+		{
+			item.invitedId = invitedIdObject->strValue;
+		}
+
+		// chatget
+		amf_object_handle chatgetObject = handle->get_child(SESSIONINFO_CHARGET_PARAM);
+		if (!chatgetObject.isnull()
+			&& (chatgetObject->type == DT_TRUE || chatgetObject->type == DT_FALSE))
+		{
+			item.charget = chatgetObject->type == DT_TRUE;
+		}
+
+		// chatTime
+		amf_object_handle chatTimeObject = handle->get_child(SESSIONINFO_CHATTIME_PARAM);
+		if (!chatTimeObject.isnull()
+			&& chatTimeObject->type == DT_INTEGER)
+		{
+			item.chatTime = chatTimeObject->intValue;
+		}
+
+		// freeChat
+		amf_object_handle freeChatObject = handle->get_child(SESSIONINFO_FREECHAT_PARAM);
+		if (!freeChatObject.isnull()
+			&& (freeChatObject->type == DT_TRUE || freeChatObject->type == DT_FALSE))
+		{
+			item.freeChat = freeChatObject->type == DT_TRUE;
+		}
+
+		// video
+		amf_object_handle videoObject = handle->get_child(SESSIONINFO_VIDEO_PARAM);
+		if (!videoObject.isnull()
+			&& (videoObject->type == DT_TRUE || videoObject->type == DT_FALSE))
+		{
+			item.video = videoObject->type == DT_TRUE;
+		}
+
+		// videoType
+		amf_object_handle videoTypeObject = handle->get_child(SESSIONINFO_VIDEOTYPE_PARAM);
+		if (!videoTypeObject.isnull()
+			&& videoTypeObject->type == DT_INTEGER)
+		{
+			item.videoType = videoTypeObject->intValue;
+		}
+
+		// videoTime
+		amf_object_handle videoTimeObject = handle->get_child(SESSIONINFO_VIDEOTIME_PARAM);
+		if (!videoTimeObject.isnull()
+			&& videoTimeObject->type == DT_INTEGER)
+		{
+			item.videoTime = videoTimeObject->intValue;
+		}
+
+		// freeTarget
+		amf_object_handle freeTargetObject = handle->get_child(SESSIONINFO_FREETARGET_PARAM);
+		if (!freeTargetObject.isnull()
+			&& (freeTargetObject->type == DT_TRUE || freeTargetObject->type == DT_FALSE))
+		{
+			item.freeTarget = freeTargetObject->type == DT_TRUE;
+		}
+
+		// forbit
+		amf_object_handle forbitObject = handle->get_child(SESSIONINFO_FORBIT_PARAM);
+		if (!forbitObject.isnull()
+			&& (forbitObject->type == DT_TRUE || forbitObject->type == DT_FALSE))
+		{
+			item.forbit = forbitObject->type == DT_TRUE;
+		}
+
+		// inviteDtime
+		amf_object_handle inviteDtimeObject = handle->get_child(SESSIONINFO_INVITETIME_PARAM);
+		if (!inviteDtimeObject.isnull()
+			&& inviteDtimeObject->type == DT_INTEGER)
+		{
+			item.inviteDtime = inviteDtimeObject->intValue;
+		}
+
+		// camInvited
+		amf_object_handle camInvitedObject = handle->get_child(SESSIONINFO_CAMINVITED_PARAM);
+		if (!camInvitedObject.isnull()
+			&& (camInvitedObject->type == DT_TRUE || camInvitedObject->type == DT_FALSE))
+		{
+			item.camInvited = camInvitedObject->type == DT_TRUE;
 		}
 
 		// 解析成功

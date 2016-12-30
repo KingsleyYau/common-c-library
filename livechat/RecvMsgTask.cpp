@@ -21,6 +21,7 @@
 #define TICKET_PARAM		"ticket"		// 票根
 #define MSGTYPE_PARAM		"msgType"		// 消息类型
 #define MESSAGE_PARAM		"msg"			// 消息内容
+#define INVITETYPE_PARAM    "inviteType"    // 邀请类型
 
 RecvMsgTask::RecvMsgTask(void)
 {
@@ -30,14 +31,15 @@ RecvMsgTask::RecvMsgTask(void)
 	m_errType = LCC_ERR_FAIL;
 	m_errMsg = "";
 
-	m_toId = "";
-	m_fromId = "";
-	m_fromName = "";
-	m_inviteId = "";
-	m_charge = false;
-	m_ticket = 0;
-	m_msgType = TMT_UNKNOW;
-	m_message = "";
+	m_toId       = "";
+	m_fromId     = "";
+	m_fromName   = "";
+	m_inviteId   = "";
+	m_charge     = false;
+	m_ticket     = 0;
+	m_msgType    = TMT_UNKNOW;
+	m_message    = "";
+	m_inviteType = INVITE_TYPE_UNKNOW; 
 }
 
 RecvMsgTask::~RecvMsgTask(void)
@@ -61,7 +63,7 @@ bool RecvMsgTask::Handle(const TransportProtocol* tp)
 {
 	bool result = false;
 		
-	AmfParser parser;
+	AmfParser parser;//amf Decode对数据解密
 	amf_object_handle root = parser.Decode((char*)tp->data, tp->GetDataLength());
 	if (!root.isnull()
 		&& root->type == DT_OBJECT)
@@ -121,13 +123,20 @@ bool RecvMsgTask::Handle(const TransportProtocol* tp)
 		if (result) {
 			m_message = msgObject->strValue;
 		}
+
+		// inviteType
+		amf_object_handle inviteTypeObject = root->get_child(INVITETYPE_PARAM);
+		result = !inviteTypeObject.isnull() && inviteTypeObject->type == DT_INTEGER;
+		if (result) {
+			m_inviteType = GetInviteType(inviteTypeObject->intValue);
+		}
 	}
 
 	// 通知listener
 	if (NULL != m_listener 
 		&& result) 
 	{
-		m_listener->OnRecvMessage(m_toId, m_fromId, m_fromName, m_inviteId, m_charge, m_ticket, m_msgType, m_message);
+		m_listener->OnRecvMessage(m_toId, m_fromId, m_fromName, m_inviteId, m_charge, m_ticket, m_msgType, m_message, m_inviteType);
 	}
 	
 	return result;

@@ -51,6 +51,9 @@ typedef enum {
 	LCC_ERR_SUBJECTEXCEPTION		= -29,		// 主题异常
 	LCC_ERR_SUBJECTEXISTEXCEPTION	= -30,		// 主题存在异常
 	LCC_ERR_SUBJECTNOTEXISTEXCEPTION= -31,		// 主题不存在异常
+	LCC_ERR_CAMCHATSERVICEEXCEPTION     = -32,  // 视频聊天异常
+    LCC_ERR_CAMSERVICEUNSTARTEXCEPTION  = -33,  // 视频服务未启动异常
+    LCC_ERR_NOCAMSERVICEEXCEPTION       = -34,  // 没有视频服务异常
 	
 	// 客户端定义的错误
 	LCC_ERR_PROTOCOLFAIL	= -10001,	// 协议解析失败（服务器返回的格式不正确）
@@ -141,10 +144,16 @@ typedef enum {
 	USTATUSPRO_UNBIND = 4,					// 没有绑定翻译
 	USTATUSPRO_VIDEOOPEN = 5,				// 视频开放
 	USTATUSPRO_VIDEOCLOSE = 6,				// 视频关闭
+	USTATUSPRO_CAMOPEN = 7,                 // Cam打开
+	USTATUSPRO_CAMCLOSE = 8,                // Cam关闭
 	USTATUSPRO_UNKNOW,			// 未知
 	USTATUSPRO_BEGIN = USTATUSPRO_OFFLINE_OR_HIDDEN,	// 有效范围起始值
 	USTATUSPRO_END = USTATUSPRO_UNKNOW,	// 有效范围结束值
 } USER_STATUS_PROTOCOL;
+// int 转换 USER_STATUS_PROTOCOL
+inline USER_STATUS_PROTOCOL GetUserStatusProtocol(int value) {
+	return USTATUSPRO_BEGIN <= value && value < USTATUSPRO_END ? (USER_STATUS_PROTOCOL)value : USTATUSPRO_UNKNOW;
+}
 typedef enum {
 	USTATUS_OFFLINE_OR_HIDDEN	= 0,	// 离线/隐身
 	USTATUS_ONLINE	= 1,				// 在线
@@ -166,6 +175,8 @@ inline USER_STATUS_TYPE GetUserStatusType(int value) {
 	case USTATUSPRO_BIND:
 	case USTATUSPRO_VIDEOOPEN:
 	case USTATUSPRO_VIDEOCLOSE:
+	case USTATUSPRO_CAMOPEN:
+    case USTATUSPRO_CAMCLOSE:
 		statusType = USTATUS_ONLINE;
 		break;
 	case USTATUSPRO_UNBIND:
@@ -213,6 +224,20 @@ inline TALK_MSG_TYPE GetTalkMsgType(int value) {
 		// 把已废弃的免费类型转换为TMT_FREE
 		msgType = TMT_FREE;
 	}
+	return msgType;
+}
+
+// 邀请消息类型
+typedef enum {
+	INVITE_TYPE_CHAT		= 0,		     // livechat
+	INVITE_TYPE_CAMSHARE    = 1,		     // camshare
+	INVITE_TYPE_UNKNOW,				        // 未知
+	INVITE_TYPE_BEGIN = INVITE_TYPE_CHAT,	// 有效范围起始值
+	INVITE_TYPE_END = INVITE_TYPE_UNKNOW,	// 有效范围结束值
+} INVITE_TYPE;
+// int 转换 TALK_MSG_TYPE
+inline INVITE_TYPE GetInviteType(int value) {
+	INVITE_TYPE msgType = INVITE_TYPE_BEGIN <= value && value < INVITE_TYPE_END ? (INVITE_TYPE)value : INVITE_TYPE_UNKNOW;
 	return msgType;
 }
 
@@ -404,23 +429,70 @@ typedef list<UserInfoItem> UserInfoList;
 // 邀请/在聊user列表
 typedef list<TalkUserListItem> TalkUserList;
 
+// 会话信息Item（CMD 87/55）
+typedef struct _tagSessionInfoItem {
+	string	targetId;	// 聊天对象ID
+	string	invitedId;	// 邀请ID
+	bool	charget;	// 是否已付费
+	int		chatTime;	// 聊天时长
+	bool    freeChat;   //是否正在使用试聊券
+	bool    video;      //是否存在视频
+	int     videoType;  //视频类型
+	int     videoTime;  //视频有效期
+	bool    freeTarget; //是否试聊券已经绑定目标
+	bool    forbit;     //是否禁止
+	int     inviteDtime;//最后发送时间
+	bool    camInvited; //是否CamShare会话
+	_tagSessionInfoItem() {
+		targetId = "";
+		invitedId = "";
+		charget = false;
+		chatTime = 0;
+		freeChat = false;
+		video = false;
+		videoType = 0;
+		videoTime = 0;
+		freeTarget = false;
+		forbit = false;
+		inviteDtime = 0;
+		camInvited = false;
+	}
+	_tagSessionInfoItem(const _tagSessionInfoItem& item) {
+		targetId = item.targetId;
+		invitedId = item.invitedId;
+		charget = item.charget;
+		chatTime = item.chatTime;
+		freeChat = item.freeChat;
+		video = item.video;
+		videoType = item.videoType;
+		videoTime = item.videoTime;
+		freeTarget = item.freeTarget;
+		forbit = item.forbit;
+		inviteDtime = item.inviteDtime;
+		camInvited = item.camInvited;
+	}
+} SessionInfoItem;
+
 // 邀请/在聊session列表item
 typedef struct _tagTalkSessionListItem {
 	string	targetId;	// 聊天对象ID
 	string	invitedId;	// 邀请ID
 	bool	charget;	// 是否已付费
 	int		chatTime;	// 聊天时长
+	int     serviceType;//服务类型（0：livechat 1： camshare）
 	_tagTalkSessionListItem() {
 		targetId = "";
 		invitedId = "";
 		charget = false;
 		chatTime = 0;
+		serviceType = 0;
 	}
 	_tagTalkSessionListItem(const _tagTalkSessionListItem& item) {
 		targetId = item.targetId;
 		invitedId = item.invitedId;
 		charget = item.charget;
 		chatTime = item.chatTime;
+		serviceType = item.serviceType;
 	}
 } TalkSessionListItem;
 // 邀请/在聊session列表
@@ -562,3 +634,31 @@ typedef struct _tagThemeInfoItem {
 	}
 } ThemeInfoItem;
 typedef list<ThemeInfoItem> ThemeInfoList;
+
+// 女士用户Cam状态类型
+typedef enum {
+
+	USTATUS_CAM_OFF	= 0,	// 关闭
+	USTATUS_CAM_ON	= 1,	// 打开
+	USTATUS_CAM_UNKNOW = 2,	// 未知
+} USER_CAM_STATUS_TYPE;
+// 女士用户Cam状态item
+typedef struct _tagUserCamStatusItem
+{
+	USER_CAM_STATUS_TYPE	statusType;	// 用户Cam状态
+	string				userId;		// 用户Id
+	
+	_tagUserCamStatusItem()  {
+		Reset();
+	}
+	_tagUserCamStatusItem(const _tagUserCamStatusItem& item) {
+		statusType = item.statusType;
+		userId = item.userId;
+	}
+	void Reset() {
+		statusType = USTATUS_CAM_OFF;
+		userId = "";
+	}
+} UserCamStatusItem;
+typedef list<UserCamStatusItem> UserCamStatusList;
+

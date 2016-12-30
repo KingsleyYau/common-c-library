@@ -60,6 +60,11 @@ public:
 				onlineStatus = (LADY_OSTATUS_BEGIN <= status && status <= LADY_OSTATUS_END
 										? (LadyOnlineStatus)status : LADY_OSTATUS_DEFAULT);
 			}
+
+			if( root[LADY_CAN_CAM].isInt() ) {
+				int status = root[LADY_CAN_CAM].asInt();
+				camStatus = (status == 1)?true:false;
+			}
 		}
 	}
 
@@ -74,6 +79,7 @@ public:
 		province = "";
 		photoURL = "";
 		onlineStatus = LADY_OSTATUS_DEFAULT;
+		camStatus = false;
 	}
 	virtual ~Lady() {
 
@@ -90,6 +96,7 @@ public:
 	 * @param province		省份
 	 * @param photoURL		图片URL
 	 * @param onlineStatus	在线状态
+	 * #param camStatus     Cam是否打开
 	 */
 	int age;
 	string womanid;
@@ -101,6 +108,7 @@ public:
 	string province;
 	string photoURL;
 	LadyOnlineStatus onlineStatus;
+	bool camStatus;
 };
 
 #endif /* LADY_H_ */

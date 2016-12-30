@@ -512,9 +512,11 @@ public:
 			apkFileVerify = "";
 			apkVerURL = "";
 			chatVoiceHostUrl = "";
+			camshareHost = "";
 			addCreditsUrl = "";
 			addCredits2Url = "";
 			ipcountry = GetOtherCountryCode();
+			gcmProjectId = "";
             iOSVerCode = 0;
             iOSVerName = "";
             iOSForceUpdate = 0;
@@ -553,6 +555,9 @@ public:
 				if (data[OTHER_SYNCONFIG_CHATVOICEURL].isString()) {
 					chatVoiceHostUrl = data[OTHER_SYNCONFIG_CHATVOICEURL].asString();
 				}
+				if (data[OTHER_SYNCONFIG_CAMSHAREHOST].isString()) {
+					camshareHost = data[OTHER_SYNCONFIG_CAMSHAREHOST].asString();
+				}
 				if (data[OTHER_SYNCONFIG_ADDCREDITSURL].isString()) {
 					addCreditsUrl = data[OTHER_SYNCONFIG_ADDCREDITSURL].asString();
 				}
@@ -566,6 +571,10 @@ public:
 				if( data[OTHER_SYNCONFIG_IPCOUNTRY].isString() ) {
 					string strCountry = data[OTHER_SYNCONFIG_IPCOUNTRY].asString();
 					ipcountry = GetCountryCode(strCountry);
+				}
+
+				if (data[OTHER_SYNCONFIG_GCMPROJECTID].isString()) {
+					gcmProjectId = data[OTHER_SYNCONFIG_GCMPROJECTID].asString();
 				}
 
                 // iOS
@@ -597,9 +606,11 @@ public:
 		string	apkVerURL;		// 安装包下载URL
 		string	apkStoreURL;	// Store URL
 		string	chatVoiceHostUrl;	// LiveChat语音下载/上传
+		string  camshareHost; //CamShare 服务器地址
 		string	addCreditsUrl;	// 选择点数充值页面URL
 		string	addCredits2Url;	// 指定点数充值页面URL
 		int  ipcountry; //当前IP对应的国家代码
+		string gcmProjectId; //gcm 项目ID
         
         int		iOSVerCode;		// iOS客户端内部版本号
         string	iOSVerName;		// iOS客户端版本名称

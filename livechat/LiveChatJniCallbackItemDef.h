@@ -22,4 +22,10 @@
 // LiveChatPaidThemeInfo
 #define LIVECHAT_PAID_THEME_INFO       "com/qpidnetwork/livechat/jni/LCPaidThemeInfo"
 
+// LiveChatUserCamStatus
+#define LIVECHAT_USERCAMSTATUS_CLASS	"com/qpidnetwork/livechat/jni/LiveChatUserCamStatus"
+
+//LiveChatSessionInfoItem
+#define LIVECHAT_SESSIONINFO_CLASS		"com/qpidnetwork/livechat/jni/LiveChatSessionInfoItem"
+
 #endif /* LIVECHATJNICALLBACKITEMDEF_H_ */

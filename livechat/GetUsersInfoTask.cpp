@@ -93,7 +93,7 @@ bool GetUsersInfoTask::Handle(const TransportProtocol* tp)
 
 	// 通知listener
 	if (NULL != m_listener) {
-		m_listener->OnGetUsersInfo(m_errType, m_errMsg, m_seq, userInfoList);
+		m_listener->OnGetUsersInfo(m_errType, m_errMsg, m_seq, m_userIdList, userInfoList);
 	}
 
 	return result;
@@ -193,6 +193,6 @@ void GetUsersInfoTask::OnDisconnect()
 {
 	if (NULL != m_listener) {
 		UserInfoList userInfoList;
-		m_listener->OnGetUsersInfo(LCC_ERR_CONNECTFAIL, "", m_seq, userInfoList);
+		m_listener->OnGetUsersInfo(LCC_ERR_CONNECTFAIL, "", m_seq, m_userIdList, userInfoList);
 	}
 }

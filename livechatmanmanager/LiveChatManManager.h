@@ -122,113 +122,114 @@ public:
 					, const string& appVer
 					, const string& path
 					, double minBalance
-					, ILiveChatManManagerListener* listener);
+					, ILiveChatManManagerListener* listener) override;
 	// 登录
-	virtual bool Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg);
+	virtual bool Login(const string& userId, const string& sid, CLIENT_TYPE clientType, const list<string>& cookies, const string& deviceId, bool isRecvVideoMsg) override;
 	// 注销
-	virtual bool Logout(bool isResetParam);
+	virtual bool Logout(bool isResetParam) override;
     // 重新登录
-    virtual bool Relogin();
+    virtual bool Relogin() override;
 	// 是否已经登录
-	virtual bool IsLogin();
+	virtual bool IsLogin() override;
     // 是否获取历史记录
-    virtual bool IsGetHistory();
+    virtual bool IsGetHistory() override;
 
 	// ---------- 会话操作 ----------
 	// 检测是否可使用试聊券
-	virtual bool CheckCoupon(const string& userId);
+	virtual bool CheckCoupon(const string& userId) override;
 	// 结束会话
-	virtual bool EndTalk(const string& userId);
+	virtual bool EndTalk(const string& userId) override;
 
     // ---------- 在线状态操作 ----------
     // 获取用户状态(多个)
-    virtual bool GetUserStatus(const list<string>& userIds);
+    virtual bool GetUserStatus(const list<string>& userIds) override;
     
     // ---------- 获取用户信息操作 ----------
     // 获取用户信息
-    virtual bool GetUserInfo(const string& userId);
+    virtual bool GetUserInfo(const string& userId) override;
     // 获取多个用户信息
-    virtual bool GetUsersInfo(const list<string>& userList);
+    virtual bool GetUsersInfo(const list<string>& userList) override;
     
 	// ---------- 公共操作 ----------
 	// 获取指定消息Id的消息Item
-	virtual LCMessageItem* GetMessageWithMsgId(const string& userId, int msgId);
+	virtual LCMessageItem* GetMessageWithMsgId(const string& userId, int msgId) override;
 	// 获取指定用户Id的用户item
-	virtual LCUserItem* GetUserWithId(const string& userId);
+	virtual LCUserItem* GetUserWithId(const string& userId) override;
 	// 获取邀请的用户列表（使用前需要先完成GetTalkList()调用）
-	virtual LCUserList GetInviteUsers();
+	virtual LCUserList GetInviteUsers() override;
 	// 获取最后一个邀请用户
-	virtual LCUserItem* GetLastInviteUser();
+	virtual LCUserItem* GetLastInviteUser() override;
 	// 获取在聊用户列表（使用前需要先完成GetTalkList()调用）
-	virtual LCUserList GetChatingUsers();
+	virtual LCUserList GetChatingUsers() override;
     // 获取用户最后一条聊天消息
-    virtual LCMessageItem* GetLastMessage(const string& userId);
+    virtual LCMessageItem* GetLastMessage(const string& userId) override;
     // 获取对方最后一条聊天消息
-    virtual LCMessageItem* GetTheOtherLastMessage(const string& userId);
+    virtual LCMessageItem* GetTheOtherLastMessage(const string& userId) override;
 
 	// -------- 文本消息 --------
 	// 发送文本消息
-	virtual LCMessageItem* SendTextMessage(const string& userId, const string& message);
+	virtual LCMessageItem* SendTextMessage(const string& userId, const string& message) override;
 	// 获取单个用户历史聊天记录（包括文本、高级表情、语音、图片）
-	virtual bool GetHistoryMessage(const string& userId);
+	virtual bool GetHistoryMessage(const string& userId) override;
 	// 删除历史消息记录
-	virtual bool RemoveHistoryMessage(const string& userId, int msgId);
+	virtual bool RemoveHistoryMessage(const string& userId, int msgId) override;
 	// 插入历史消息记录
-	virtual bool InsertHistoryMessage(const string& userId, LCMessageItem* msgItem);
+	virtual bool InsertHistoryMessage(const string& userId, LCMessageItem* msgItem) override;
 	// 获取消息处理状态
-	virtual LCMessageItem::StatusType GetMessageItemStatus(const string& userId, int msgId);
+	virtual LCMessageItem::StatusType GetMessageItemStatus(const string& userId, int msgId) override;
 
 	// --------- 高级表情消息 --------
 	// 发送高级表情
-	virtual LCMessageItem* SendEmotion(const string& userId, const string& emotionId);
+	virtual LCMessageItem* SendEmotion(const string& userId, const string& emotionId) override;
 	// 获取高级表情配置item
-	virtual OtherEmotionConfigItem GetEmotionConfigItem() const;
+	virtual OtherEmotionConfigItem GetEmotionConfigItem() const override;
 	// 获取高级表情item
-	virtual LCEmotionItem* GetEmotionInfo(const string& emotionId);
+	virtual LCEmotionItem* GetEmotionInfo(const string& emotionId) override;
 	// 手动下载/更新高级表情图片文件
-	virtual bool GetEmotionImage(const string& emotionId);
+	virtual bool GetEmotionImage(const string& emotionId) override;
 	// 手动下载/更新高级表情图片文件
-	virtual bool GetEmotionPlayImage(const string& emotionId);
+	virtual bool GetEmotionPlayImage(const string& emotionId) override;
 
 	// ---------- 语音消息 ----------
 	// 发送语音（包括获取语音验证码(livechat)、上传语音文件(livechat)、发送语音(livechat)）
-	virtual LCMessageItem* SendVoice(const string& userId, const string& voicePath, const string& fileType, int timeLength);
+	virtual LCMessageItem* SendVoice(const string& userId, const string& voicePath, const string& fileType, int timeLength) override;
 	// 获取语音（包括下载语音(livechat)）
-	virtual bool GetVoice(const string& userId, int msgId);
+	virtual bool GetVoice(const string& userId, int msgId) override;
 
 	// ---------- 图片消息 ----------
 	// 发送图片（包括上传图片文件(php)、发送图片(livechat)）
-	virtual LCMessageItem* SendPhoto(const string& userId, const string& photoPath);
+	virtual LCMessageItem* SendPhoto(const string& userId, const string& photoPath) override;
 	// 购买图片（包括付费购买图片(php)）
-	virtual bool PhotoFee(const string& userId, int msgId);
+	//virtual bool PhotoFee(const string& userId, int msgId);
+    virtual bool PhotoFee(const string& userId, const string& photoId) override;
 	// 根据消息ID获取图片(模糊或清晰)（包括获取/下载对方私密照片(php)、显示图片(livechat)）
-	virtual bool GetPhoto(const string& userId, int msgId, GETPHOTO_PHOTOSIZE_TYPE sizeType);
+    virtual bool GetPhoto(const string& userId, const string& photoId, GETPHOTO_PHOTOSIZE_TYPE sizeType, LCMessageItem::SendType sendType) override;
 
 	// --------- 视频消息 --------
 	// 获取微视频图片
-	virtual bool GetVideoPhoto(const string& userId, const string& videoId, const string& inviteId);
+	virtual bool GetVideoPhoto(const string& userId, const string& videoId, const string& inviteId) override;
 	// 购买微视频
-	virtual bool VideoFee(const string& userId, int msgId);
+	virtual bool VideoFee(const string& userId, int msgId) override;
 	// 获取微视频播放文件
-	virtual bool GetVideo(const string& userId, const string& videoId, const string& inviteId, const string& videoUrl);
+	virtual bool GetVideo(const string& userId, const string& videoId, const string& inviteId, const string& videoUrl) override;
 	// 获取视频当前下载状态
-	virtual bool IsGetingVideo(const string& videoId);
+	virtual bool IsGetingVideo(const string& videoId) override;
 	// 获取视频图片文件路径（仅文件存在）
-	virtual string GetVideoPhotoPathWithExist(const string& userId, const string& inviteId, const string& videoId, VIDEO_PHOTO_TYPE type);
+	virtual string GetVideoPhotoPathWithExist(const string& userId, const string& inviteId, const string& videoId, VIDEO_PHOTO_TYPE type) override;
 	// 获取视频文件路径（仅文件存在）
-	virtual string GetVideoPathWithExist(const string& userId, const string& inviteId, const string& videoId);
+	virtual string GetVideoPathWithExist(const string& userId, const string& inviteId, const string& videoId) override;
     
     // --------- 小高级表情消息（小高表） --------
     // 发送小高级表情
-    virtual LCMessageItem* SendMagicIcon(const string& userId, const string& iconId);
+    virtual LCMessageItem* SendMagicIcon(const string& userId, const string& iconId) override;
     // 获取小高级表情配置item
-    virtual MagicIconConfig GetMagicIconConfigItem() const;
+    virtual MagicIconConfig GetMagicIconConfigItem() const override;
     // 获取小高级表情item
-    virtual LCMagicIconItem* GetMagicIconInfo(const string& magicIconId);
+    virtual LCMagicIconItem* GetMagicIconInfo(const string& magicIconId) override;
     // 手动下载／更新小高级表情原图
-    virtual bool GetMagicIconSrcImage(const string& magicIconId);
+    virtual bool GetMagicIconSrcImage(const string& magicIconId) override;
     // 手动下载／更新小高级表情拇子图
-    virtual bool GetMagicIconThumbImage(const string& magicIconId);
+    virtual bool GetMagicIconThumbImage(const string& magicIconId) override;
 private:
 	// 获取log路径
 	string GetLogPath();
@@ -304,12 +305,12 @@ private:
 
 	// ------------------- LCEmotionManagerCallback -------------------
 private:
-	virtual void OnDownloadEmotionImage(bool result, LCEmotionItem* emotionItem);
-	virtual void OnDownloadEmotionPlayImage(bool result, LCEmotionItem* emotionItem);
+	virtual void OnDownloadEmotionImage(bool result, LCEmotionItem* emotionItem) override;
+	virtual void OnDownloadEmotionPlayImage(bool result, LCEmotionItem* emotionItem) override;
 
 	// ------------------- LCPhotoManagerCallback -------------------
 private:
-	virtual void OnDownloadPhoto(bool success, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, const LCMessageList& msgList);
+	virtual void OnDownloadPhoto(bool success, GETPHOTO_PHOTOSIZE_TYPE sizeType, const string& errnum, const string& errmsg, const LCMessageList& msgList) override;
 
 	// ------------------- LCVideoManagerCallback -------------------
 private:
@@ -323,100 +324,100 @@ private:
 					, const string& videoId
 					, VIDEO_PHOTO_TYPE type
 					, const string& filePath
-					, const LCMessageList& msgList);
+					, const LCMessageList& msgList) override;
 	// 视频下载完成回调
-	virtual void OnDownloadVideo(bool success, const string& userId, const string& videoId, const string& inviteId, const string& filePath, const LCMessageList& msgList);
+	virtual void OnDownloadVideo(bool success, const string& userId, const string& videoId, const string& inviteId, const string& filePath, const LCMessageList& msgList) override;
 
     // ------------------- LCMagicIconManagerCallback -------------------
     // 小高级表情原图下载完成回调
-    virtual void OnDownloadMagicIconImage(bool result, LCMagicIconItem* magicIconItem);
+    virtual void OnDownloadMagicIconImage(bool result, LCMagicIconItem* magicIconItem) override;
     // 小高级表情拇子图下载完成回调
-    virtual void OnDownloadMagicIconThumbImage(bool result, LCMagicIconItem* magicIconItem);
+    virtual void OnDownloadMagicIconThumbImage(bool result, LCMagicIconItem* magicIconItem) override;
     
 	// ------------------- ILiveChatClientListener -------------------
 private:
 	// 客户端主动请求
-	virtual void OnLogin(LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnLogout(LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnSetStatus(LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnEndTalk(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnGetUserStatus(const UserIdList& inList, LCC_ERR_TYPE err, const string& errmsg, const UserStatusList& userList);
-	virtual void OnGetTalkInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, const string& invitedId, bool charge, unsigned int chatTime);
-	virtual void OnSendTextMessage(const string& inUserId, const string& inMessage, int inTicket, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnSendEmotion(const string& inUserId, const string& inEmotionId, int inTicket, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnSendVGift(const string& inUserId, const string& inGiftId, int inTicket, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnGetVoiceCode(const string& inUserId, int ticket, LCC_ERR_TYPE err, const string& errmsg, const string& voiceCode);
-	virtual void OnSendVoice(const string& inUserId, const string& inVoiceId, int inTicket, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnUseTryTicket(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, TRY_TICKET_EVENT tickEvent);
-	virtual void OnGetTalkList(int inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkListInfo& talkListInfo);
-	virtual void OnSendPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket);
-	virtual void OnSendLadyPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket);
-	virtual void OnShowPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket);
-	virtual void OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const UserInfoItem& userInfo);
-	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList);
-	virtual void OnGetContactList(CONTACT_LIST_TYPE inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkUserList& userList);
-	virtual void OnGetBlockUsers(LCC_ERR_TYPE err, const string& errmsg, const list<string>& users);
-	virtual void OnSearchOnlineMan(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList);
-	virtual void OnReplyIdentifyCode(LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnGetRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList);
-	virtual void OnGetFeeRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList);
-	virtual void OnGetLadyChatInfo(LCC_ERR_TYPE err, const string& errmsg, const list<string>& chattingList, const list<string>& chattingInviteIdList, const list<string>& missingList, const list<string>& missingInviteIdList);
-	virtual void OnPlayVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket);
-	virtual void OnSendLadyVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket);
-	virtual void OnGetLadyCondition(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const LadyConditionItem& item);
-	virtual void OnGetLadyCustomTemplate(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const vector<string>& contents, const vector<bool>& flags);
-	virtual void OnSendMagicIcon(const string& inUserId, const string& inIconId, int inTicket, LCC_ERR_TYPE err, const string& errmsg);
-	virtual void OnGetPaidTheme(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeList);
-	virtual void OnGetAllPaidTheme(LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeInfoList);
-	virtual void OnManFeeTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item);
-	virtual void OnManApplyTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item);
-	virtual void OnPlayThemeMotion(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, bool success);
+	virtual void OnLogin(LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnLogout(LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnSetStatus(LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnEndTalk(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnGetUserStatus(const UserIdList& inList, LCC_ERR_TYPE err, const string& errmsg, const UserStatusList& userList) override;
+	virtual void OnGetTalkInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, const string& invitedId, bool charge, unsigned int chatTime) override;
+	virtual void OnSendTextMessage(const string& inUserId, const string& inMessage, int inTicket, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnSendEmotion(const string& inUserId, const string& inEmotionId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnSendVGift(const string& inUserId, const string& inGiftId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnGetVoiceCode(const string& inUserId, int ticket, LCC_ERR_TYPE err, const string& errmsg, const string& voiceCode) override;
+	virtual void OnSendVoice(const string& inUserId, const string& inVoiceId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnUseTryTicket(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, TRY_TICKET_EVENT tickEvent) override;
+	virtual void OnGetTalkList(int inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkListInfo& talkListInfo) override;
+	virtual void OnSendPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) override;
+	virtual void OnSendLadyPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) override;
+	virtual void OnShowPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) override;
+	virtual void OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const UserInfoItem& userInfo) override ;
+	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const list<string>& userIdList, const UserInfoList& userList) override;;
+	virtual void OnGetContactList(CONTACT_LIST_TYPE inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkUserList& userList) override;
+	virtual void OnGetBlockUsers(LCC_ERR_TYPE err, const string& errmsg, const list<string>& users) override;
+	virtual void OnSearchOnlineMan(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) override;
+	virtual void OnReplyIdentifyCode(LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnGetRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) override;
+	virtual void OnGetFeeRecentContactList(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) override;
+	virtual void OnGetLadyChatInfo(LCC_ERR_TYPE err, const string& errmsg, const list<string>& chattingList, const list<string>& chattingInviteIdList, const list<string>& missingList, const list<string>& missingInviteIdList) override;
+	virtual void OnPlayVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket) override;
+	virtual void OnSendLadyVideo(LCC_ERR_TYPE err, const string& errmsg, int ticket) override;
+	virtual void OnGetLadyCondition(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const LadyConditionItem& item) override;
+	virtual void OnGetLadyCustomTemplate(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const vector<string>& contents, const vector<bool>& flags) override;
+	virtual void OnSendMagicIcon(const string& inUserId, const string& inIconId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) override;
+	virtual void OnGetPaidTheme(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeList) override;
+	virtual void OnGetAllPaidTheme(LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoList& themeInfoList) override;
+	virtual void OnManFeeTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item) override;
+	virtual void OnManApplyTheme(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, const ThemeInfoItem& item) override;
+	virtual void OnPlayThemeMotion(const string& inUserId, const string& inThemeId, LCC_ERR_TYPE err, const string& errmsg, bool success) override;
 	// 服务器主动请求
-	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message);
-	virtual void OnRecvEmotion(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& emotionId);
-	virtual void OnRecvVoice(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, TALK_MSG_TYPE msgType, const string& voiceId, const string& fileType, int timeLen);
-	virtual void OnRecvWarning(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message);
-	virtual void OnUpdateStatus(const string& userId, const string& server, CLIENT_TYPE clientType, USER_STATUS_TYPE statusType);
-	virtual void OnUpdateTicket(const string& fromId, int ticket);
-	virtual void OnRecvEditMsg(const string& fromId);
-	virtual void OnRecvTalkEvent(const string& userId, TALK_EVENT_TYPE eventType);
-	virtual void OnRecvTryTalkBegin(const string& toId, const string& fromId, int time);
-	virtual void OnRecvTryTalkEnd(const string& userId);
-	virtual void OnRecvEMFNotice(const string& fromId, TALK_EMF_NOTICE_TYPE noticeType);
-	virtual void OnRecvKickOffline(KICK_OFFLINE_TYPE kickType);
-	virtual void OnRecvPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket);
-	virtual void OnRecvShowPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDec, int ticket);
-	virtual void OnRecvLadyVoiceCode(const string& voiceCode);
-	virtual void OnRecvIdentifyCode(const unsigned char* data, long dataLen);
-	virtual void OnRecvVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket);
-	virtual void OnRecvShowVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDec, int ticket);
-	virtual void OnRecvAutoInviteMsg(const string& womanId, const string& manId, const string& key);
-	virtual void OnRecvAutoChargeResult(const string& manId, double money, TAUTO_CHARGE_TYPE type, bool result, const string& code, const string& msg);
-	virtual void OnRecvMagicIcon(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& iconId);
-	virtual void OnRecvThemeMotion(const string& themeId, const string& manId, const string& womanId);
-	virtual void OnRecvThemeRecommend(const string& themeId, const string& manId, const string& womanId);
+	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message,INVITE_TYPE inviteType) override;
+	virtual void OnRecvEmotion(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& emotionId) override;
+	virtual void OnRecvVoice(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, TALK_MSG_TYPE msgType, const string& voiceId, const string& fileType, int timeLen) override;
+	virtual void OnRecvWarning(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message) override;
+	virtual void OnUpdateStatus(const string& userId, const string& server, CLIENT_TYPE clientType, USER_STATUS_TYPE statusType) override;
+	virtual void OnUpdateTicket(const string& fromId, int ticket) override;
+	virtual void OnRecvEditMsg(const string& fromId) override;
+	virtual void OnRecvTalkEvent(const string& userId, TALK_EVENT_TYPE eventType) override;
+	virtual void OnRecvTryTalkBegin(const string& toId, const string& fromId, int time) override;
+	virtual void OnRecvTryTalkEnd(const string& userId) override;
+	virtual void OnRecvEMFNotice(const string& fromId, TALK_EMF_NOTICE_TYPE noticeType) override;
+	virtual void OnRecvKickOffline(KICK_OFFLINE_TYPE kickType) override;
+	virtual void OnRecvPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDesc, int ticket) override;
+	virtual void OnRecvShowPhoto(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& photoId, const string& sendId, bool charge, const string& photoDec, int ticket) override;
+	virtual void OnRecvLadyVoiceCode(const string& voiceCode) override;
+	virtual void OnRecvIdentifyCode(const unsigned char* data, long dataLen) override;
+	virtual void OnRecvVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDesc, int ticket) override;
+	virtual void OnRecvShowVideo(const string& toId, const string& fromId, const string& fromName, const string& inviteId, const string& videoId, const string& sendId, bool charge, const string& videoDec, int ticket) override;
+	virtual void OnRecvAutoInviteMsg(const string& womanId, const string& manId, const string& key) override;
+	virtual void OnRecvAutoChargeResult(const string& manId, double money, TAUTO_CHARGE_TYPE type, bool result, const string& code, const string& msg) override;
+	virtual void OnRecvMagicIcon(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& iconId) override;
+	virtual void OnRecvThemeMotion(const string& themeId, const string& manId, const string& womanId) override;
+	virtual void OnRecvThemeRecommend(const string& themeId, const string& manId, const string& womanId) override;
 
 	// ------------------- IRequestLiveChatControllerCallback -------------------
 private:
-	virtual void OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg);
-	virtual void OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId);
-	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId);
-	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg);
-	virtual void OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item);
-	virtual void OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg);
-	virtual void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-	virtual void OnUploadVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId);
-	virtual void OnPlayVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-	virtual void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath);
-	virtual void OnGetVideo(long requestId, bool success, const string& errnum, const string& errmsg, const string& url);
+	virtual void OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg) override;
+	virtual void OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId) override;
+	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId) override;
+	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg) override;
+	virtual void OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item) override;
+	virtual void OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg) override;
+	virtual void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) override;
+	virtual void OnUploadVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId) override;
+	virtual void OnPlayVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) override;
+	virtual void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) override;
+	virtual void OnGetVideo(long requestId, bool success, const string& errnum, const string& errmsg, const string& url) override;
     //获取小高级表情配置回调 alex 2016-09-09
-    virtual void OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config);
+    virtual void OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config) override;
     
 
 	// ------------------- IRequestOtherControllerCallback -------------------
 private:
-	virtual void OnEmotionConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item);
-    virtual void OnGetCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item);
+	virtual void OnEmotionConfig(long requestId, bool success, const string& errnum, const string& errmsg, const OtherEmotionConfigItem& item) override;
+    virtual void OnGetCount(long requestId, bool success, const string& errnum, const string& errmsg, const OtherGetCountItem& item) override;
 	// ------------------- 请求线程 -------------------
 private:
 	static TH_RETURN_PARAM RequestThread(void* obj);

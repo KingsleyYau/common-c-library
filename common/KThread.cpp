@@ -101,7 +101,7 @@ long KThread::getThreadId() const {
 }
 bool KThread::isRunning() const{
 	bool bFlag = false;
-	if( m_pthread_t != NULL ) {
+	if( m_pthread_t != INVALID_PTHREAD ) {
 		bFlag = true;
 	}
 	return bFlag;

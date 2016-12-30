@@ -134,6 +134,11 @@ void LadyDetail::Parse(Json::Value root) {
 		if( root[LADY_PHOTOLOCKNUM].isInt() ) {
 			photoLockNum = root[LADY_PHOTOLOCKNUM].asInt();
 		}
+
+		if( root[LADY_CAN_CAM].isInt() ) {
+			int status = root[LADY_CAN_CAM].asInt();
+			camStatus = (status == 1)?true:false;
+		}
 	}
 }
 
@@ -166,6 +171,7 @@ LadyDetail::LadyDetail() {
 	photoURL = "";
 	photoMinURL = "";
 	photoLockNum = 0;
+	camStatus = false;
 }
 
 LadyDetail::~LadyDetail() {

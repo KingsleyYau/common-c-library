@@ -37,6 +37,8 @@ public:
 	virtual bool GetUserStatus(const UserIdList& list);
 	// 获取会话信息
 	virtual bool GetTalkInfo(const string& userId);
+	// 获取会话信息(仅男士端使用)
+	virtual bool GetSessionInfo(const string& userId);
 	// 上传票根
 	virtual bool UploadTicket(const string& userId, int ticket);
 	// 通知对方女士正在编辑消息
@@ -119,7 +121,18 @@ public:
 	virtual bool SwitchAutoInviteMsg(bool isOpen);
 	// 女士推荐男士购买主题包（仅女士）
 	virtual bool RecommendThemeToMan(const string& userId, const string& themeId);
-
+	// 获取女士Cam状态
+	virtual bool GetLadyCamStatus(const string& userId);
+	// 发送CamShare邀请
+	virtual bool SendCamShareInvite(const string& userId, const string& camShareMsg);
+	// 男士发起CamShare并开始扣费
+	virtual bool ApplyCamShare(const string& userId);
+	// 女士接受男士Cam邀请
+	virtual bool LadyAcceptCamInvite(const string& userId, const string& camShareMsg, bool isOpenCam);
+    // CamShare聊天扣费心跳
+	virtual bool CamShareHearbeat(const string& userId, const string& inviteId);
+	// 批量获取女士端Cam状态
+	virtual bool GetUsersCamStatus(const UserIdList& list);
 public:
 	// 获取用户账号
 	virtual string GetUser();

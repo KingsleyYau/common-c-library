@@ -91,11 +91,62 @@ LCMessageList LCUserItem::GetMsgList()
 	return tempList;
 }
 
+
+// 根据PhotoId和photo发送方向判断是否是同一个msgItem
+void LCUserItem::isSamePhotoId(LCMessageItem* messageItem)
+{
+    
+    // messageItem判断是否是私密照
+    if(messageItem->m_msgType == LCMessageItem::MT_Photo)
+    {
+        
+//        // 图片列表
+        LCMessageList PhotoList;
+        // 找出所有男士和女士发出的图片消息
+        for (LCMessageList::iterator iter = m_msgList.begin();
+             iter != m_msgList.end();
+             iter++)
+        {
+            LCMessageItem* item = (*iter);
+            if (item->m_msgType == LCMessageItem::MT_Photo
+                && NULL != item->GetPhotoItem()
+                && !item->GetPhotoItem()->m_photoId.empty())
+            {
+                PhotoList.push_back(item);
+            }
+        }
+        
+        
+        // 遍历消息列表
+        for (LCMessageList::iterator iter = PhotoList.begin();
+             iter != PhotoList.end();
+             iter++)
+        {
+            LCMessageItem* item = (*iter);
+            // 判断item是否是私密照
+            if (item->m_msgType == LCMessageItem::MT_Photo
+                && NULL != item->GetPhotoItem()
+                && !item->GetPhotoItem()->m_photoId.empty())
+            {
+                // 根据PhotoId和photo发送方向判断是否是同一个msgItem
+                if (item->GetPhotoItem()->m_photoId == messageItem->GetPhotoItem()->m_photoId && item->m_sendType == messageItem->m_sendType) {
+                    if (item->m_sendType == LCMessageItem::SendType_Recv) {
+                         m_msgList.remove(item);
+                    }
+                   
+                }
+            }
+        }
+    }
+
+}
+
 // 排序插入聊天记录
 bool LCUserItem::InsertSortMsgList(LCMessageItem* item)
 {
 	LockMsgList();
 
+   // isSamePhotoId(item);
 	// 插入消息
 	m_msgList.push_back(item);
 	// 排序
@@ -147,10 +198,21 @@ void LCUserItem::ClearFinishedMsgList()
 			iter++)
 	{
 		if ((*iter)->m_statusType == LCMessageItem::StatusType_Finish
-			&& !(*iter)->IsSubItemProcssign()
+			//&& !(*iter)->IsSubItemProcssign()
             && (*iter)->m_msgType != LCMessageItem::MT_Custom   // 不删除自定义消息(临时处理)
             ){
-            	tempList.push_back(*iter);
+            
+               if ((*iter)->IsSubItemProcssign()) {
+                   if ((*iter)->m_msgType == LCMessageItem::MT_Photo && (*iter)->m_sendType == LCMessageItem::SendType_Recv) {
+                       tempList.push_back(*iter);
+                   }
+                   
+               }
+               else
+               {
+                   tempList.push_back(*iter);
+               }
+            
         }
 //        if ((*iter)->m_msgType != LCMessageItem::MT_Custom) // 不删除自定义消息(临时处理)
 //        {

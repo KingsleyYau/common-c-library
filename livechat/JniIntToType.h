@@ -45,6 +45,9 @@ static const int LccErrTypeArray[] = {
 		LCC_ERR_SUBJECTEXCEPTION,		// 主题异常
 		LCC_ERR_SUBJECTEXISTEXCEPTION,	// 主题存在异常
 		LCC_ERR_SUBJECTNOTEXISTEXCEPTION,// 主题不存在异常
+		LCC_ERR_CAMCHATSERVICEEXCEPTION,    // 视频聊天异常
+        LCC_ERR_CAMSERVICEUNSTARTEXCEPTION, // 视频服务未启动异常
+		LCC_ERR_NOCAMSERVICEEXCEPTION,      // 没有视频服务异常
 
 		// 客户端定义的错误
 		LCC_ERR_PROTOCOLFAIL,	// 协议解析失败（服务器返回的格式不正确）
@@ -183,3 +186,37 @@ static const int AutoChargeArray[] = {
 };
 TAUTO_CHARGE_TYPE IntToAutoChargeType(int value);
 int AutoChargeTypeToInt(TAUTO_CHARGE_TYPE type);
+
+// USER_STATUS_PROTOCOL(用户在线) 转换
+static const int UserStatusProtocolArray[] = {
+	USTATUSPRO_UNKNOW,                // 未知
+	USTATUSPRO_OFFLINE_OR_HIDDEN,	  // 离线/隐身
+	USTATUSPRO_ONLINE,				  // 在线
+	USTATUSPRO_HIDDEN,				  // 隐身
+	USTATUSPRO_BIND,				  // 绑定翻译
+	USTATUSPRO_UNBIND,				  // 没有绑定翻译
+	USTATUSPRO_VIDEOOPEN,			  // 视频开放
+	USTATUSPRO_VIDEOCLOSE,			  // 视频关闭
+	USTATUSPRO_CAMOPEN,               // Cam打开
+	USTATUSPRO_CAMCLOSE,              // Cam关闭
+};
+USER_STATUS_PROTOCOL IntToUserStatusProtocol(int value);
+int UserStatusProtocolToInt(USER_STATUS_PROTOCOL type);
+
+// USER_CAM_STATUST_TYPE(用户CAM状态) 转换
+static const int UserCamStatusTypeArray[] = {
+	USTATUS_CAM_UNKNOW,     // 未知
+	USTATUS_CAM_OFF,	// 关闭
+	USTATUS_CAM_ON,	// 打开
+};
+USER_CAM_STATUS_TYPE IntToUserCamStatusType(int value);
+int UserCamStatusTypeToInt(USER_CAM_STATUS_TYPE type);
+
+// INVITE_TYPE(INVITE类型) 转换
+static const int InviteTypeArray[] = {
+	INVITE_TYPE_UNKNOW,		      // 未知
+	INVITE_TYPE_CHAT,		     // livechat
+	INVITE_TYPE_CAMSHARE,		 // camshare
+};
+INVITE_TYPE IntToInviteType(int value);
+int InviteTypeToInt(INVITE_TYPE type);

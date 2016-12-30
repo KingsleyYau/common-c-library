@@ -118,7 +118,7 @@ public:
 		typename PositiveMap::iterator positiveIter = m_positiveMap.find(key);
 		if (positiveIter != m_positiveMap.end()) {
 			typename ReverseMap::iterator reverseIter = m_reverseMap.find((*positiveIter).second);
-			if (reverseIter != m_positiveMap.end()) {
+			if (reverseIter != m_reverseMap.end()) {
 				m_reverseMap.erase(reverseIter);
 			}
 			m_positiveMap.erase(positiveIter);

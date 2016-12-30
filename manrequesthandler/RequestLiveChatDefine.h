@@ -18,6 +18,7 @@
 
 /* 5.1.查询是否符合试聊条件 */
 #define LIVECHAT_WOMAN_ID 				"womanid"
+#define LIVECHAT_SERVICE_TYPE           "servertype"
 #define LIVECHAT_LC_FREETRIAL 			"lc_freetrial"
 typedef enum {
 	CouponStatus_Used       = -1,	// 已聊过(-1)

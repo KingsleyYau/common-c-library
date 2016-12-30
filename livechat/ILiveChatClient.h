@@ -25,6 +25,7 @@ public:
 	virtual void OnEndTalk(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg) {}
 	virtual void OnGetUserStatus(const UserIdList& inList, LCC_ERR_TYPE err, const string& errmsg, const UserStatusList& list) {}
 	virtual void OnGetTalkInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const string& userId, const string& invitedId, bool charge, unsigned int chatTime) {}
+	virtual void OnGetSessionInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const SessionInfoItem& sessionInfo) {}
 	virtual void OnSendTextMessage(const string& inUserId, const string& inMessage, int inTicket, LCC_ERR_TYPE err, const string& errmsg) {}
 	virtual void OnSendEmotion(const string& inUserId, const string& inEmotionId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) {}
 	virtual void OnSendVGift(const string& inUserId, const string& inGiftId, int inTicket, LCC_ERR_TYPE err, const string& errmsg) {}
@@ -36,7 +37,7 @@ public:
 	virtual void OnSendLadyPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) {}
 	virtual void OnShowPhoto(LCC_ERR_TYPE err, const string& errmsg, int ticket) {}
 	virtual void OnGetUserInfo(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, const UserInfoItem& userInfo) {}
-	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const UserInfoList& userList) {}
+	virtual void OnGetUsersInfo(LCC_ERR_TYPE err, const string& errmsg, int seq, const list<string>& userIdList, const UserInfoList& userList) {}
 	virtual void OnGetContactList(CONTACT_LIST_TYPE inListType, LCC_ERR_TYPE err, const string& errmsg, const TalkUserList& list) {}
 	virtual void OnGetBlockUsers(LCC_ERR_TYPE err, const string& errmsg, const list<string>& users) {}
 	virtual void OnSearchOnlineMan(LCC_ERR_TYPE err, const string& errmsg, const list<string>& userList) {}
@@ -57,8 +58,13 @@ public:
 	virtual void OnGetAutoInviteMsgSwitchStatus(LCC_ERR_TYPE err, const string& errmsg, bool isOpenStatus) {}
 	virtual void OnSwitchAutoInviteMsg(LCC_ERR_TYPE err, const string& errmsg, bool isOpenStatus) {}
 	virtual void OnRecommendThemeToMan(const string& inUserId, const string& inThemeId,LCC_ERR_TYPE err, const string& errmsg) {}
+	virtual void OnGetLadyCamStatus(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, bool isOpenCam) {}
+	virtual void OnSendCamShareInvite(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg) {}
+	virtual void OnApplyCamShare(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, bool isSuccess, const string& targetId){}
+	virtual void OnLadyAcceptCamInvite(const string& inUserId, LCC_ERR_TYPE err, const string& errmsg, bool isOpenCam) {}
+	virtual void OnGetUsersCamStatus(const UserIdList& inList, LCC_ERR_TYPE err, const string& errmsg,const UserCamStatusList& list){}
 	// 服务器主动请求
-	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message) {}
+	virtual void OnRecvMessage(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message, INVITE_TYPE inviteType) {}
 	virtual void OnRecvEmotion(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& emotionId) {}
 	virtual void OnRecvVoice(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, TALK_MSG_TYPE msgType, const string& voiceId, const string& fileType, int timeLen) {}
 	virtual void OnRecvWarning(const string& toId, const string& fromId, const string& fromName, const string& inviteId, bool charge, int ticket, TALK_MSG_TYPE msgType, const string& message) {}
@@ -85,6 +91,11 @@ public:
 	virtual void OnRecvAutoInviteNotify(const string& womanId,const string& manId,const string& message,const string& inviteId) {}
 	virtual void OnManApplyThemeNotify(const ThemeInfoItem& item) {}
 	virtual void OnManBuyThemeNotify(const ThemeInfoItem& item) {}
+	virtual void OnRecvLadyCamStatus(const string& userId, USER_STATUS_PROTOCOL statusId, const string& server, CLIENT_TYPE clientType, int sound, const string& version) {}
+	virtual void OnRecvAcceptCamInvite(const string& fromId, const string& toId, const string& msg, bool isCamOpen) {}
+	virtual void OnRecvCamShareInvite(const string& fromId, const string& toId, const string& msg) {}
+	virtual void OnRecvCamShareStart(const string& manId, const string& womanId, const string& inviteId) {}
+	virtual void OnRecvCamHearbeatException(const string& exceptionName, LCC_ERR_TYPE err, const string& targetId) {}
 };
 
 // LiveChat客户端接口类
@@ -115,6 +126,8 @@ public:
 	virtual bool GetUserStatus(const UserIdList& list) {return false;}
 	// 获取会话信息
 	virtual bool GetTalkInfo(const string& userId) {return false;}
+	// 获取会话信息(仅男士端使用)
+	virtual bool GetSessionInfo(const string& userId){return false;}
 	// 上传票根
 	virtual bool UploadTicket(const string& userId, int ticket) {return false;}
 	// 通知对方女士正在编辑消息
@@ -197,7 +210,18 @@ public:
 	virtual bool SwitchAutoInviteMsg(bool isOpen) {return false;}
 	// 女士推荐男士购买主题包（仅女士）
 	virtual bool RecommendThemeToMan(const string& userId, const string& themeId) {return false;}
-
+	// 获取女士Cam状态(仅男士端)
+	virtual bool GetLadyCamStatus(const string& userId){return false;}
+	// 发送CamShare邀请
+	virtual bool SendCamShareInvite(const string& userId, const string& camShareMsg) {return false;}
+	// 男士发起CamShare并开始扣费（仅男士端）
+	virtual bool ApplyCamShare(const string& userId) {return false;}
+	// 女士接受男士Cam邀请（仅女士端）
+	virtual bool LadyAcceptCamInvite(const string& userId, const string& camShareMsg, bool isOpenCam) {return false;}
+	 // CamShare聊天扣费心跳
+	virtual bool CamShareHearbeat(const string& userId, const string& inviteId){return false;}
+	// 批量获取女士端Cam状态（仅男士端）
+	virtual bool GetUsersCamStatus(const UserIdList& list){return false;}
 public:
 	// 获取用户账号
 	virtual string GetUser() {return NULL;}

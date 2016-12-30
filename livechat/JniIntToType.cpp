@@ -256,3 +256,61 @@ int AutoChargeTypeToInt(TAUTO_CHARGE_TYPE type)
 	}
 	return value;
 }
+
+USER_STATUS_PROTOCOL IntToUserStatusProtocol(int value)
+{
+	return (USER_STATUS_PROTOCOL)(value < _countof(UserStatusProtocolArray) ? UserStatusProtocolArray[value] : UserStatusProtocolArray[0]);
+}
+int UserStatusProtocolToInt(USER_STATUS_PROTOCOL type)
+{
+	int value = 0;
+	int i = 0;
+	for (i = 0; i < _countof(UserStatusProtocolArray); i++)
+	{
+		if (type == UserStatusProtocolArray[i]) {
+			value = i;
+			break;
+		}
+	}
+	return value;
+}
+
+// USER_CAM_STATUST 
+USER_CAM_STATUS_TYPE IntToUserCamStatusType(int value)
+{
+	return (USER_CAM_STATUS_TYPE)(value < _countof(UserCamStatusTypeArray) ? UserCamStatusTypeArray[value] : UserCamStatusTypeArray[0]);
+}
+int UserCamStatusTypeToInt(USER_CAM_STATUS_TYPE type)
+{
+	int value = 0;
+	int i = 0;
+	for (i = 0; i < _countof(UserCamStatusTypeArray); i++)
+	{
+		if (type == UserCamStatusTypeArray[i]) {
+			value = i;
+			break;
+		}
+	}
+	return value;
+}
+
+// INVITE_TYPE
+INVITE_TYPE IntToInviteType(int value)
+{
+	return (INVITE_TYPE)(value < _countof(InviteTypeArray) ? InviteTypeArray[value] : InviteTypeArray[0]);
+}
+int InviteTypeToInt(INVITE_TYPE type)
+{
+		int value = 0;
+	int i = 0;
+	for (i = 0; i < _countof(InviteTypeArray); i++)
+	{
+		if (type == InviteTypeArray[i]) {
+			value = i;
+			break;
+		}
+	}
+	return value;
+}
+
+

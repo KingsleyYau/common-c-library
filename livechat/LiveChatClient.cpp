@@ -62,6 +62,13 @@
 #include "SendAutoInviteTask.h"
 #include "GetAutoInviteStatusTask.h"
 #include "SendThemeReCommendTask.h"
+#include "GetLadyCamStatusTask.h"
+#include "SendCamShareInviteTask.h"
+#include "ApplyCamShareTask.h"
+#include "LadyAcceptCamInviteTask.h"
+#include "CamShareHearbeatTask.h"
+#include "GetUsersCamStatusTask.h"
+#include "GetSessionInfoTask.h"
 
 CLiveChatClient::CLiveChatClient()
 {
@@ -292,6 +299,35 @@ bool CLiveChatClient::GetTalkInfo(const string& userId)
 	FileLog("LiveChatClient", "CLiveChatClient::GetTalkInfo() end");
 	return result;
 }
+
+// 获取会话信息(仅男士端使用CMD 55)
+bool CLiveChatClient::GetSessionInfo(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetSessionInfo() begin");
+	if (NULL != m_taskManager
+		&& m_taskManager->IsStart())
+	{
+		GetSessionInfoTask* task = new GetSessionInfoTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetSessionInfo() task:%p", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+
+			if (result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetSessionInfo() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetSessionInfo() end");
+	return result;
+}
+
+
+
 
 // 上传票根
 bool CLiveChatClient::UploadTicket(const string& userId, int ticket)
@@ -1350,6 +1386,152 @@ bool CLiveChatClient::RecommendThemeToMan(const string& userId, const string& th
 	return result;
 }
 
+// 获取女士Cam状态
+bool CLiveChatClient::GetLadyCamStatus(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCamstatus() begin");
+	if (NULL != m_taskManager && m_taskManager->IsStart()){
+		GetLadyCamStatusTask* task = new GetLadyCamStatusTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCamStatus() task:%p begin", task);
+		if (NULL != task) {
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+
+			if(result) {
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetLadyCamStatus() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetLadyCamStatus() end");
+	return result;
+}
+
+// 发送CamShare邀请
+bool CLiveChatClient::SendCamShareInvite(const string& userId, const string& camShareMsg)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::SendCamShareInvite() begin");
+	if(NULL != m_taskManager && m_taskManager->IsStart()){
+		SendCamShareInviteTask* task = new SendCamShareInviteTask();
+		FileLog("LiveChatClient", "CLiveChatClient::SendCamShareInvite() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, camShareMsg);
+
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+
+		FileLog("LiveChatClient", "CLiveChatClient::SendCamShareInvite() task:%p end", task);
+	}
+
+	FileLog("LiveChatClient", "CLiveChatClient::SendCamShareInvite() end");
+	return result;
+}
+
+// 男士发起CamShare并开始扣费
+bool CLiveChatClient::ApplyCamShare(const string& userId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::ApplyCamShare() begin");
+    if(NULL != m_taskManager && m_taskManager->IsStart())
+	{
+		ApplyCamShareTask* task = new ApplyCamShareTask();
+		FileLog("LiveChatClient", "CLiveChatClient::ApplyCamShare() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId);
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::ApplyCamShare() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::ApplyCamShare() end");
+	return result;
+}
+
+// 女士接受男士Cam邀请
+bool CLiveChatClient::LadyAcceptCamInvite(const string& userId, const string& camShareMsg, bool isOpenCam)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::LadyAcceptCamInvite() begin");
+    if(NULL != m_taskManager && m_taskManager->IsStart())
+	{
+		LadyAcceptCamInviteTask* task = new LadyAcceptCamInviteTask();
+		FileLog("LiveChatClient", "CLiveChatClient::LadyAcceptCamInvite() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, camShareMsg, isOpenCam);
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::LadyAcceptCamInvite() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::LadyAcceptCamInvite() end");
+	return result;
+}
+
+// CamShare聊天扣费心跳
+bool CLiveChatClient::CamShareHearbeat(const string& userId, const string& inviteId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::CamShareHearbeat() begin");
+	if(NULL != m_taskManager && m_taskManager->IsStart())
+	{
+		CamShareHearbeatTask* task = new CamShareHearbeatTask();
+		FileLog("LiveChatClient", "CLiveChatClient::CamShareHearbeat() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(userId, inviteId);
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::CamShareHearbeat() task:%p end", task);
+
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::CamShareHearbeat() end");
+	return result;
+}
+
+// 批量获取女士端Cam状态
+bool CLiveChatClient::GetUsersCamStatus(const UserIdList& list)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() begin");
+	if(NULL != m_taskManager && m_taskManager->IsStart())
+	{
+		GetUsersCamStatusTask* task = new GetUsersCamStatusTask();
+		FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(list);
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() end");
+	return result;
+}
 
 // 获取用户账号
 string CLiveChatClient::GetUser()
