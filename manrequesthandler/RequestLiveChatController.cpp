@@ -78,7 +78,15 @@ void RequestLiveChatController::onSuccess(long requestId, string url, const char
 			mCustomParamMap.erase(iter);
 		}
 
-		mRequestLiveChatControllerCallback->OnUseCoupon(requestId, bFlag, errnum, errmsg, userId);
+		//couponid
+		string couponid("");
+		if(data.isObject()){
+			if(data[LIVECHAT_TRYCHAT_COUPONID].isString()){
+				couponid = data[LIVECHAT_TRYCHAT_COUPONID].asString();
+			}
+		}
+
+		mRequestLiveChatControllerCallback->OnUseCoupon(requestId, bFlag, errnum, errmsg, userId, couponid);
 	} 
 	else if( url.find(QUERY_CHAT_VIRTUAL_GIFT_PATH) != string::npos ) 
 	{
@@ -593,7 +601,7 @@ void RequestLiveChatController::onFail(long requestId, string url) {
 			mCustomParamMap.erase(iter);
 		}
 
-		mRequestLiveChatControllerCallback->OnUseCoupon(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC, userId);
+		mRequestLiveChatControllerCallback->OnUseCoupon(requestId, false, LOCAL_ERROR_CODE_TIMEOUT, LOCAL_ERROR_CODE_TIMEOUT_DESC, userId, "");
 	} else if( url.find(QUERY_CHAT_VIRTUAL_GIFT_PATH) != string::npos ) {
 		list<Gift> giftList;
 		mRequestLiveChatControllerCallback->OnQueryChatVirtualGift(requestId, false, giftList,
@@ -833,9 +841,11 @@ long RequestLiveChatController::CheckCoupon(string womanId, int serviceType) {
 	FileLog("httprequest", "RequestLiveChatController::CheckCoupon( "
 			"url : %s, "
 			"womanId : %s, "
+			"serviceType : %d"
 			")",
 			url.c_str(),
-			womanId.c_str()
+			womanId.c_str(),
+			serviceType
 			);
 
 	long requestId = StartRequest(url, entiy, this);
@@ -868,10 +878,12 @@ long RequestLiveChatController::UseCoupon(string womanId, int serviceType) {
 	string url = USE_COUPON_PATH;
 	FileLog("httprequest", "RequestLiveChatController::UseCoupon( "
 			"url : %s, "
-			"womanId : %s"
+			"womanId : %s,"
+			"serviceType : %d "
 			")",
 			url.c_str(),
-			womanId.c_str()
+			womanId.c_str(),
+			serviceType
 			);
 
 	long requestId = StartRequest(url, entiy, this);

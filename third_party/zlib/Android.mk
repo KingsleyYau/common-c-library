@@ -18,7 +18,7 @@ LOCAL_C_INCLUDES := $(COMMON_C_LIBRARY_PATH)
 
 LOCAL_CPPFLAGS := -std=c++11
 LOCAL_CPPFLAGS += -fpermissive
-LOCAL_CFLAGS += -Wall -Wextra -pedantic -fPIC -DUSE_MMAP
+LOCAL_CFLAGS += -Wall -Wextra -pedantic -fPIC -DUSE_MMAP -std=c99
 
 LOCAL_SRC_FILES := \
 	src/adler32.c \

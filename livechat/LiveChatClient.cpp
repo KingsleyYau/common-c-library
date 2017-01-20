@@ -69,6 +69,7 @@
 #include "CamShareHearbeatTask.h"
 #include "GetUsersCamStatusTask.h"
 #include "GetSessionInfoTask.h"
+#include "CamshareUseTryTicketTask.h"
 
 CLiveChatClient::CLiveChatClient()
 {
@@ -1530,6 +1531,30 @@ bool CLiveChatClient::GetUsersCamStatus(const UserIdList& list)
 		FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() task:%p end", task);
 	}
 	FileLog("LiveChatClient", "CLiveChatClient::GetUsersCamStatus() end");
+	return result;
+}
+
+// Camshare使用试聊券
+bool CLiveChatClient::CamshareUseTryTicket(const string& targetId, const string& ticketId)
+{
+	bool result = false;
+	FileLog("LiveChatClient", "CLiveChatClient::CamshareUseTryTicketTask() begin");
+	if(NULL != m_taskManager && m_taskManager->IsStart())
+	{
+		CamshareUseTryTicketTask* task = new CamshareUseTryTicketTask();
+		FileLog("LiveChatClient", "CLiveChatClient::CamshareUseTryTicketTask() task:%p begin", task);
+		if(NULL != task){
+			result = task->Init(m_listener);
+			result = result && task->InitParam(targetId, ticketId);
+			if(result){
+				int seq = m_seqCounter.GetAndIncrement();
+				task->SetSeq(seq);
+				result = m_taskManager->HandleRequestTask(task);
+			}
+		}
+		FileLog("LiveChatClient", "CLiveChatClient::CamshareUseTryTicketTask() task:%p end", task);
+	}
+	FileLog("LiveChatClient", "CLiveChatClient::CamshareUseTryTicketTask() end");
 	return result;
 }
 

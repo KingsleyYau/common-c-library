@@ -1120,6 +1120,7 @@ void LiveChatManManager::SendMessageItem(LCMessageItem* item)
             break;
         case LCMessageItem::MT_MagicIcon:
             SendMagicIconProc(item);
+            break;
         default:
             FileLog("LiveChatManager", "SendMessageList() msgType error, msgType:%s", item->m_msgType);
             break;
@@ -3145,7 +3146,7 @@ string LiveChatManManager::GetLogPath()
 }
 
 // ------------------- IRequestLiveChatControllerCallback -------------------
-void LiveChatManManager::OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg)
+void LiveChatManManager::OnCheckCoupon(long requestId, bool success, const Coupon& item, const string& userId, const string& errnum, const string& errmsg)
 {
 	LCUserItem* userItem = m_userMgr->GetUserItem(userId);
 
@@ -3190,7 +3191,7 @@ void LiveChatManManager::OnCheckCoupon(long requestId, bool success, Coupon item
 	}
 }
 
-void LiveChatManManager::OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId)
+void LiveChatManManager::OnUseCoupon(long requestId, bool success, const string& errnum, const string& errmsg, const string& userId, const string& couponid)
 {
 	bool isUseTryTicketOk = false;
 	if (success) {
@@ -3204,7 +3205,7 @@ void LiveChatManManager::OnUseCoupon(long requestId, bool success, string errnum
 	}
 }
 
-void LiveChatManManager::OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId)
+void LiveChatManManager::OnQueryChatRecord(long requestId, bool success, int dbTime, const list<Record>& recordList, const string& errnum, const string& errmsg, const string& inviteId)
 {
 	LCUserItem* userItem = NULL;
 	if (success)
@@ -3252,7 +3253,7 @@ void LiveChatManManager::OnQueryChatRecord(long requestId, bool success, int dbT
 	m_listener->OnGetHistoryMessage(success, errnum, errmsg, userItem);
 }
 
-void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg)
+void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, const list<RecordMutiple>& recordMutiList, const string& errnum, const string& errmsg)
 {
 	FileLog("LiveChatManager", "OnQueryChatRecordMutiple() requestId:%d, success:%d, dbTime:%d, recordMutiList.size:%d, errnum:%s, errmsg:%s"
 			, requestId, success, dbTime, recordMutiList.size(), errnum.c_str(), errmsg.c_str());
@@ -3317,6 +3318,7 @@ void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, 
 
 	FileLog("LiveChatManager", "OnQueryChatRecordMutiple() OnGetUsersHistoryMessage() requestId:%d, success:%d, listener:%p"
 			, requestId, success, m_listener);
+     m_isGetHistory = true;
 	// callback
 	m_listener->OnGetUsersHistoryMessage(success, errnum, errmsg, userList);
 
@@ -3324,7 +3326,6 @@ void LiveChatManManager::OnQueryChatRecordMutiple(long requestId, bool success, 
 	m_getUsersHistoryMsgRequestId = HTTPREQUEST_INVALIDREQUESTID;
 
     if (success) {
-        m_isGetHistory = true;
         // 使用试聊券，发送待发消息
         InsertRequestTask(REQUEST_TASK_CheckCouponWithToSendUser);
     }
@@ -3386,7 +3387,12 @@ void LiveChatManManager::OnSendLadyPhoto(LCC_ERR_TYPE err, const string& errmsg,
 void LiveChatManManager::OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg)
 {
 	LCMessageItem* item = m_photoMgr->GetAndRemoveRequestItem(requestId);
-	LCPhotoItem* photoItem = item->GetPhotoItem();
+    LCPhotoItem* photoItem = nullptr;
+    // 防止清除消息导致的空指针调用
+    if (item != NULL) {
+        photoItem = item->GetPhotoItem();
+    }
+//	LCPhotoItem* photoItem = item->GetPhotoItem();
 	if (NULL == item || NULL == photoItem) {
 		FileLog("LiveChatManager", "OnPhotoFee() get request item fail, requestId:%d", requestId);
 		return;

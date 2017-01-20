@@ -27,11 +27,38 @@ public:
 				status = (CouponStatus)root[COMMON_RESULT].asInt();
 				result = true;
 			}
+			if(root[COMMON_DATA].isObject()){
+				Json::Value dataJson = root[COMMON_DATA];
+				if(dataJson[LIVECHAT_TRYCHAT_FREETRIAL].isString()){
+					freetrial = atoi(dataJson[LIVECHAT_TRYCHAT_FREETRIAL].asString().c_str());
+				}
+				if(dataJson[LIVECHAT_TRYCHAT_REFUNDFLAG].isInt()){
+					refundflag = dataJson[LIVECHAT_TRYCHAT_REFUNDFLAG].asInt() == 1 ? true:false;
+				}
+				if(dataJson[LIVECHAT_TRYCHAT_FESTIVALID].isString()){
+					festivalid = dataJson[LIVECHAT_TRYCHAT_FESTIVALID].asString();
+				}
+				if(dataJson[LIVECHAT_TRYCHAT_TIME].isInt()){
+					time = dataJson[LIVECHAT_TRYCHAT_TIME].asInt();
+				}
+				if(dataJson[LIVECHAT_TRYCHAT_COUPONID].isString()){
+					couponid = dataJson[LIVECHAT_TRYCHAT_COUPONID].asString();
+				}
+				if(dataJson[LIVECHAT_TRYCHAT_ENDDATE].isString()){
+					enddate = dataJson[LIVECHAT_TRYCHAT_ENDDATE].asString();
+				}
+			}
 		}
 		return result;
 	}
 
 	Coupon() {		status = CouponStatus_None;
+		freetrial = 0;
+		refundflag = false;
+		festivalid = "";
+		time = 0;
+		couponid = "";
+		enddate = "";
 	}
 	virtual ~Coupon() {
 
@@ -42,6 +69,12 @@ public:
 	 * @param status			试聊状态
 	 */
 	CouponStatus status;
+	int freetrial;
+	bool refundflag;
+	string festivalid;
+	int time;
+	string couponid;
+	string enddate;
 };
 
 #endif /* COUPON_H_ */

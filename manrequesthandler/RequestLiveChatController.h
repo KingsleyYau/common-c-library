@@ -66,25 +66,25 @@ public:
 	IRequestLiveChatControllerCallback() {}
 	virtual ~IRequestLiveChatControllerCallback() {}
 public:
-	virtual void OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg) {};
-	virtual void OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId) {};
-	virtual void OnQueryChatVirtualGift(long requestId, bool success, list<Gift> giftList, int totalCount, string path, string version,string errnum, string errmsg) {};
-	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId) {};
-	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg) {};
+    virtual void OnCheckCoupon(long requestId, bool success, const Coupon& item, const string& userId, const string& errnum, const string& errmsg) {};
+    virtual void OnUseCoupon(long requestId, bool success, const string& errnum, const string& errmsg, const string& userId, const string& couponid) {};
+	virtual void OnQueryChatVirtualGift(long requestId, bool success, const list<Gift>& giftList, int totalCount, const string& path, const string& version, const string& errnum, const string& errmsg) {};
+	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, const list<Record>& recordList, const string& errnum, const string& errmsg, const string& inviteId) {};
+	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, const list<RecordMutiple>& recordMutiList, const string& errnum, const string& errmsg) {};
 	virtual void OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item) {};
 	virtual void OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg) {};
 	virtual void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
 	virtual void OnUploadVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& voiceId) {};
 	virtual void OnPlayVoice(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
 	virtual void OnSendGift(long requestId, bool success, const string& errnum, const string& errmsg) {};
-	virtual void OnQueryRecentVideoList(long requestId, bool success, list<LCVideoItem> itemList, string errnum, string errmsg) {};
+	virtual void OnQueryRecentVideoList(long requestId, bool success, const list<LCVideoItem>& itemList, const string& errnum, const string& errmsg) {};
 	virtual void OnGetVideoPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) {};
 	virtual void OnGetVideo(long requestId, bool success, const string& errnum, const string& errmsg, const string& url) {};
 	virtual void OnGetMagicIconConfig(long requestId, bool success, const string& errnum, const string& errmsg,const MagicIconConfig& config){};
 	virtual void OnChatRecharge(long requestId, bool success, const string& errnum, const string& errmsg, double credits) {};
 	virtual void OnGetThemeConfig(long requestId, bool success, const string& errnum, const string& errmsg, const ThemeConfig& config){};
 	virtual void OnGetThemeDetail(long requestId, bool success, const string& errnum, const string& errmsg, const ThemeItemList& themeList){};
-	virtual void OnCheckFunctions(long requestId, bool success, const string& errnum, const string& errmsg, list<string>& flagList) {};
+	virtual void OnCheckFunctions(long requestId, bool success, const string& errnum, const string& errmsg, const list<string>& flagList) {};
 };
 
 

@@ -133,6 +133,8 @@ public:
 	virtual bool CamShareHearbeat(const string& userId, const string& inviteId);
 	// 批量获取女士端Cam状态
 	virtual bool GetUsersCamStatus(const UserIdList& list);
+	// Camshare使用试聊券
+	virtual bool CamshareUseTryTicket(const string& targetId, const string& ticketId);
 public:
 	// 获取用户账号
 	virtual string GetUser();

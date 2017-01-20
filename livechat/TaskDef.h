@@ -74,6 +74,7 @@ typedef enum {
 	TCMD_LADYACCEPTCAMINVITE   = 253, // 女士接受男士Cam邀请(仅女士端)
 	TCMD_CAMSHAREHEARBEAT      = 286, // CamShare聊天扣费心跳
 	TCMD_GETUSERSCAMSTATUS     = 265, // 批量获取女士端Cam状态（仅男士端）
+	TCMD_CAMSHAREUSETRYTICKET  = 279, // Camshare使用试聊券
 	// 服务器主动请求命令
 	TCMD_RECVMSG		    = 24,	// 文字聊天信息通知
 	TCMD_RECVEMOTION	    = 101,	// 高级表情聊天信息通知
@@ -169,7 +170,8 @@ inline bool IsRequestCmd(int cmd)
 	case TCMD_LADYACCEPTCAMINVITE:  // 女士接受男士Cam邀请(仅女士端)
 	case TCMD_CAMSHAREHEARBEAT:     // CamShare聊天扣费心跳
 	case TCMD_GETUSERSCAMSTATUS:    // 批量获取女士端Cam状态（仅男士端）
-	case TCMD_GETSESSIONINFO:          //获取会话信息（仅男士端使用）
+	case TCMD_GETSESSIONINFO:       //获取会话信息（仅男士端使用）
+	case TCMD_CAMSHAREUSETRYTICKET: //Camshare使用试聊券
 		result = true;	// 主动请求的命令
 		break;
 	default:

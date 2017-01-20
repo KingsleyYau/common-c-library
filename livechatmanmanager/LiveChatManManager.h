@@ -399,10 +399,10 @@ private:
 
 	// ------------------- IRequestLiveChatControllerCallback -------------------
 private:
-	virtual void OnCheckCoupon(long requestId, bool success, Coupon item, string userId, string errnum, string errmsg) override;
-	virtual void OnUseCoupon(long requestId, bool success, string errnum, string errmsg, string userId) override;
-	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, list<Record> recordList, string errnum, string errmsg, string inviteId) override;
-	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, list<RecordMutiple> recordMutiList, string errnum, string errmsg) override;
+	virtual void OnCheckCoupon(long requestId, bool success, const Coupon& item, const string& userId, const string& errnum, const string& errmsg) override;
+	virtual void OnUseCoupon(long requestId, bool success, const string& errnum, const string& errmsg, const string& userId, const string& couponid) override;
+	virtual void OnQueryChatRecord(long requestId, bool success, int dbTime, const list<Record>& recordList, const string& errnum, const string& errmsg, const string& inviteId) override;
+	virtual void OnQueryChatRecordMutiple(long requestId, bool success, int dbTime, const list<RecordMutiple>& recordMutiList, const string& errnum, const string& errmsg) override;
 	virtual void OnSendPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const LCSendPhotoItem& item) override;
 	virtual void OnPhotoFee(long requestId, bool success, const string& errnum, const string& errmsg) override;
 	virtual void OnGetPhoto(long requestId, bool success, const string& errnum, const string& errmsg, const string& filePath) override;

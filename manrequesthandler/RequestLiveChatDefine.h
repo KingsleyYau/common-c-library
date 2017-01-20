@@ -27,6 +27,13 @@ typedef enum {
 	CouponStatus_Started    = 2,	// 已开始使用(2)
 	CouponStatus_Promotion  = 3,	// 促销(3)
 } CouponStatus;
+#define LIVECHAT_TRYCHAT_FREETRIAL		"lc_freetrial"
+#define LIVECHAT_TRYCHAT_REFUNDFLAG		"refundflag"
+#define LIVECHAT_TRYCHAT_FESTIVALID		"festivalid"
+#define LIVECHAT_TRYCHAT_TIME			"time"
+#define LIVECHAT_TRYCHAT_COUPONID		"couponid"
+#define LIVECHAT_TRYCHAT_ENDDATE		"enddate"
+
 
 /* 5.3.获取虚拟礼物列表 */
 #define LIVECHAT_SESSIONID				"user_sid"
